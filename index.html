@@ -60,14 +60,16 @@ i { font-style: italic; }
 /* ---------- Panel samping ---------- */
 .panel {
   flex: 1 1 360px; min-width: 0; min-height: 1120px; position: relative; isolation: isolate; overflow: hidden;
-  background: var(--laut-tua); color: var(--putih); padding: 34px 36px 30px;
-  display: flex; flex-direction: column; gap: 22px;
+  background: var(--laut-tua); color: var(--putih); padding: 28px 36px 30px;
+  display: flex; flex-direction: column; gap: 18px;
 }
 .panel-foto, .panel-tabir { position: absolute; left: 0; right: 0; bottom: 0; }
-.panel-foto { height: 470px; }
-.panel-tabir { height: 540px; }   /* lebih tinggi daripada foto, supaya tepi atas foto tertutup penuh */
+/* Panel terbagi kira-kira separuh teks dan separuh foto. Tabir sedikit lebih tinggi daripada foto,
+   supaya tepi atas foto tertutup penuh sebelum peralihannya dimulai. */
+.panel-foto { height: 54%; }
+.panel-tabir { height: 60%; }
 .panel-foto {
-  z-index: -2; background: url("banner-balikpapan.jpg") 74% center / cover no-repeat;
+  z-index: -2; background: url("banner-balikpapan.jpg") 72% center / cover no-repeat;
   transition: opacity .5s ease;
 }
 .panel-foto.memudar { opacity: 0; }
@@ -76,16 +78,16 @@ i { font-style: italic; }
   /* Peralihan panel ke foto memakai kurva halus (banyak titik henti), bukan garis lurus, supaya tidak tampak sebagai pita.
      Lapisan pertama menggelapkan dasar foto untuk keterangan. */
   background:
-    linear-gradient(to bottom, rgba(var(--rgb-gelap),0) 78%, rgba(var(--rgb-gelap),.55) 100%),
+    linear-gradient(to bottom, rgba(var(--rgb-gelap),0) 80%, rgba(var(--rgb-gelap),.55) 100%),
     linear-gradient(to bottom,
-      rgb(var(--rgb-laut)) 10%, rgba(var(--rgb-laut),.972) 15.2%, rgba(var(--rgb-laut),.896) 20.4%,
-      rgba(var(--rgb-laut),.784) 25.6%, rgba(var(--rgb-laut),.648) 30.8%, rgba(var(--rgb-laut),.5) 36%,
-      rgba(var(--rgb-laut),.352) 41.2%, rgba(var(--rgb-laut),.216) 46.4%, rgba(var(--rgb-laut),.104) 51.6%,
-      rgba(var(--rgb-laut),.028) 56.8%, rgba(var(--rgb-laut),0) 62%);
+      rgb(var(--rgb-laut)) 8%, rgba(var(--rgb-laut),.972) 10.2%, rgba(var(--rgb-laut),.896) 12.4%,
+      rgba(var(--rgb-laut),.784) 14.6%, rgba(var(--rgb-laut),.648) 16.8%, rgba(var(--rgb-laut),.5) 19%,
+      rgba(var(--rgb-laut),.352) 21.2%, rgba(var(--rgb-laut),.216) 23.4%, rgba(var(--rgb-laut),.104) 25.6%,
+      rgba(var(--rgb-laut),.028) 27.8%, rgba(var(--rgb-laut),0) 30%);
 }
 .merek { color: var(--putih); font: 800 21px/1.1 var(--huruf); letter-spacing: -.02em; text-decoration: none; align-self: flex-start; }
 .merek small { display: block; margin-top: 4px; color: var(--panel-kecil); font: 600 11px/1.4 var(--huruf); letter-spacing: .18em; }
-.panel-judul { display: flex; flex-direction: column; gap: 12px; padding-top: 18px; }
+.panel-judul { display: flex; flex-direction: column; gap: 12px; padding-top: 6px; }
 .label { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .15em; line-height: 1.55; text-transform: uppercase; }
 .panel .label { color: var(--emas-terang); }
 h1 { margin: 0; font-size: 32px; font-weight: 700; line-height: 1.1; letter-spacing: -.025em; text-wrap: balance; }
@@ -93,8 +95,8 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
 .panel-deskripsi { margin: 0; color: var(--panel-teks); font-size: 15px; line-height: 1.6; }
 .kelompok { display: flex; flex-direction: column; gap: 4px; margin: 4px -12px 0; }
 .kelompok a {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px;
-  padding: 8px 12px; border-radius: 6px; color: var(--putih); font-size: 15px; font-weight: 600; text-decoration: none;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 40px;
+  padding: 6px 12px; border-radius: 6px; color: var(--putih); font-size: 15px; font-weight: 600; text-decoration: none;
   transition: background-color .16s ease;
 }
 .kelompok a:hover { background: rgba(255,255,255,.14); }
@@ -162,7 +164,7 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
   .panel { min-height: 0; padding: 26px var(--tepi) 24px; gap: 18px; }
   .panel-judul { padding-top: 6px; }
   .kelompok { flex-direction: row; flex-wrap: wrap; gap: 8px; margin: 0; }
-  .kelompok a { background: rgba(255,255,255,.12); padding: 6px 8px 6px 14px; border-radius: 999px; }
+  .kelompok a { background: rgba(255,255,255,.12); min-height: 44px; padding: 6px 8px 6px 14px; border-radius: 999px; }
   .panel-keterangan { padding-top: 170px; }
   .panel-foto { height: 300px; }
   /* Di layar sempit menu kelompok menimpa bagian atas foto, jadi peralihannya dimulai sedikit lebih rendah. */
@@ -327,17 +329,17 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
      ============================================================ */
   var MENIT_PER_BANNER = 10;
   var DAFTAR_BANNER = [
-    { berkas: "banner-balikpapan.jpg", posisi: "74% center",
+    { berkas: "banner-balikpapan.jpg", posisi: "72% center",
       uraian: "Pemandangan Teluk Balikpapan saat matahari terbit dengan gedung kota, pelabuhan, kapal, dan hutan mangrove" },
-    { berkas: "banner-masjid.jpg", posisi: "72% center",
+    { berkas: "banner-masjid.jpg", posisi: "70% center",
       uraian: "Masjid berkubah biru dengan empat menara di tengah kota, berlatar teluk dan perbukitan" },
     { berkas: "banner-taman.jpg", posisi: "51% center",
       uraian: "Taman kota dengan air mancur di tengah, dikelilingi pohon palem dan gedung perkantoran" },
-    { berkas: "banner-pantai.jpg", posisi: "21% center",
+    { berkas: "banner-pantai.jpg", posisi: "24% center",
       uraian: "Jalur pejalan kaki di tepi pantai dengan pohon palem, bebatuan, dan gedung kota di kejauhan" },
-    { berkas: "banner-enggang.jpg", posisi: "15% center",
+    { berkas: "banner-enggang.jpg", posisi: "19% center",
       uraian: "Burung enggang terbang di atas hutan hujan berkabut dengan kota dan teluk saat matahari terbit" },
-    { berkas: "banner-beruang.jpg", posisi: "100% center",
+    { berkas: "banner-beruang.jpg", posisi: "94% center",
       uraian: "Beruang madu di lereng hutan hujan memandang kota dan teluk saat matahari terbit" }
   ];
 
