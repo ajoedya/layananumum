@@ -14,70 +14,40 @@
 <title>Layanan Subbagian Umum | KPKNL Balikpapan</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap">
 <style>
-/* Tata letak mengikuti beranda Perkakas PDF (Editorial Split v2): menu atas, kiri narasi dan banner,
-   kanan katalog 9 kartu (3 x 3), pita penutup, dan pita anyaman di tepi halaman.
-   Tema: Sunrise Balikpapan, warnanya diturunkan dari foto banner. Semua warna lewat variabel di bawah, satu tampilan terang. */
+/* Tata letak: panel samping biru laut (merek, judul, menu kelompok, foto banner yang berganti)
+   dan kolom isi berupa baris layanan bernomor per kelompok. Satu tampilan terang.
+   Semua warna lewat variabel di bawah. Daftar banner dan jeda pergantiannya ada di skrip paling bawah. */
 :root {
   color-scheme: light;
   --huruf: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-
-  /* Palet dari foto banner: biru laut untuk teks, emas matahari untuk aksen, hijau mangrove untuk pil */
   --laut-tua: #0f3554;
   --laut-hover: #1b4d75;
-  --emas: #c98a1e;
-  --emas-tua: #b8700f;        /* judul besar dan garis penanda */
-  --emas-teks: #8a5208;       /* teks aksen kecil, kontras 6:1 */
+  --emas-tua: #b8700f;
+  --emas-teks: #8a5208;
   --emas-muda: #fff6e1;
   --emas-garis: #e9d3a0;
   --emas-terang: #ffd27a;
   --putih: #ffffff;
-  --latar: #fbfdfc;
-  --tinta: #0f3554;
+  --latar: #f5f8fa;
   --tinta-lembut: #4f6577;
-  --garis: #e3eaee;
-  --menu-latar: #fdfefe;
-  --menu-garis: #e3ebef;
-  --tombol-polos: #fbfdfd;
-  --hover-hangat: #fff4dc;
-  --teks-contoh: #677d8e;
-  --fokus-lembut: #cfe1f0;
-  --kartu-garis: #e2e9ec;
-  --kartu-garis-hover: #e0b75c;
-  --kartu-latar-hover: #fffdf6;
+  --garis: #e2e9ec;
   --cari-garis: #cdd9e0;
-  --cari-tombol: #0f3554;
-  --cari-fokus: #e0b75c;
-  --tautan-kartu: #0f4a78;
-  --pil-latar: #e4f1e0;
-  --pil-teks: #2c5a22;
-  --pil-arsip-latar: #e6ecf1;
-  --pil-arsip-teks: #45596b;
-  --kosong-latar: #fff6e1;
-  --penutup-1: #e6f2fb;
-  --penutup-2: #fbfdfb;
-  --penutup-3: #fff0cc;
-  --kaki-garis: #e6edf0;
+  --tombol-polos: #fbfdfd;
+  --baris-hover: #fff8e6;
+  --tautan: #0f4a78;
+  --teks-contoh: #677d8e;
+  --arsip-teks: #45596b;
+  --panel-teks: #dbe6ee;
+  --panel-kecil: #c9d8e4;
   --bayang-teks: #0a2338;
+  --rgb-laut: 15, 53, 84;
   --rgb-gelap: 10, 40, 66;
-  --rgb-bayangan-kartu: 15, 53, 84;
-  --rgb-semburat: 170, 210, 242;     /* biru langit di belakang banner */
-  --rgb-semburat-2: 255, 214, 130;   /* pendar emas di sisi matahari */
-  --bayangan-lg: 0 10px 25px rgba(15, 53, 84, .12);
-  --transisi: background-color .16s ease, border-color .16s ease, color .16s ease, box-shadow .16s ease;
-
-  --gutter: clamp(18px, 6.2vw, 94px);
-  --column-gap: clamp(22px, 3.85vw, 56px);
-  --anyaman: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='24' viewBox='0 0 48 24' fill='none' stroke='%23b8862a' stroke-linejoin='round'%3E%3Cpath d='M12 0 24 12 12 24 0 12ZM36 0 48 12 36 24 24 12Z' stroke-width='1.2'/%3E%3Cpath d='M12 6 18 12 12 18 6 12ZM36 6 42 12 36 18 30 12Z' stroke-width='1'/%3E%3Ccircle cx='12' cy='12' r='1.4' fill='%23b8862a' stroke='none'/%3E%3Ccircle cx='36' cy='12' r='1.4' fill='%23b8862a' stroke='none'/%3E%3C/svg%3E");
+  --tepi: clamp(18px, 4vw, 56px);
 }
 *, *::before, *::after { box-sizing: border-box; }
 body {
-  margin: 0;
-  background: var(--latar);
-  color: var(--laut-tua);
-  font-family: var(--huruf);
-  font-size: 15px;
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
+  margin: 0; background: var(--latar); color: var(--laut-tua);
+  font-family: var(--huruf); font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased;
 }
 i { font-style: italic; }
 .sr-only {
@@ -85,480 +55,356 @@ i { font-style: italic; }
   margin: -1px !important; overflow: hidden !important; clip: rect(0,0,0,0) !important;
   white-space: nowrap !important; border: 0 !important;
 }
+.halaman { display: flex; flex-wrap: wrap; align-items: stretch; }
 
-/* ---------- Menu atas ---------- */
-.menu {
-  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 100; isolation: isolate;
-  background: var(--menu-latar); border-bottom: 1px solid var(--menu-garis);
+/* ---------- Panel samping ---------- */
+.panel {
+  flex: 1 1 360px; min-width: 0; min-height: 1040px; position: relative; isolation: isolate; overflow: hidden;
+  background: var(--laut-tua); color: var(--putih); padding: 34px 36px 30px;
+  display: flex; flex-direction: column; gap: 22px;
 }
-.menu-isi {
-  max-width: 1550px; margin: 0 auto; min-height: 79px; padding: 10px var(--gutter);
-  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px;
+.panel-foto, .panel-tabir { position: absolute; left: 0; right: 0; bottom: 0; height: 460px; }
+.panel-foto {
+  z-index: -2; background: url("banner-balikpapan.jpg") 74% center / cover no-repeat;
+  transition: opacity .5s ease;
 }
-.menu-nama {
-  margin-right: auto; color: var(--laut-tua); font: 800 21px/1.1 var(--huruf);
-  letter-spacing: -.02em; text-decoration: none;
+.panel-foto.memudar { opacity: 0; }
+.panel-tabir {
+  z-index: -1;
+  /* Di layar lebar foto berada di bawah menu, jadi tabirnya cukup tipis supaya foto tampak jelas. */
+  background: linear-gradient(to bottom, rgb(var(--rgb-laut)) 0%, rgba(var(--rgb-laut),.5) 22%, rgba(var(--rgb-laut),.06) 50%, rgba(var(--rgb-laut),0) 70%, rgba(var(--rgb-gelap),.55) 100%);
 }
-.menu-nama small {
-  display: block; margin-top: 4px; color: var(--tinta-lembut);
-  font: 600 11px/1.4 var(--huruf); letter-spacing: .18em;
+.merek { color: var(--putih); font: 800 21px/1.1 var(--huruf); letter-spacing: -.02em; text-decoration: none; align-self: flex-start; }
+.merek small { display: block; margin-top: 4px; color: var(--panel-kecil); font: 600 11px/1.4 var(--huruf); letter-spacing: .18em; }
+.panel-judul { display: flex; flex-direction: column; gap: 12px; padding-top: 18px; }
+.label { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .15em; line-height: 1.55; text-transform: uppercase; }
+.panel .label { color: var(--emas-terang); }
+h1 { margin: 0; font-size: 32px; font-weight: 700; line-height: 1.1; letter-spacing: -.025em; text-wrap: balance; }
+h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size: 22px; line-height: 1.25; letter-spacing: -.02em; }
+.panel-deskripsi { margin: 0; color: var(--panel-teks); font-size: 15px; line-height: 1.6; }
+.kelompok { display: flex; flex-direction: column; gap: 4px; margin: 4px -12px 0; }
+.kelompok a {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px;
+  padding: 8px 12px; border-radius: 6px; color: var(--putih); font-size: 15px; font-weight: 600; text-decoration: none;
+  transition: background-color .16s ease;
 }
-.menu-beranda {
-  color: var(--laut-tua); font-size: 15px; font-weight: 600; text-decoration: none;
-  padding: 10px 7px; margin-right: 10px; border-bottom: 2px solid var(--emas-tua);
+.kelompok a:hover { background: rgba(255,255,255,.14); }
+.kelompok b {
+  min-width: 26px; padding: 2px 8px; border-radius: 12px; background: rgba(255,255,255,.16);
+  font-size: 12px; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums;
 }
-.menu-nama:focus-visible, .menu-beranda:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: 3px; }
-.menu-dropdown-wrapper { position: relative; display: inline-block; }
-.menu-dropdown-btn {
-  display: flex; align-items: center; gap: 8px; padding: 12px 21px;
-  background: var(--tombol-polos); border: 1px solid var(--emas-garis); border-radius: 5px;
-  color: var(--laut-tua); font: 600 15px/1.2 var(--huruf); cursor: pointer; transition: var(--transisi);
-}
-.menu-dropdown-btn:hover, .menu-dropdown-btn[aria-expanded="true"] { background: var(--hover-hangat); border-color: var(--emas-tua); }
-.menu-dropdown-btn:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: 3px; }
-.menu-dropdown-content {
-  display: none; position: absolute; right: 0; top: calc(100% + 8px); min-width: 270px;
-  max-height: min(70vh, 540px); overflow-y: auto; background: var(--putih);
-  border: 1px solid var(--garis); border-radius: 4px; box-shadow: var(--bayangan-lg); z-index: 1000;
-}
-.menu-dropdown-wrapper.terbuka .menu-dropdown-content { display: block; }
-.menu-dropdown-content a {
-  display: block; padding: 12px 18px; color: var(--tinta); font-size: 15px; font-weight: 500;
-  text-decoration: none; border-bottom: 1px solid var(--garis); border-left: 3px solid transparent;
-  transition: var(--transisi);
-}
-.menu-dropdown-content a:last-child { border-bottom: 0; }
-.menu-dropdown-content a:hover { background: var(--hover-hangat); border-left-color: var(--emas-tua); }
-.menu-dropdown-content a:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: -3px; }
-
-/* ---------- Editorial split ---------- */
-.editorial-halaman { max-width: 1550px; margin: 0 auto; padding-inline: var(--gutter); overflow-x: clip; }
-.editorial-split {
-  position: relative; display: grid;
-  grid-template-columns: minmax(0, .456fr) minmax(0, .544fr);
-  column-gap: var(--column-gap); align-items: stretch;
-}
-.editorial-split::before, .editorial-split::after {
-  content: ""; position: absolute; z-index: 2; pointer-events: none; width: 48px; top: 0; bottom: 0;
-  background: var(--anyaman) left top / 48px 24px repeat-y; opacity: .2;
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 9%, #000 91%, transparent);
-  mask-image: linear-gradient(to bottom, transparent, #000 9%, #000 91%, transparent);
-}
-.editorial-split::before { left: calc(var(--gutter) * -.5 - 24px); }
-.editorial-split::after { right: calc(var(--gutter) * -.5 - 24px); }
-.editorial-cerita { min-width: 0; display: flex; flex-direction: column; position: relative; }
-.editorial-pembuka { z-index: 1; padding: 34px 10px 0 0; position: relative; }
-.editorial-label {
-  color: var(--emas-teks); font-size: 12px; font-weight: 700; letter-spacing: .15em;
-  line-height: 1.55; text-transform: uppercase; margin: 0 0 16px;
-}
-.editorial-label span { padding: 0 5px; }
-h1, h2, .editorial-kartu strong { font-family: var(--huruf); letter-spacing: -.025em; font-weight: 700; }
-h1 {
-  color: var(--laut-tua); font-size: clamp(38px, 3.6vw, 54px); line-height: 1.06;
-  margin: 0 0 19px; max-width: 600px; text-wrap: balance;
-}
-h1 span { display: block; color: var(--emas-tua); }
-.editorial-deskripsi {
-  max-width: 53ch; color: var(--tinta-lembut); font-size: 17px; line-height: 1.65; margin: 0 0 21px;
-}
-.editorial-kabar {
-  background: var(--emas-muda); border-left: 3px solid var(--emas-tua); border-radius: 4px;
-  padding: 13px 21px 15px 25px; margin: 0 0 22px; max-width: 600px;
-}
-.editorial-kabar-label {
-  font-size: 12px; line-height: 1.5; letter-spacing: .13em; color: var(--emas-teks);
-  font-weight: 700; margin: 0 0 5px;
-}
-.editorial-kabar strong { display: block; font: 700 17px/1.3 var(--huruf); color: var(--laut-tua); margin: 0 0 4px; }
-.editorial-kabar > p:last-child { margin: 0; font-size: 14px; line-height: 1.55; color: var(--tinta-lembut); }
-.editorial-cari { display: block; margin: 0; max-width: 600px; }
-.editorial-cari-baris {
-  display: flex; overflow: hidden; background: var(--putih);
-  border: 1px solid var(--cari-garis); border-radius: 5px;
-}
-.editorial-cari-baris:focus-within { outline: 3px solid var(--fokus-lembut); outline-offset: 1px; }
-#cariLayanan {
-  flex: 1 1 auto; min-width: 0; width: 100%; margin: 0; border: 0; outline: 0; background: transparent;
-  color: var(--laut-tua); font: 400 16px var(--huruf); min-height: 50px; padding: 12px 17px;
-}
-#cariLayanan::placeholder { color: var(--teks-contoh); opacity: 1; }
-.editorial-cari button {
-  flex: none; min-width: 112px; min-height: 48px; border: 0; background: var(--cari-tombol);
-  color: var(--putih); font: 600 15px var(--huruf); cursor: pointer; padding: 10px 19px;
-}
-.editorial-cari button:hover { background: var(--laut-hover); }
-.editorial-cari button:focus-visible { outline: 3px solid var(--cari-fokus); outline-offset: -3px; }
-
-/* Semburat fajar di belakang banner */
-.editorial-cerita::after {
-  content: ""; position: absolute; z-index: 0;
-  left: calc(var(--gutter) * -1); right: calc(var(--column-gap) * -.85); bottom: 0;
-  height: clamp(380px, 36vw, 520px);
-  background: radial-gradient(60% 70% at 82% 72%, rgba(var(--rgb-semburat-2),.5), rgba(var(--rgb-semburat-2),0) 70%), linear-gradient(to bottom, rgba(var(--rgb-semburat),0), rgba(var(--rgb-semburat),.38) 58%, rgba(var(--rgb-semburat),.5));
-  -webkit-mask-image: linear-gradient(to right, #000 80%, transparent);
-  mask-image: linear-gradient(to right, #000 80%, transparent);
-  pointer-events: none;
-}
-/* Banner matahari terbit: melebur ke latar di tepi atas dan kanan */
-.editorial-lanskap {
-  margin: auto calc(var(--column-gap) * -.85) 0 calc(var(--gutter) * -1);
-  padding-top: 26px; position: relative; z-index: 1; overflow: hidden;
-  height: clamp(260px, 21vw, 320px);
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 38%), linear-gradient(to right, #000 86%, transparent);
-  -webkit-mask-composite: source-in;
-  mask-image: linear-gradient(to bottom, transparent, #000 38%), linear-gradient(to right, #000 86%, transparent);
-  mask-composite: intersect;
-}
-.editorial-lanskap::after {
-  content: ""; position: absolute; inset: 45% 0 0;
-  background: linear-gradient(to bottom, transparent, rgba(var(--rgb-gelap),.22) 45%, rgba(var(--rgb-gelap),.6));
-  pointer-events: none;
-}
-.editorial-lanskap img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: cover; object-position: 62% center; }
-.editorial-lanskap figcaption {
-  z-index: 2; position: absolute; left: clamp(18px, 6.2vw, 94px); bottom: 20px; right: 18px;
-  color: #fff; display: grid; gap: 4px; font-size: 14px; line-height: 1.4;
-  text-shadow: 0 1px 8px var(--bayang-teks);
-}
-.editorial-lanskap figcaption span:first-child { font-size: 12px; font-weight: 700; letter-spacing: .18em; }
-.editorial-lanskap figcaption b {
-  display: inline-block; background: var(--emas-terang); width: 37px; height: 2px;
-  margin-left: 8px; vertical-align: middle;
-}
-
-/* ---------- Katalog 9 layanan, 3 x 3 ---------- */
-.editorial-alat { padding: 30px 0 18px; min-width: 0; scroll-margin-top: 95px; display: flex; flex-direction: column; }
-.editorial-kartu-grid {
-  display: grid; flex: 1 1 auto; grid-template-columns: repeat(3, minmax(0,1fr));
-  grid-auto-rows: minmax(180px,1fr); gap: 14px;
-}
-.editorial-kartu {
-  display: flex; flex-direction: column; align-items: flex-start; min-width: 0; min-height: 180px;
-  padding: 20px 20px 18px; background: var(--putih); border: 1px solid var(--kartu-garis);
-  border-radius: 4px; color: var(--laut-tua); text-decoration: none;
-  box-shadow: 0 1px 6px rgba(var(--rgb-bayangan-kartu),.03);
-  transition: border-color .16s ease, background-color .16s ease;
-}
-.editorial-kartu:hover {
-  border-color: var(--kartu-garis-hover); background: var(--kartu-latar-hover);
-  box-shadow: 0 1px 8px rgba(var(--rgb-bayangan-kartu),.06);
-}
-.editorial-kartu:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: 3px; }
-.editorial-kartu-nomor {
-  display: flex; flex-wrap: wrap; align-items: center; column-gap: 8px; row-gap: 3px;
-  font: 700 14px/1 var(--huruf); letter-spacing: .08em; font-variant-numeric: tabular-nums;
-  color: var(--emas-teks); margin-bottom: 12px;
-}
-.editorial-kartu-nomor small {
-  display: inline-block; padding: 4px 8px; background: var(--pil-latar); border-radius: 12px;
-  color: var(--pil-teks); font: 700 11px/1 var(--huruf); letter-spacing: .04em;
-}
-.editorial-kartu-nomor small.arsip { background: var(--pil-arsip-latar); color: var(--pil-arsip-teks); }
-.editorial-kartu strong {
-  display: block; color: var(--laut-tua); font-size: clamp(16px, 1.25vw, 18px);
-  line-height: 1.15; margin: 0 0 10px; overflow-wrap: break-word;
-}
-.editorial-kartu .uraian { color: var(--tinta-lembut); font-size: 14px; line-height: 1.55; }
-.editorial-kartu .editorial-buka {
-  margin-top: auto; padding-top: 17px; color: var(--tautan-kartu);
-  font-size: 14px; font-weight: 700; line-height: 1.4;
-}
-.editorial-kartu .editorial-buka span { margin-left: 5px; }
-.editorial-kosong {
-  background: var(--kosong-latar); padding: 18px 22px; border-left: 3px solid var(--emas-tua);
-  color: var(--tinta-lembut); font-size: 15px; margin: 0;
-}
-
-/* ---------- Pita penutup ---------- */
-.editorial-penutup {
-  margin: 0 calc(var(--gutter) * -1); padding: 31px var(--gutter) 33px;
-  background: linear-gradient(to bottom, rgba(var(--rgb-gelap),.09), rgba(var(--rgb-gelap),0) 30px), linear-gradient(110deg,var(--penutup-1),var(--penutup-2) 60%,var(--penutup-3));
-  display: grid; grid-template-columns: minmax(0,1.18fr) minmax(0,1fr); align-items: center; gap: 43px;
-  position: relative; overflow: hidden;
-}
-.editorial-penutup-isi { position: relative; z-index: 1; min-width: 0; }
-.editorial-penutup .editorial-label { margin: 0 0 8px; }
-.editorial-penutup h2 {
-  font-size: clamp(24px, 2.4vw, 34px); line-height: 1.05; margin: 0 0 10px; overflow-wrap: anywhere;
-}
-.editorial-penutup h2 a { color: var(--laut-tua); text-decoration: none; }
-.editorial-penutup h2 a:hover { text-decoration: underline; text-decoration-color: var(--emas-tua); text-underline-offset: 5px; }
-.editorial-penutup-isi > p { color: var(--tinta-lembut); font-size: 15px; line-height: 1.6; margin: 0; }
-.editorial-penutup-isi > p a { color: var(--tautan-kartu); font-weight: 600; text-underline-offset: 3px; }
-.editorial-penutup a:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: 3px; }
-.editorial-penutup-ornamen {
-  align-self: stretch; min-height: 124px; margin: -31px calc(var(--gutter) * -1) -33px 0;
-  background: var(--anyaman) right center / 48px 24px repeat; opacity: .3; pointer-events: none;
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 34%), linear-gradient(to bottom, transparent, #000 22%, #000 78%, transparent);
-  -webkit-mask-composite: source-in;
-  mask-image: linear-gradient(to right, transparent, #000 34%), linear-gradient(to bottom, transparent, #000 22%, #000 78%, transparent);
-  mask-composite: intersect;
-}
-.editorial-kaki {
-  border-top: 1px solid var(--kaki-garis); padding: 13px 0 23px; display: flex;
-  justify-content: space-between; flex-wrap: wrap; gap: 5px 20px;
-  color: var(--tinta-lembut); font-size: 14px; letter-spacing: .01em;
-}
-
-/* ---------- Responsif: 3 kolom, 2 kolom, tablet 3 kolom, ponsel 2 lalu 1 ---------- */
-@media (max-width: 1230px) and (min-width: 1041px) {
-  .editorial-kartu-grid { grid-template-columns: repeat(2,minmax(0,1fr)); grid-auto-rows: minmax(158px,auto); }
-  .editorial-kartu { min-height: 158px; }
-  .editorial-kartu:last-child:nth-child(odd) { grid-column: 1 / -1; min-height: 0; }
-  .editorial-pembuka { padding-top: 30px; }
-  h1 { font-size: clamp(38px,3.8vw,48px); }
-}
-@media (max-width: 1040px) {
-  .editorial-split { grid-template-columns: 1fr; }
-  .editorial-pembuka { padding: 38px 0 30px; }
-  h1 { max-width: 680px; font-size: clamp(40px, 5.4vw, 58px); }
-  .editorial-deskripsi, .editorial-kabar, .editorial-cari { max-width: 620px; }
-  .editorial-lanskap {
-    margin: 10px calc(var(--gutter) * -1) 0; height: 265px;
-    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 38%);
-    mask-image: linear-gradient(to bottom, transparent, #000 38%);
-  }
-  .editorial-cerita::after { right: calc(var(--gutter) * -1); -webkit-mask-image: none; mask-image: none; }
-  .editorial-split::before, .editorial-split::after { width: 24px; }
-  .editorial-split::before { left: calc(var(--gutter) * -.5 - 12px); }
-  .editorial-split::after { right: calc(var(--gutter) * -.5 - 12px); }
-  .editorial-alat { padding: 29px 0 35px; position: relative; }
-  .editorial-alat::before {
-    content: ""; position: absolute; top: 0; left: calc(var(--gutter) * -1); right: calc(var(--gutter) * -1);
-    height: 30px; background: linear-gradient(to bottom, rgba(var(--rgb-gelap),.09), rgba(var(--rgb-gelap),0));
-    pointer-events: none;
-  }
-  .editorial-kartu-grid { grid-template-columns: repeat(3, minmax(0,1fr)); grid-auto-rows: minmax(185px,auto); }
-  .editorial-kartu { min-height: 185px; }
-  .editorial-penutup { grid-template-columns: 1fr; gap: 24px; }
-  .editorial-penutup-ornamen {
-    min-height: 48px; margin: 0 calc(var(--gutter) * -1) -33px; background-position: center top;
-    -webkit-mask-image: linear-gradient(to right, transparent, #000 28%, #000 72%, transparent);
-    mask-image: linear-gradient(to right, transparent, #000 28%, #000 72%, transparent);
-  }
-}
-@media (max-width: 700px) {
-  .editorial-split::before, .editorial-split::after { display: none; }
-  .editorial-pembuka { padding: 30px 0 24px; }
-  h1 { font-size: clamp(34px, 8.4vw, 52px); }
-  .editorial-deskripsi { font-size: 16px; }
-  .editorial-kartu-grid { grid-template-columns: repeat(2,minmax(0,1fr)); grid-auto-rows: minmax(175px,auto); gap: 11px; }
-  .editorial-kartu { padding: 16px 15px; min-height: 175px; }
-  .editorial-kartu:last-child:nth-child(odd) { grid-column: 1 / -1; min-height: 0; }
-  .editorial-kartu strong { font-size: 17px; }
-  .editorial-lanskap { height: 225px; }
-  .menu-isi { min-height: 0; }
-  .menu-dropdown-btn { padding: 11px 15px; }
-  .menu-beranda { margin-right: 0; }
-}
-@media (max-width: 440px) {
-  .editorial-kartu-grid { grid-template-columns: 1fr; grid-auto-rows: auto; }
-  .editorial-kartu, .editorial-kartu:last-child:nth-child(odd) { min-height: 120px; }
-  .editorial-kartu strong { font-size: 18px; }
-  .editorial-kartu-nomor { margin-bottom: 8px; }
-  .editorial-kabar { padding: 14px 17px; }
-  .editorial-cari button { min-width: 80px; }
-  .menu-beranda { display: none; }
-  .menu-dropdown-content { min-width: min(270px, calc(100vw - 36px)); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .editorial-kartu, .menu-dropdown-btn, .menu-dropdown-content a { transition: none; }
-}
-
-/* ---------- Foto sebagai latar bagian utama ----------
-   Lapisan terang di atas foto menjaga teks tetap terbaca, lapisan gelap tipis di dasar untuk keterangan. */
-:root { --rgb-latar: 251, 253, 252; --tinta-sedang: #2f4a63; }
-.editorial-deskripsi { color: var(--tinta-sedang); }
-.editorial-split { isolation: isolate; }
-.editorial-cerita::after { display: none; }
-.editorial-split::before, .editorial-split::after {
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 9%, #000 45%, transparent 70%);
-  mask-image: linear-gradient(to bottom, transparent, #000 9%, #000 45%, transparent 70%);
-}
-.latar-foto {
-  position: absolute; z-index: -1; top: 0; bottom: 0;
-  left: calc(var(--gutter) * -1); right: calc(var(--gutter) * -1); pointer-events: none;
-  background:
-    linear-gradient(to top, rgba(var(--rgb-gelap),.45), rgba(var(--rgb-gelap),0) 22%),
-    linear-gradient(to bottom, rgba(var(--rgb-latar),.93) 0%, rgba(var(--rgb-latar),.86) 42%, rgba(var(--rgb-latar),.4) 76%, rgba(var(--rgb-latar),.1) 100%),
-    url("banner-balikpapan.jpg") 100% 60% / cover no-repeat;
-}
-.latar-sempit { display: none; }
-.editorial-kartu {
-  background: rgba(255,255,255,.86);
-  -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%);
-  border-color: rgba(255,255,255,.7);
-  box-shadow: 0 6px 20px rgba(var(--rgb-bayangan-kartu),.12);
-}
-.editorial-kartu:hover { background: rgba(255,255,255,.96); border-color: var(--kartu-garis-hover); box-shadow: 0 8px 24px rgba(var(--rgb-bayangan-kartu),.16); }
-.editorial-foto-keterangan {
-  position: relative; z-index: 1; margin: auto 0 0; padding: 130px 0 26px; color: #fff;
-  display: grid; gap: 4px; font-size: 14px; line-height: 1.4;
+.panel-keterangan {
+  margin: auto 0 0; padding-top: 150px; display: grid; gap: 4px; font-size: 14px; line-height: 1.4;
   text-shadow: 0 1px 8px var(--bayang-teks), 0 0 2px var(--bayang-teks);
 }
-.editorial-foto-keterangan span:first-child { font-size: 12px; font-weight: 700; letter-spacing: .18em; }
-.editorial-foto-keterangan b { display: inline-block; background: var(--emas-terang); width: 37px; height: 2px; margin-left: 8px; vertical-align: middle; }
-@media (max-width: 1040px) {
-  .latar-lebar { display: none; }
-  .latar-sempit { display: block; background-position: 0 0, 0 0, 78% 60%; }
+.panel-keterangan span:first-child { font-size: 12px; font-weight: 700; letter-spacing: .18em; }
+.panel-keterangan u { display: inline-block; background: var(--emas-terang); width: 37px; height: 2px; margin-left: 8px; vertical-align: middle; }
+.merek:focus-visible, .kelompok a:focus-visible { outline: 3px solid var(--emas-terang); outline-offset: 3px; }
+
+/* ---------- Kolom isi ---------- */
+.isi { flex: 999 1 560px; min-width: 0; padding: 32px var(--tepi) 26px; display: flex; flex-direction: column; gap: 22px; }
+.alat { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
+.cari { flex: 1 1 320px; min-width: 0; display: flex; overflow: hidden; margin: 0; background: var(--putih); border: 1px solid var(--cari-garis); border-radius: 6px; }
+.cari:focus-within { outline: 3px solid var(--emas-garis); outline-offset: 1px; }
+#cariLayanan {
+  flex: 1 1 auto; min-width: 0; width: 100%; border: 0; outline: 0; background: transparent;
+  color: var(--laut-tua); font: 400 16px var(--huruf); min-height: 48px; padding: 10px 17px;
+}
+#cariLayanan::placeholder { color: var(--teks-contoh); opacity: 1; }
+.cari button {
+  flex: none; min-width: 96px; min-height: 48px; border: 0; background: var(--laut-tua); color: var(--putih);
+  font: 600 15px var(--huruf); cursor: pointer; padding: 10px 19px;
+}
+.cari button:hover { background: var(--laut-hover); }
+.cari button:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: -3px; }
+.gerbang {
+  flex: none; display: inline-flex; align-items: center; min-height: 48px; padding: 10px 18px;
+  background: var(--tombol-polos); border: 1px solid var(--emas-garis); border-radius: 6px;
+  color: var(--laut-tua); font-size: 15px; font-weight: 600; text-decoration: none;
+}
+.gerbang:hover { border-color: var(--emas-tua); background: var(--emas-muda); }
+.gerbang:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: 3px; }
+.kabar { background: var(--emas-muda); border-left: 3px solid var(--emas-tua); border-radius: 4px; padding: 14px 22px 16px 24px; display: flex; flex-direction: column; gap: 3px; }
+.kabar p { margin: 0; }
+.kabar .label { color: var(--emas-teks); letter-spacing: .13em; text-transform: none; }
+.kabar strong { font-size: 17px; font-weight: 700; line-height: 1.3; }
+.kabar p:last-child { color: var(--tinta-lembut); font-size: 14px; line-height: 1.55; }
+.bagian { display: flex; flex-direction: column; gap: 8px; scroll-margin-top: 16px; }
+.bagian h2 { margin: 0; color: var(--emas-teks); font-size: 12px; font-weight: 700; letter-spacing: .15em; line-height: 1.55; text-transform: uppercase; }
+.bagian.arsip h2, .bagian.arsip .nomor { color: var(--arsip-teks); }
+.daftar { background: var(--putih); border: 1px solid var(--garis); border-radius: 8px; overflow: hidden; box-shadow: 0 1px 6px rgba(var(--rgb-laut),.04); }
+.baris {
+  display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 2px 14px; align-items: center;
+  padding: 13px 20px; border-top: 1px solid var(--garis); color: var(--laut-tua); text-decoration: none;
+  transition: background-color .16s ease;
+}
+.baris.pertama { border-top: 0; }
+.baris:hover { background: var(--baris-hover); }
+.baris:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: -3px; }
+.nomor { color: var(--emas-teks); font-size: 14px; font-weight: 700; letter-spacing: .08em; font-variant-numeric: tabular-nums; }
+.uraian { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.uraian strong { font-size: 16px; font-weight: 700; line-height: 1.3; letter-spacing: -.015em; }
+.uraian span { color: var(--tinta-lembut); font-size: 14px; line-height: 1.5; }
+.buka { color: var(--tautan); font-size: 14px; font-weight: 700; white-space: nowrap; }
+.kosong { margin: 0; background: var(--emas-muda); border-left: 3px solid var(--emas-tua); border-radius: 4px; padding: 16px 22px; color: var(--tinta-lembut); }
+.kaki { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--garis); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 5px 20px; color: var(--tinta-lembut); font-size: 14px; }
+
+@media (max-width: 920px) {
+  .panel { min-height: 0; padding: 26px var(--tepi) 24px; gap: 18px; }
+  .panel-judul { padding-top: 6px; }
+  .kelompok { flex-direction: row; flex-wrap: wrap; gap: 8px; margin: 0; }
+  .kelompok a { background: rgba(255,255,255,.12); padding: 6px 8px 6px 14px; border-radius: 999px; }
+  .panel-keterangan { padding-top: 170px; }
+  .panel-foto, .panel-tabir { height: 300px; }
+  /* Di layar sempit menu kelompok menimpa bagian atas foto, jadi tabir di bagian atasnya lebih pekat. */
+  .panel-tabir { background: linear-gradient(to bottom, rgb(var(--rgb-laut)) 0%, rgba(var(--rgb-laut),.6) 26%, rgba(var(--rgb-laut),.1) 56%, rgba(var(--rgb-laut),0) 74%, rgba(var(--rgb-gelap),.55) 100%); }
+}
+@media (max-width: 560px) {
+  h1 { font-size: 28px; }
+  h1 span { font-size: 20px; }
+  .baris { grid-template-columns: 34px minmax(0, 1fr); padding: 13px 16px; }
+  .buka { display: none; }
+  .cari button { min-width: 76px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .panel-foto, .baris, .kelompok a { transition: none; }
 }
 </style>
 </head>
 <body>
-<nav class="menu" aria-label="Navigasi utama">
-  <div class="menu-isi">
-    <a class="menu-nama" href="#konten">Subbagian Umum<small>KPKNL BALIKPAPAN</small></a>
-    <a class="menu-beranda" href="#konten" aria-current="page">Beranda</a>
-    <div class="menu-dropdown-wrapper" id="menuWadah">
-      <button class="menu-dropdown-btn" id="menuTombol" type="button" aria-expanded="false" aria-controls="menu-layanan" aria-haspopup="true">Daftar Layanan</button>
-      <div class="menu-dropdown-content" id="menu-layanan">
-        <a href="https://docs.google.com/spreadsheets/d/1SQnYYK0aKwihZ1Gl_ORtj2N0vSXb7ZNEGvRAornA04A/edit?usp=sharing" target="_blank" rel="noopener">Monitoring E-Perjadin v2</a>
-        <a href="http://s.kemenkeu.go.id/ndperjadinbpp" target="_blank" rel="noopener"><i>Template</i> ND Usulan Perjadin</a>
-        <a href="https://drive.google.com/drive/folders/1Q850KbhwS8kKBXfFWtmxqZQZ-ufBTQDh?usp=sharing" target="_blank" rel="noopener">Data Dukung Perjadin</a>
-        <a href="https://ajoedya.github.io/jagakas/" target="_blank" rel="noopener">Sisa Dana</a>
-        <a href="https://forms.office.com/r/1nnq1CSKEC" target="_blank" rel="noopener">Pemutakhiran Rekening</a>
-        <a href="https://kemenkeu-my.sharepoint.com/:x:/g/personal/ivandana_saputra_kemenkeu_go_id/EXBeprZHSmBNnoMqSDTGhjAByrGOoIzKgq89T399r4HyeA?e=5yLWYP" target="_blank" rel="noopener">Pengisian Capaian Output</a>
-        <a href="https://ajoedya.github.io/bengkelpdf/" target="_blank" rel="noopener">Perkakas PDF</a>
-        <a href="https://sites.google.com/view/gerbanginternal/halaman-muka/monitoring-spd" target="_blank" rel="noopener">Monitoring E-Perjadin v1</a>
-        <a href="https://forms.gle/MLRRTcoCkZ9Mc31AA" target="_blank" rel="noopener">Formulir E-Perjadin v1</a>
-      </div>
-    </div>
-  </div>
-</nav>
+<div class="halaman">
+  <aside class="panel">
+    <div class="panel-foto" id="bannerFoto" role="img" aria-label="Pemandangan Teluk Balikpapan saat matahari terbit dengan gedung kota, pelabuhan, kapal, dan hutan mangrove"></div>
+    <div class="panel-tabir" aria-hidden="true"></div>
 
-<main id="konten" class="editorial-halaman">
-  <div class="editorial-split">
-    <div class="latar-foto latar-lebar" aria-hidden="true"></div>
-    <div class="editorial-cerita">
-      <div class="latar-foto latar-sempit" aria-hidden="true"></div>
-      <section class="editorial-pembuka" aria-labelledby="judul-utama">
-        <p class="editorial-label">LAYANAN <span>/</span> UMUM <span>/</span> BUBUHAN BPP</p>
-        <h1 id="judul-utama">Layanan Subbagian Umum <span>untuk urusan kantor yang lebih mudah.</span></h1>
-        <p class="editorial-deskripsi">Perjalanan dinas, keuangan, dan perkakas kerja pegawai KPKNL Balikpapan dalam satu halaman.</p>
+    <a class="merek" href="#konten">Subbagian Umum<small>KPKNL BALIKPAPAN</small></a>
 
-        <div class="editorial-kabar">
-          <p class="editorial-kabar-label">[S-708/MK.03/2026]</p>
-          <strong>Efisiensi Belanja Birokrasi</strong>
-          <p>Mohon untuk dapat secara bijak menyusun dan memilah kegiatan mana saja yang memang dapat dilakukan perjalanan dinas yang dibebankan pada DIPA kantor.</p>
-        </div>
-
-        <form class="editorial-cari" role="search" id="formCari">
-          <label for="cariLayanan" class="sr-only">Cari layanan Subbagian Umum</label>
-          <div class="editorial-cari-baris">
-            <input type="search" id="cariLayanan" name="q" autocomplete="off" placeholder="Contoh: perjadin, rekening, SKTJM..." aria-controls="daftarLayanan">
-            <button type="submit" id="tombolCari">Cari</button>
-          </div>
-        </form>
-      </section>
-
-      <p class="editorial-foto-keterangan">
-        <span>KPKNL BALIKPAPAN <b aria-hidden="true"></b></span>
-        <span>Layanan sederhana untuk pekerjaan yang lebih baik.</span>
-      </p>
+    <div class="panel-judul">
+      <p class="label">Layanan &nbsp;/&nbsp; Umum &nbsp;/&nbsp; Bubuhan BPP</p>
+      <h1>Layanan Subbagian Umum <span>untuk urusan kantor yang lebih mudah.</span></h1>
+      <p class="panel-deskripsi">Perjalanan dinas, keuangan, dan perkakas kerja pegawai KPKNL Balikpapan dalam satu halaman.</p>
     </div>
 
-    <section class="editorial-alat" id="layanan" aria-labelledby="judul-layanan">
-      <h2 id="judul-layanan" class="sr-only">Daftar Layanan Subbagian Umum</h2>
-      <p class="sr-only" id="jumlahLayanan" role="status" aria-live="polite">9 layanan tersedia</p>
+    <nav class="kelompok" aria-label="Kelompok layanan">
+      <a href="#perjadin">Perjalanan dinas <b>3</b></a>
+      <a href="#keuangan">Keuangan <b>3</b></a>
+      <a href="#perkakas">Perkakas <b>1</b></a>
+      <a href="#arsip">Arsip <b>2</b></a>
+    </nav>
 
-      <div class="editorial-kartu-grid" id="daftarLayanan">
-        <a class="editorial-kartu" href="https://docs.google.com/spreadsheets/d/1SQnYYK0aKwihZ1Gl_ORtj2N0vSXb7ZNEGvRAornA04A/edit?usp=sharing" target="_blank" rel="noopener" data-cari="perjadin perjalanan dinas spd pencairan pantau koreksi ppk bendahara">
-          <span class="editorial-kartu-nomor">01 <small>Perjadin</small></span><strong>Monitoring E-Perjadin v2</strong>
-          <span class="uraian">Pantau pencairan SPD dan catatan koreksi dari staf PPK, PPK, atau bendahara.</span><span class="editorial-buka">Buka layanan <span aria-hidden="true">→</span></span>
+    <p class="panel-keterangan">
+      <span>KPKNL BALIKPAPAN <u aria-hidden="true"></u></span>
+      <span>Layanan sederhana untuk pekerjaan yang lebih baik.</span>
+    </p>
+  </aside>
+
+  <main id="konten" class="isi">
+    <div class="alat">
+      <form class="cari" role="search" id="formCari">
+        <label for="cariLayanan" class="sr-only">Cari layanan Subbagian Umum</label>
+        <input type="search" id="cariLayanan" name="q" autocomplete="off" placeholder="Contoh: perjadin, rekening, SKTJM...">
+        <button type="submit" id="tombolCari">Cari</button>
+      </form>
+      <a class="gerbang" href="https://sites.google.com/view/gerbanginternal/halaman-muka" target="_blank" rel="noopener">Gerbang Internal &nbsp;→</a>
+    </div>
+    <p class="sr-only" id="jumlahLayanan" role="status" aria-live="polite">9 layanan tersedia</p>
+
+    <div class="kabar">
+      <p class="label">[S-708/MK.03/2026]</p>
+      <strong>Efisiensi Belanja Birokrasi</strong>
+      <p>Mohon untuk dapat secara bijak menyusun dan memilah kegiatan mana saja yang memang dapat dilakukan perjalanan dinas yang dibebankan pada DIPA kantor.</p>
+    </div>
+
+    <section class="bagian" id="perjadin" aria-labelledby="j-perjadin">
+      <h2 id="j-perjadin">Perjalanan dinas</h2>
+      <div class="daftar">
+        <a class="baris" href="https://docs.google.com/spreadsheets/d/1SQnYYK0aKwihZ1Gl_ORtj2N0vSXb7ZNEGvRAornA04A/edit?usp=sharing" target="_blank" rel="noopener" data-cari="perjadin perjalanan dinas spd pencairan pantau koreksi ppk bendahara">
+          <span class="nomor">01</span>
+          <span class="uraian"><strong>Monitoring E-Perjadin v2</strong><span>Pantau pencairan SPD dan catatan koreksi dari staf PPK, PPK, atau bendahara.</span></span>
+          <span class="buka">Buka &nbsp;→</span>
         </a>
-        <a class="editorial-kartu" href="http://s.kemenkeu.go.id/ndperjadinbpp" target="_blank" rel="noopener" data-cari="perjadin perjalanan dinas nota dinas nd usulan template templat unduh">
-          <span class="editorial-kartu-nomor">02 <small>Perjadin</small></span><strong><i>Template</i> ND Usulan Perjadin</strong>
-          <span class="uraian">Unduh templat nota dinas usulan perjalanan dinas yang tinggal diisi.</span><span class="editorial-buka">Buka layanan <span aria-hidden="true">→</span></span>
+        <a class="baris" href="http://s.kemenkeu.go.id/ndperjadinbpp" target="_blank" rel="noopener" data-cari="perjadin perjalanan dinas nota dinas nd usulan template templat unduh">
+          <span class="nomor">02</span>
+          <span class="uraian"><strong><i>Template</i> ND Usulan Perjadin</strong><span>Unduh templat nota dinas usulan perjalanan dinas yang tinggal diisi.</span></span>
+          <span class="buka">Buka &nbsp;→</span>
         </a>
-        <a class="editorial-kartu" href="https://drive.google.com/drive/folders/1Q850KbhwS8kKBXfFWtmxqZQZ-ufBTQDh?usp=sharing" target="_blank" rel="noopener" data-cari="perjadin perjalanan dinas suket kehadiran presensi sktjm surat pernyataan tidak menginap data dukung">
-          <span class="editorial-kartu-nomor">03 <small>Perjadin</small></span><strong>Data Dukung Perjadin</strong>
-          <span class="uraian">Suket kehadiran, SKTJM peserta eksternal, dan surat pernyataan tidak menginap.</span><span class="editorial-buka">Buka layanan <span aria-hidden="true">→</span></span>
-        </a>
-        <a class="editorial-kartu" href="https://ajoedya.github.io/jagakas/" target="_blank" rel="noopener" data-cari="keuangan saldo sisa dana pagu anggaran realisasi">
-          <span class="editorial-kartu-nomor">04 <small>Keuangan</small></span><strong>Sisa Dana</strong>
-          <span class="uraian">Cek dana yang masih tersedia sebelum mengusulkan kegiatan.</span><span class="editorial-buka">Buka layanan <span aria-hidden="true">→</span></span>
-        </a>
-        <a class="editorial-kartu" href="https://forms.office.com/r/1nnq1CSKEC" target="_blank" rel="noopener" data-cari="keuangan rekening bank honor pembayaran update perbarui pemutakhiran">
-          <span class="editorial-kartu-nomor">05 <small>Keuangan</small></span><strong>Pemutakhiran Rekening</strong>
-          <span class="uraian">Perbarui rekening penerima pembayaran perjalanan dinas atau honor.</span><span class="editorial-buka">Buka layanan <span aria-hidden="true">→</span></span>
-        </a>
-        <a class="editorial-kartu" href="https://kemenkeu-my.sharepoint.com/:x:/g/personal/ivandana_saputra_kemenkeu_go_id/EXBeprZHSmBNnoMqSDTGhjAByrGOoIzKgq89T399r4HyeA?e=5yLWYP" target="_blank" rel="noopener" data-cari="keuangan caput capaian output keluaran pic seksi">
-          <span class="editorial-kartu-nomor">06 <small>Keuangan</small></span><strong>Pengisian Capaian Output</strong>
-          <span class="uraian">Tempat PIC Caput tiap seksi mengisi capaian keluaran (<i>output</i>) seksinya.</span><span class="editorial-buka">Buka layanan <span aria-hidden="true">→</span></span>
-        </a>
-        <a class="editorial-kartu" href="https://ajoedya.github.io/bengkelpdf/" target="_blank" rel="noopener" data-cari="perkakas pdf edit teks gabung pecah watermark tanda air kompres word naskah">
-          <span class="editorial-kartu-nomor">07 <small>Perkakas</small></span><strong>Perkakas PDF</strong>
-          <span class="uraian">Edit teks, gabung, pecah, dan beri tanda air langsung di peramban tanpa mengunggah berkas.</span><span class="editorial-buka">Buka layanan <span aria-hidden="true">→</span></span>
-        </a>
-        <a class="editorial-kartu" href="https://sites.google.com/view/gerbanginternal/halaman-muka/monitoring-spd" target="_blank" rel="noopener" data-cari="perjadin perjalanan dinas spd monitoring lama arsip versi 1">
-          <span class="editorial-kartu-nomor">08 <small class="arsip">Arsip</small></span><strong>Monitoring E-Perjadin v1</strong>
-          <span class="uraian">Pemantauan SPD untuk perjalanan dinas sebelum <b>27 Juli 2026</b>.</span><span class="editorial-buka">Buka layanan <span aria-hidden="true">→</span></span>
-        </a>
-        <a class="editorial-kartu" href="https://forms.gle/MLRRTcoCkZ9Mc31AA" target="_blank" rel="noopener" data-cari="perjadin perjalanan dinas formulir form lama arsip versi 1">
-          <span class="editorial-kartu-nomor">09 <small class="arsip">Arsip</small></span><strong>Formulir E-Perjadin v1</strong>
-          <span class="uraian">Wajib diisi untuk perjalanan dinas sebelum <b>27 Juli 2026</b>.</span><span class="editorial-buka">Buka layanan <span aria-hidden="true">→</span></span>
+        <a class="baris" href="https://drive.google.com/drive/folders/1Q850KbhwS8kKBXfFWtmxqZQZ-ufBTQDh?usp=sharing" target="_blank" rel="noopener" data-cari="perjadin perjalanan dinas suket kehadiran presensi sktjm surat pernyataan tidak menginap data dukung">
+          <span class="nomor">03</span>
+          <span class="uraian"><strong>Data Dukung Perjadin</strong><span>Suket kehadiran, SKTJM peserta eksternal, dan surat pernyataan tidak menginap.</span></span>
+          <span class="buka">Buka &nbsp;→</span>
         </a>
       </div>
-      <p class="editorial-kosong" id="layananKosong" hidden>Tidak ada layanan yang cocok. Coba kata kunci lain.</p>
     </section>
-  </div>
 
-  <section class="editorial-penutup" aria-labelledby="judul-penutup">
-    <div class="editorial-penutup-isi">
-      <p class="editorial-label">Gerbang Internal</p>
-      <h2 id="judul-penutup"><a href="https://sites.google.com/view/gerbanginternal/halaman-muka" target="_blank" rel="noopener">s.kemenkeu.go.id/<wbr>GerbangInternal</a></h2>
-      <p>Layanan Subbagian Umum KPKNL Balikpapan.</p>
-    </div>
-    <div class="editorial-penutup-ornamen" aria-hidden="true"></div>
-  </section>
-  <footer class="editorial-kaki">
-    <span>KPKNL Balikpapan · Subbagian Umum</span>
-    <span>Berintegritas dalam Tugas, Prima dalam Pelayanan.</span>
-  </footer>
-</main>
+    <section class="bagian" id="keuangan" aria-labelledby="j-keuangan">
+      <h2 id="j-keuangan">Keuangan</h2>
+      <div class="daftar">
+        <a class="baris" href="https://ajoedya.github.io/jagakas/" target="_blank" rel="noopener" data-cari="keuangan saldo sisa dana pagu anggaran realisasi">
+          <span class="nomor">04</span>
+          <span class="uraian"><strong>Sisa Dana</strong><span>Cek dana yang masih tersedia sebelum mengusulkan kegiatan.</span></span>
+          <span class="buka">Buka &nbsp;→</span>
+        </a>
+        <a class="baris" href="https://forms.office.com/r/1nnq1CSKEC" target="_blank" rel="noopener" data-cari="keuangan rekening bank honor pembayaran update perbarui pemutakhiran">
+          <span class="nomor">05</span>
+          <span class="uraian"><strong>Pemutakhiran Rekening</strong><span>Perbarui rekening penerima pembayaran perjalanan dinas atau honor.</span></span>
+          <span class="buka">Buka &nbsp;→</span>
+        </a>
+        <a class="baris" href="https://kemenkeu-my.sharepoint.com/:x:/g/personal/ivandana_saputra_kemenkeu_go_id/EXBeprZHSmBNnoMqSDTGhjAByrGOoIzKgq89T399r4HyeA?e=5yLWYP" target="_blank" rel="noopener" data-cari="keuangan caput capaian output keluaran pic seksi">
+          <span class="nomor">06</span>
+          <span class="uraian"><strong>Pengisian Capaian Output</strong><span>Tempat PIC Caput tiap seksi mengisi capaian keluaran (<i>output</i>) seksinya.</span></span>
+          <span class="buka">Buka &nbsp;→</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="bagian" id="perkakas" aria-labelledby="j-perkakas">
+      <h2 id="j-perkakas">Perkakas</h2>
+      <div class="daftar">
+        <a class="baris" href="https://ajoedya.github.io/bengkelpdf/" target="_blank" rel="noopener" data-cari="perkakas pdf edit teks gabung pecah watermark tanda air kompres word naskah">
+          <span class="nomor">07</span>
+          <span class="uraian"><strong>Perkakas PDF</strong><span>Edit teks, gabung, pecah, dan beri tanda air langsung di peramban tanpa mengunggah berkas.</span></span>
+          <span class="buka">Buka &nbsp;→</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="bagian arsip" id="arsip" aria-labelledby="j-arsip">
+      <h2 id="j-arsip">Arsip E-Perjadin versi 1</h2>
+      <div class="daftar">
+        <a class="baris" href="https://sites.google.com/view/gerbanginternal/halaman-muka/monitoring-spd" target="_blank" rel="noopener" data-cari="arsip perjadin perjalanan dinas spd monitoring lama versi 1">
+          <span class="nomor">08</span>
+          <span class="uraian"><strong>Monitoring E-Perjadin v1</strong><span>Pemantauan SPD untuk perjalanan dinas sebelum <b>27 Juli 2026</b>.</span></span>
+          <span class="buka">Buka &nbsp;→</span>
+        </a>
+        <a class="baris" href="https://forms.gle/MLRRTcoCkZ9Mc31AA" target="_blank" rel="noopener" data-cari="arsip perjadin perjalanan dinas formulir form lama versi 1">
+          <span class="nomor">09</span>
+          <span class="uraian"><strong>Formulir E-Perjadin v1</strong><span>Wajib diisi untuk perjalanan dinas sebelum <b>27 Juli 2026</b>.</span></span>
+          <span class="buka">Buka &nbsp;→</span>
+        </a>
+      </div>
+    </section>
+
+    <p class="kosong" id="layananKosong" hidden>Tidak ada layanan yang cocok. Coba kata kunci lain.</p>
+
+    <footer class="kaki">
+      <span>KPKNL Balikpapan · Subbagian Umum</span>
+      <span>Berintegritas dalam Tugas, Prima dalam Pelayanan.</span>
+    </footer>
+  </main>
+</div>
 
 <script>
 (function () {
   "use strict";
+
+  /* ============================================================
+     BANNER BERGANTI
+     Menambah banner: taruh berkas gambarnya satu folder dengan halaman ini,
+     lalu tambahkan satu baris di DAFTAR_BANNER.
+       berkas : nama berkas gambar
+       posisi : bagian foto yang ditampilkan di panel (nilai background-position)
+       uraian : keterangan gambar untuk pembaca layar
+     MENIT_PER_BANNER menentukan berapa menit satu banner tampil sebelum berganti.
+     Pergantian mengikuti jam perangkat, jadi semua pegawai melihat banner yang sama pada waktu yang sama.
+     ============================================================ */
+  var MENIT_PER_BANNER = 10;
+  var DAFTAR_BANNER = [
+    { berkas: "banner-balikpapan.jpg", posisi: "74% center",
+      uraian: "Pemandangan Teluk Balikpapan saat matahari terbit dengan gedung kota, pelabuhan, kapal, dan hutan mangrove" },
+    { berkas: "banner-masjid.jpg", posisi: "72% center",
+      uraian: "Masjid berkubah biru dengan empat menara di tengah kota, berlatar teluk dan perbukitan" },
+    { berkas: "banner-taman.jpg", posisi: "51% center",
+      uraian: "Taman kota dengan air mancur di tengah, dikelilingi pohon palem dan gedung perkantoran" },
+    { berkas: "banner-pantai.jpg", posisi: "21% center",
+      uraian: "Jalur pejalan kaki di tepi pantai dengan pohon palem, bebatuan, dan gedung kota di kejauhan" },
+    { berkas: "banner-enggang.jpg", posisi: "15% center",
+      uraian: "Burung enggang terbang di atas hutan hujan berkabut dengan kota dan teluk saat matahari terbit" },
+    { berkas: "banner-beruang.jpg", posisi: "100% center",
+      uraian: "Beruang madu di lereng hutan hujan memandang kota dan teluk saat matahari terbit" }
+  ];
+
+  var JEDA = MENIT_PER_BANNER * 60 * 1000;
+  // Waktu setempat dalam milidetik, supaya pergantian jatuh tepat pada menit bulat setempat (08.00, 08.10, dan seterusnya).
+  function waktuSetempat(kini) { return kini.getTime() - kini.getTimezoneOffset() * 60000; }
+  function nomorBanner(kini, jumlah) { return Math.floor(waktuSetempat(kini) / JEDA) % jumlah; }
+  function sisaWaktu(kini) { return JEDA - (waktuSetempat(kini) % JEDA); }
+  window.__banner = { nomorBanner: nomorBanner, sisaWaktu: sisaWaktu, daftar: DAFTAR_BANNER };
+
+  var foto = document.getElementById("bannerFoto");
+  var terpasang = -1;
+  function pasangBanner() {
+    var n = nomorBanner(new Date(), DAFTAR_BANNER.length);
+    if (n === terpasang) return;
+    var banner = DAFTAR_BANNER[n];
+    function tampil() {
+      foto.style.backgroundImage = 'url("' + banner.berkas + '")';
+      foto.style.backgroundPosition = banner.posisi;
+      foto.setAttribute("aria-label", banner.uraian);
+      foto.classList.remove("memudar");
+      terpasang = n;
+    }
+    if (terpasang === -1) { tampil(); return; }
+    // Halaman yang dibiarkan terbuka: muat dulu gambarnya, lalu ganti dengan pudaran singkat.
+    var muat = new Image();
+    muat.onload = muat.onerror = function () {
+      foto.classList.add("memudar");
+      setTimeout(tampil, 500);
+    };
+    muat.src = banner.berkas;
+  }
+  function jadwalkan() {
+    setTimeout(function () { pasangBanner(); jadwalkan(); }, sisaWaktu(new Date()) + 1000);
+  }
+  pasangBanner();
+  if (DAFTAR_BANNER.length > 1) {
+    jadwalkan();
+    document.addEventListener("visibilitychange", function () { if (!document.hidden) pasangBanner(); });
+  }
+
+  /* ---------- Pencarian ---------- */
   var form = document.getElementById("formCari");
   var input = document.getElementById("cariLayanan");
-  var cards = Array.prototype.slice.call(document.querySelectorAll(".editorial-kartu"));
+  var baris = Array.prototype.slice.call(document.querySelectorAll(".baris"));
+  var bagian = Array.prototype.slice.call(document.querySelectorAll(".bagian"));
   var status = document.getElementById("jumlahLayanan");
   var kosong = document.getElementById("layananKosong");
 
   function cari() {
-    var query = input.value.trim().toLocaleLowerCase("id");
+    var kata = input.value.trim().toLocaleLowerCase("id");
     var terlihat = 0;
-    cards.forEach(function (kartu) {
-      var teks = (kartu.textContent + " " + kartu.dataset.cari).toLocaleLowerCase("id");
-      var cocok = !query || teks.indexOf(query) !== -1;
-      kartu.hidden = !cocok;
+    baris.forEach(function (b) {
+      var teks = (b.textContent + " " + b.dataset.cari).toLocaleLowerCase("id");
+      var cocok = !kata || teks.indexOf(kata) !== -1;
+      b.hidden = !cocok;
       if (cocok) terlihat++;
     });
-    status.textContent = query ? terlihat + " dari " + cards.length + " layanan cocok" : cards.length + " layanan tersedia";
+    bagian.forEach(function (s) {
+      var tampak = s.querySelectorAll(".baris:not([hidden])");
+      s.hidden = tampak.length === 0;
+      // Baris pertama yang tampak tidak diberi garis atas.
+      Array.prototype.forEach.call(s.querySelectorAll(".baris"), function (b) { b.classList.remove("pertama"); });
+      if (tampak.length) tampak[0].classList.add("pertama");
+    });
+    status.textContent = kata ? terlihat + " dari " + baris.length + " layanan cocok" : baris.length + " layanan tersedia";
     kosong.hidden = terlihat > 0;
   }
-  form.addEventListener("submit", function (e) {
-    e.preventDefault();
-    cari();
-    document.getElementById("layanan").scrollIntoView({ behavior: "auto", block: "start" });
-  });
+  form.addEventListener("submit", function (e) { e.preventDefault(); cari(); });
   input.addEventListener("input", cari);
   input.addEventListener("keydown", function (e) {
     if (e.key === "Escape" && input.value) { input.value = ""; cari(); }
   });
+  cari();
 
-  var wadah = document.getElementById("menuWadah");
-  var tombol = document.getElementById("menuTombol");
-  function atur(buka) {
-    wadah.classList.toggle("terbuka", buka);
-    tombol.setAttribute("aria-expanded", String(buka));
-  }
-  tombol.addEventListener("click", function () { atur(!wadah.classList.contains("terbuka")); });
-  document.addEventListener("click", function (e) { if (!wadah.contains(e.target)) atur(false); });
-  document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape" && wadah.classList.contains("terbuka")) { atur(false); tombol.focus(); }
+  /* ---------- Menu kelompok: gulir ke bagian yang dipilih ---------- */
+  var halus = !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  Array.prototype.forEach.call(document.querySelectorAll('.kelompok a, .merek'), function (a) {
+    a.addEventListener("click", function (e) {
+      var tujuan = document.getElementById(a.getAttribute("href").slice(1));
+      if (!tujuan) return;
+      e.preventDefault();
+      if (input.value) { input.value = ""; cari(); }
+      tujuan.scrollIntoView({ behavior: halus ? "smooth" : "auto", block: "start" });
+    });
   });
 })();
 </script>
