@@ -135,11 +135,29 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
 }
 .gerbang:hover { border-color: var(--emas-tua); background: var(--emas-muda); }
 .gerbang:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: 3px; }
-.kabar { background: var(--emas-muda); border-left: 3px solid var(--emas-tua); border-radius: 4px; padding: 14px 22px 16px 24px; display: flex; flex-direction: column; gap: 3px; }
-.kabar p { margin: 0; }
-.kabar .label { color: var(--emas-teks); letter-spacing: .13em; text-transform: none; }
-.kabar strong { font-size: 17px; font-weight: 700; line-height: 1.3; }
-.kabar p:last-child { color: var(--tinta-lembut); font-size: 14px; line-height: 1.55; }
+/* ---------- Kotak informasi bergeser ----------
+   Tiap informasi satu <article class="info">. Bila isinya lebih dari satu, kotak bergeser dari bawah ke atas
+   tiap beberapa detik (atur di DETIK_PER_INFO pada skrip). Semua informasi dibuat setinggi informasi terpanjang. */
+.kabar { position: relative; background: var(--emas-muda); border-left: 3px solid var(--emas-tua); border-radius: 4px; }
+.kabar-jendela { position: relative; overflow: hidden; }
+.kabar-jalur { display: flex; flex-direction: column; transition: transform .6s cubic-bezier(.22,.61,.36,1); }
+.info { padding: 14px 22px 16px 24px; display: flex; flex-direction: column; justify-content: center; gap: 3px; }
+.info p { margin: 0; }
+.info .label { color: var(--emas-teks); letter-spacing: .13em; text-transform: none; }
+.kabar.bergeser .info .label { min-height: 28px; display: flex; align-items: center; padding-right: 150px; }
+.info strong { font-size: 17px; font-weight: 700; line-height: 1.3; }
+.info p:last-child { color: var(--tinta-lembut); font-size: 14px; line-height: 1.55; }
+.kabar-kendali { position: absolute; top: 14px; right: 14px; display: flex; align-items: center; gap: 2px; }
+.titik { width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; background: transparent; display: grid; place-items: center; cursor: pointer; }
+.titik::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--emas-garis); transition: background-color .2s ease, transform .2s ease; }
+.titik:hover::before { background: var(--emas-tua); }
+.titik[aria-current="true"]::before { background: var(--emas-tua); transform: scale(1.3); }
+.jeda {
+  margin-left: 6px; min-width: 58px; height: 28px; padding: 0 10px; border: 1px solid var(--emas-garis); border-radius: 14px;
+  background: var(--putih); color: var(--emas-teks); font: 700 12px var(--huruf); cursor: pointer;
+}
+.jeda:hover { border-color: var(--emas-tua); }
+.titik:focus-visible, .jeda:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: 1px; }
 .bagian { display: flex; flex-direction: column; gap: 8px; scroll-margin-top: 16px; }
 .bagian h2 { margin: 0; color: var(--emas-teks); font-size: 12px; font-weight: 700; letter-spacing: .15em; line-height: 1.55; text-transform: uppercase; }
 .bagian.arsip h2, .bagian.arsip .nomor { color: var(--arsip-teks); }
@@ -186,8 +204,12 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
   .buka { display: none; }
   .cari button { min-width: 76px; }
 }
+@media (max-width: 420px) {
+  .kabar.bergeser .info .label { padding-right: 0; }
+  .kabar.bergeser .info { padding-top: 48px; }
+}
 @media (prefers-reduced-motion: reduce) {
-  .panel-foto, .baris, .kelompok a { transition: none; }
+  .panel-foto, .baris, .kelompok a, .kabar-jalur, .titik::before { transition: none; }
 }
 </style>
 </head>
@@ -229,10 +251,32 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
     </div>
     <p class="sr-only" id="jumlahLayanan" role="status" aria-live="polite">9 layanan tersedia</p>
 
-    <div class="kabar">
-      <p class="label">[Informasi Terkait]</p>
-      <strong>Mau isi E-Perjadin rumah ST-nya belum ada?</strong>
-      <p>Apabila rumah ST belum muncul di E-Perjadin, mohon untuk dapat menunggu dan cek secara berkala, karena masih menunggu antrean input dan validasi Staf PPK/PPK.</p>
+    <!-- KOTAK INFORMASI
+         Menambah informasi: salin satu blok <article class="info"> ... </article>, tempel di bawah blok terakhir, lalu ganti isinya.
+         Menghapus informasi: hapus bloknya. Kalau tinggal satu informasi, kotak berhenti bergeser dan tombolnya hilang sendiri. -->
+    <div class="kabar" id="kabar" role="region" aria-roledescription="carousel" aria-label="Informasi terkait">
+      <div class="kabar-jendela" id="kabarJendela">
+        <div class="kabar-jalur" id="kabarJalur">
+          <article class="info">
+            <p class="label">[Informasi Terkait]</p>
+            <strong>Mau isi E-Perjadin rumah ST-nya belum ada?</strong>
+            <p>Apabila rumah ST belum muncul di E-Perjadin, mohon untuk dapat menunggu dan cek secara berkala, karena masih menunggu antrean input dan validasi Staf PPK/PPK.</p>
+          </article>
+          <article class="info">
+            <p class="label">[S-708/MK.03/2026]</p>
+            <strong>Efisiensi Belanja Birokrasi</strong>
+            <p>Mohon untuk dapat secara bijak menyusun dan memilah kegiatan mana saja yang memang dapat dilakukan perjalanan dinas yang dibebankan pada DIPA kantor.</p>
+          </article>
+          <article class="info">
+            <p class="label">[E-Perjadin Versi 2]</p>
+            <strong>Tidak perlu lagi mengisi formulir lewat Gerbang Internal.</strong>
+            <p>Lengkapi E-Perjadin v2, lalu pantau pencairan SPD dan catatan koreksinya di sini. Perjalanan dinas sebelum 27 Juli 2026 tetap memakai versi 1.</p>
+          </article>
+        </div>
+      </div>
+      <div class="kabar-kendali" id="kabarKendali" hidden>
+        <button type="button" class="jeda" id="kabarJeda" aria-pressed="false">Jeda</button>
+      </div>
     </div>
 
     <section class="bagian" id="perjadin" aria-labelledby="j-perjadin">
@@ -426,6 +470,82 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
       tujuan.scrollIntoView({ behavior: halus ? "smooth" : "auto", block: "start" });
     });
   });
+
+  /* ---------- Kotak informasi bergeser dari bawah ke atas ----------
+     DETIK_PER_INFO menentukan berapa detik satu informasi tampil sebelum bergeser ke informasi berikutnya.
+     Pergeseran berhenti sementara saat kotak disorot tetikus atau difokus papan ketik, dan bisa dihentikan lewat tombol Jeda. */
+  var DETIK_PER_INFO = 7;
+  var kabar = document.getElementById("kabar");
+  var jendela = document.getElementById("kabarJendela");
+  var jalur = document.getElementById("kabarJalur");
+  var info = Array.prototype.slice.call(jalur.querySelectorAll(".info"));
+  if (info.length > 1) {
+    kabar.classList.add("bergeser");
+    // Salinan informasi pertama di ujung jalur, supaya pergeseran dari informasi terakhir ke pertama tetap ke atas.
+    var salinan = info[0].cloneNode(true);
+    salinan.setAttribute("aria-hidden", "true");
+    jalur.appendChild(salinan);
+    var semua = info.concat([salinan]);
+
+    var kendali = document.getElementById("kabarKendali");
+    var tombolJeda = document.getElementById("kabarJeda");
+    kendali.hidden = false;
+    var titik = info.map(function (_, i) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "titik";
+      b.setAttribute("aria-label", "Tampilkan informasi " + (i + 1) + " dari " + info.length);
+      b.addEventListener("click", function () { aktif = i; geser(true); mulai(); });
+      kendali.insertBefore(b, tombolJeda);
+      return b;
+    });
+
+    var animasi = !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    var aktif = 0, tinggi = 0, pewaktu = null, dijeda = false, disorot = false;
+
+    function ukur() {
+      semua.forEach(function (el) { el.style.height = "auto"; });
+      tinggi = Math.max.apply(null, info.map(function (el) { return el.offsetHeight; }));
+      semua.forEach(function (el) { el.style.height = tinggi + "px"; });
+      jendela.style.height = tinggi + "px";
+      geser(false);
+    }
+    function geser(halusGeser) {
+      jalur.style.transition = halusGeser && animasi ? "" : "none";
+      jalur.style.transform = "translateY(" + (-aktif * tinggi) + "px)";
+      var tampak = aktif % info.length;
+      titik.forEach(function (t, i) { t.setAttribute("aria-current", String(i === tampak)); });
+      info.forEach(function (el, i) { el.setAttribute("aria-hidden", String(i !== tampak)); });
+    }
+    function maju() {
+      if (aktif >= info.length) return;
+      aktif += 1;
+      geser(true);
+      if (aktif === info.length && !animasi) { aktif = 0; geser(false); }
+    }
+    jalur.addEventListener("transitionend", function (e) {
+      if (e.target === jalur && aktif === info.length) { aktif = 0; geser(false); }
+    });
+    function mulai() {
+      clearInterval(pewaktu);
+      if (!dijeda && !disorot) pewaktu = setInterval(maju, DETIK_PER_INFO * 1000);
+    }
+    kabar.addEventListener("mouseenter", function () { disorot = true; mulai(); });
+    kabar.addEventListener("mouseleave", function () { disorot = false; mulai(); });
+    kabar.addEventListener("focusin", function () { disorot = true; mulai(); });
+    kabar.addEventListener("focusout", function (e) { if (!kabar.contains(e.relatedTarget)) { disorot = false; mulai(); } });
+    tombolJeda.addEventListener("click", function () {
+      dijeda = !dijeda;
+      tombolJeda.setAttribute("aria-pressed", String(dijeda));
+      tombolJeda.textContent = dijeda ? "Lanjut" : "Jeda";
+      mulai();
+    });
+    window.addEventListener("resize", ukur);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(ukur);
+    ukur();
+    mulai();
+    window.__kabar = { maju: maju, keadaan: function () { return { aktif: aktif, tinggi: tinggi, dijeda: dijeda }; } };
+  }
 })();
 </script>
 </body>
