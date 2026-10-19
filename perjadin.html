@@ -186,7 +186,39 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
 .kredit { font-weight: 600; color: var(--laut-tua); white-space: nowrap; }
 .kredit-hati { width: 14px; height: 14px; vertical-align: -2px; fill: #c8423b; }
 
+/* ---------- Layar lebar: halaman pas satu layar ----------
+   Panel, pencarian, dan kartu ringkas diam di tempat. Hanya daftar ST (#hasil) yang digulir di dalam kotaknya,
+   dan judul kelompok menempel di atas kotak saat digulir. Di layar sempit (≤ 920 px) halaman kembali bergulir biasa. */
+@media (min-width: 921px) {
+  .halaman { height: 100vh; height: 100dvh; min-height: 0; flex-wrap: nowrap; overflow: hidden; }
+  .panel { min-height: 0; height: 100%; flex: 0 0 360px; gap: 14px; padding-bottom: 24px; }
+  .panel-foto { height: 40%; }
+  .panel-tabir { height: 44%; }
+  .panel-keterangan { padding-top: 24px; }
+  .kelompok button { min-height: 36px; }
+  .isi { height: 100%; padding-top: 26px; padding-bottom: 18px; gap: 16px; }
+  #hasil {
+    flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+    display: flex; flex-direction: column; gap: 18px; padding: 0 6px 4px 0; margin-right: -6px;
+    scrollbar-width: thin; scrollbar-color: var(--cari-garis) transparent;
+  }
+  #hasil .bagian h2 { position: sticky; top: 0; z-index: 1; margin: 0; padding: 4px 0 6px; background: var(--latar); }
+  .kaki { margin-top: 0; padding-top: 12px; }
+}
+/* Layar laptop yang pendek: deskripsi panel disembunyikan dan foto diperkecil supaya menu kelompok tidak menimpa foto. */
+@media (min-width: 921px) and (max-height: 920px) {
+  .panel-deskripsi { display: none; }
+  .panel-foto { height: 28%; }
+  .panel-tabir { height: 31%; }
+}
+@media (min-width: 921px) and (max-height: 700px) {
+  .panel-keterangan span:last-child { display: none; }
+  .kartu small { display: none; }
+  .kartu { padding-top: 10px; padding-bottom: 10px; }
+}
+
 @media (max-width: 920px) {
+  #hasil { display: flex; flex-direction: column; gap: 20px; }
   .panel { min-height: 0; padding: 26px var(--tepi) 24px; gap: 18px; }
   .kelompok { flex-direction: row; flex-wrap: wrap; gap: 8px; margin: 0; }
   .kelompok button { width: auto; background: rgba(255,255,255,.12); min-height: 44px; padding: 6px 8px 6px 14px; border-radius: 999px; }
@@ -261,7 +293,7 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
 
     <div class="ringkas" id="ringkas" role="group" aria-label="Saring menurut status pembayaran"></div>
 
-    <div id="hasil">
+    <div id="hasil" tabindex="0" aria-label="Daftar surat tugas">
       <div class="kerangka"></div>
     </div>
     <p class="kosong" id="hasilKosong" hidden>Tidak ada surat tugas yang cocok dengan saringan ini.</p>
@@ -579,15 +611,17 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
     saringan.kelompok = b.dataset.kelompok;
     tandaiMenu();
     gambar();
+    elHasil.scrollTop = 0;
   });
   elRingkas.addEventListener("click", function (e) {
     var b = e.target.closest("button[data-golongan]");
     if (!b) return;
     saringan.golongan = saringan.golongan === b.dataset.golongan ? "" : b.dataset.golongan;
     gambar();
+    elHasil.scrollTop = 0;
   });
   document.getElementById("formCari").addEventListener("submit", function (e) { e.preventDefault(); });
-  elCari.addEventListener("input", function () { saringan.kata = elCari.value.trim(); gambar(); });
+  elCari.addEventListener("input", function () { saringan.kata = elCari.value.trim(); gambar(); elHasil.scrollTop = 0; });
   elCari.addEventListener("keydown", function (e) { if (e.key === "Escape" && elCari.value) { elCari.value = ""; saringan.kata = ""; gambar(); } });
   tombolMuat.addEventListener("click", muat);
 
