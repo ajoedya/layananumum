@@ -9,6 +9,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16.png">
 <link rel="apple-touch-icon" href="../favicon-180.png">
+<script src="../tema.js"></script>
 <style>html, body { margin: 0; padding: 0; } [hidden] { display: none !important; }</style>
 <title>Monitoring E-Perjadin | KPKNL Balikpapan</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap">
@@ -46,6 +47,41 @@
   --abu-teks: #55636e;   --abu-latar: #eef2f4;   --abu-garis: #d3dce1;
   --tepi: clamp(18px, 4vw, 56px);
 }
+/* ---------- Mode gelap ----------
+   Dipasang lewat data-mode="gelap" pada <html> oleh tema.js (mengikuti perangkat, bisa diubah lewat saklar tema).
+   --laut-tua dipakai sebagai warna teks, jadi di mode gelap ia menjadi terang; panel samping memakai --rgb-laut. */
+:root[data-mode="gelap"] {
+  color-scheme: dark;
+  --latar: #0e1620; --putih: #16212c; --laut-tua: #e4ecf2; --laut-hover: #2a5f8c;
+  --tinta-lembut: #a3b3c0; --garis: #243341; --cari-garis: #314353; --tombol-polos: #16212c;
+  --baris-hover: #1c2935; --tautan: #8cc3f0; --teks-contoh: #7f92a1; --arsip-teks: #9aabb8;
+  --emas-teks: #f0b860; --emas-tua: #e0a040; --emas-muda: #241d13; --emas-garis: #5a4626;
+  --panel-teks: #c9d6e0; --rgb-laut: 11, 32, 51; --rgb-gelap: 5, 16, 27;
+  --hijau-teks: #8fd9ae; --hijau-latar: #12301f; --hijau-garis: #2b5a3f;
+  --biru-teks: #9cc6f0;  --biru-latar: #132a42;  --biru-garis: #2c4c6e;
+  --merah-teks: #f2a89d; --merah-latar: #3a1915; --merah-garis: #6a3229;
+  --abu-teks: #b0bcc5;   --abu-latar: #1f2b36;   --abu-garis: #344452;
+}
+:root[data-mode="gelap"] .panel { background: rgb(var(--rgb-laut)); color: #fff; }
+:root[data-mode="gelap"] .merek, :root[data-mode="gelap"] .kelompok a { color: #fff; }
+:root[data-mode="gelap"] .cari button { background: #1f5482; color: #fff; }
+:root[data-mode="gelap"] .cari button:hover { background: #2a5f8c; }
+:root[data-mode="gelap"] .baris.sorot { background: #2a2216; }
+:root[data-mode="gelap"] .kerangka { background: linear-gradient(90deg, #1a2531 25%, #223040 50%, #1a2531 75%); background-size: 200% 100%; }
+
+/* ---------- Saklar tema ----------
+   Tombol bulat ikon saja, sama dengan Bengkel PDF. Ikon bulan di mode terang, matahari di mode gelap. */
+.saklar-tema {
+  flex: none; display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; padding: 0;
+  color: var(--laut-tua); background: var(--tombol-polos); border: 1px solid var(--emas-garis); border-radius: 50%;
+  cursor: pointer; transition: background-color .16s ease, border-color .16s ease;
+}
+.saklar-tema:hover { background: var(--emas-muda); border-color: var(--emas-tua); }
+.saklar-tema:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: 3px; }
+.saklar-tema svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.saklar-tema .ikon-matahari { display: none; }
+:root[data-mode="gelap"] .saklar-tema .ikon-bulan { display: none; }
+:root[data-mode="gelap"] .saklar-tema .ikon-matahari { display: block; }
 *, *::before, *::after { box-sizing: border-box; }
 body {
   margin: 0; background: var(--latar); color: var(--laut-tua);
@@ -72,10 +108,12 @@ body {
   background:
     linear-gradient(to bottom, rgba(var(--rgb-gelap),0) 80%, rgba(var(--rgb-gelap),.55) 100%),
     linear-gradient(to bottom,
-      rgb(var(--rgb-laut)) 8%, rgba(var(--rgb-laut),.972) 10.2%, rgba(var(--rgb-laut),.896) 12.4%,
-      rgba(var(--rgb-laut),.784) 14.6%, rgba(var(--rgb-laut),.648) 16.8%, rgba(var(--rgb-laut),.5) 19%,
-      rgba(var(--rgb-laut),.352) 21.2%, rgba(var(--rgb-laut),.216) 23.4%, rgba(var(--rgb-laut),.104) 25.6%,
-      rgba(var(--rgb-laut),.028) 27.8%, rgba(var(--rgb-laut),0) 30%);
+      rgb(var(--rgb-laut)) 7%, rgba(var(--rgb-laut),.998) 9.3%, rgba(var(--rgb-laut),.984) 11.6%,
+      rgba(var(--rgb-laut),.951) 13.9%, rgba(var(--rgb-laut),.896) 16.2%, rgba(var(--rgb-laut),.820) 18.6%,
+      rgba(var(--rgb-laut),.725) 20.9%, rgba(var(--rgb-laut),.616) 23.2%, rgba(var(--rgb-laut),.500) 25.5%,
+      rgba(var(--rgb-laut),.384) 27.8%, rgba(var(--rgb-laut),.275) 30.1%, rgba(var(--rgb-laut),.180) 32.4%,
+      rgba(var(--rgb-laut),.104) 34.8%, rgba(var(--rgb-laut),.049) 37.1%, rgba(var(--rgb-laut),.016) 39.4%,
+      rgba(var(--rgb-laut),.002) 41.7%, rgba(var(--rgb-laut),0) 44%);
 }
 .merek { color: var(--putih); font: 800 21px/1.1 var(--huruf); letter-spacing: -.02em; text-decoration: none; align-self: flex-start; }
 .merek small { display: block; margin-top: 4px; color: var(--panel-kecil); font: 600 11px/1.4 var(--huruf); letter-spacing: .18em; }
@@ -251,10 +289,12 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
     background:
       linear-gradient(to bottom, rgba(var(--rgb-gelap),0) 76%, rgba(var(--rgb-gelap),.55) 100%),
       linear-gradient(to bottom,
-        rgb(var(--rgb-laut)) 18%, rgba(var(--rgb-laut),.972) 23%, rgba(var(--rgb-laut),.896) 28%,
-        rgba(var(--rgb-laut),.784) 33%, rgba(var(--rgb-laut),.648) 38%, rgba(var(--rgb-laut),.5) 43%,
-        rgba(var(--rgb-laut),.352) 48%, rgba(var(--rgb-laut),.216) 53%, rgba(var(--rgb-laut),.104) 58%,
-        rgba(var(--rgb-laut),.028) 63%, rgba(var(--rgb-laut),0) 68%);
+        rgb(var(--rgb-laut)) 15%, rgba(var(--rgb-laut),.998) 18.7%, rgba(var(--rgb-laut),.984) 22.4%,
+        rgba(var(--rgb-laut),.951) 26.1%, rgba(var(--rgb-laut),.896) 29.8%, rgba(var(--rgb-laut),.820) 33.4%,
+        rgba(var(--rgb-laut),.725) 37.1%, rgba(var(--rgb-laut),.616) 40.8%, rgba(var(--rgb-laut),.500) 44.5%,
+        rgba(var(--rgb-laut),.384) 48.2%, rgba(var(--rgb-laut),.275) 51.9%, rgba(var(--rgb-laut),.180) 55.6%,
+        rgba(var(--rgb-laut),.104) 59.2%, rgba(var(--rgb-laut),.049) 62.9%, rgba(var(--rgb-laut),.016) 66.6%,
+        rgba(var(--rgb-laut),.002) 70.3%, rgba(var(--rgb-laut),0) 74%);
   }
 }
 @media (max-width: 760px) {
@@ -308,6 +348,10 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
       </form>
       <button type="button" class="tombol" id="tombolMuat">Muat ulang</button>
       <a class="tombol" href="../">← Semua layanan</a>
+      <button type="button" class="saklar-tema" data-tombol-mode aria-pressed="false" aria-label="Ganti ke tampilan gelap" title="Tampilan gelap">
+        <svg class="ikon-bulan" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>
+        <svg class="ikon-matahari" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
     </div>
     <nav class="seksi" id="menuKelompok" aria-label="Saring menurut kelompok atau seksi">
       <span class="seksi-label" aria-hidden="true">Seksi</span>
