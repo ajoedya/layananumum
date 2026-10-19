@@ -5,8 +5,9 @@
  * Cara pasang (cukup sekali):
  * 1. Di Google Sheets, buka Ekstensi > Apps Script.
  * 2. Hapus isi Code.gs, tempel seluruh isi berkas ini, lalu simpan.
- * 3. Pilih fungsi pasangPemicu di atas, klik Jalankan, lalu izinkan aksesnya
- *    (termasuk izin "terhubung ke layanan eksternal", yang dipakai untuk membaca alamat chip).
+ * 3. Di panel kiri, klik + di samping "Layanan" (Services), pilih "Google Sheets API", lalu klik Tambahkan.
+ *    Layanan ini dipakai untuk membaca alamat chip berkas Drive.
+ * 4. Pilih fungsi pasangPemicu di atas, klik Jalankan, lalu izinkan aksesnya.
  *    Kolom "Tautan Bukti" langsung terisi, lalu terisi ulang otomatis tiap 5 menit dan setiap ada perubahan.
  */
 
@@ -36,11 +37,13 @@ function isiTautanBukti() {
 
   // Chip berkas Drive tidak terbaca lewat SpreadsheetApp, jadi alamatnya diambil dari Sheets API (chipRuns).
   var rentang = tab.getRange(2, kolBukti, jumlah, 1).getA1Notation();
-  var alamat = "https://sheets.googleapis.com/v4/spreadsheets/" + SpreadsheetApp.getActive().getId() +
-    "?ranges=" + encodeURIComponent("'" + tab.getName().replace(/'/g, "''") + "'!" + rentang) +
-    "&fields=" + encodeURIComponent("sheets.data.rowData.values.chipRuns,sheets.data.rowData.values.hyperlink");
-  var jawab = UrlFetchApp.fetch(alamat, { headers: { Authorization: "Bearer " + ScriptApp.getOAuthToken() } });
-  var data = JSON.parse(jawab.getContentText());
+  if (typeof Sheets === "undefined") {
+    throw new Error('Layanan "Google Sheets API" belum ditambahkan. Klik + di samping Layanan, pilih Google Sheets API, lalu Tambahkan.');
+  }
+  var data = Sheets.Spreadsheets.get(SpreadsheetApp.getActive().getId(), {
+    ranges: ["'" + tab.getName().replace(/'/g, "''") + "'!" + rentang],
+    fields: "sheets.data.rowData.values.chipRuns,sheets.data.rowData.values.hyperlink"
+  });
   var baris = (((data.sheets || [])[0] || {}).data || [])[0];
   baris = (baris && baris.rowData) || [];
 
