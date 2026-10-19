@@ -434,6 +434,20 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
       uraian: "Beruang madu di lereng hutan hujan memandang kota dan teluk saat matahari terbit" }
   ];
 
+  /* Banner mode gelap: foto malam Balikpapan (sama dengan Dashboard Anggaran/jagakas), berganti dengan jadwal yang sama.
+     Saat mode berganti lewat saklar tema, banner langsung ikut berganti. */
+  var DAFTAR_MALAM = [
+    { berkas: "banner-malam-teluk.jpg", posisi: "28% center",
+      uraian: "Teluk Balikpapan pada malam hari dengan lampu kota di perbukitan dan pantulan cahaya di air" },
+    { berkas: "banner-malam-tepian.jpg", posisi: "22% center",
+      uraian: "Jalur pejalan kaki tepi laut pada malam hari dengan pohon palem, lampu taman, dan gedung kota di kejauhan" },
+    { berkas: "banner-malam-pelabuhan.jpg", posisi: "72% center",
+      uraian: "Pelabuhan dan kilang di teluk pada malam hari dengan kapal-kapal berlampu" },
+    { berkas: "banner-malam-jalan.jpg", posisi: "20% center",
+      uraian: "Jalan tepi pantai yang basah sehabis hujan pada malam hari dengan lampu jalan dan pohon palem" }
+  ];
+  function daftarAktif() { return document.documentElement.getAttribute("data-mode") === "gelap" ? DAFTAR_MALAM : DAFTAR_BANNER; }
+
   var JEDA = MENIT_PER_BANNER * 60 * 1000;
   // Waktu setempat dalam milidetik, supaya pergantian jatuh tepat pada menit bulat setempat (08.00, 08.10, dan seterusnya).
   function waktuSetempat(kini) { return kini.getTime() - kini.getTimezoneOffset() * 60000; }
@@ -442,19 +456,19 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
   window.__banner = { nomorBanner: nomorBanner, sisaWaktu: sisaWaktu, daftar: DAFTAR_BANNER };
 
   var foto = document.getElementById("bannerFoto");
-  var terpasang = -1;
+  var terpasang = "";
   function pasangBanner() {
-    var n = nomorBanner(new Date(), DAFTAR_BANNER.length);
-    if (n === terpasang) return;
-    var banner = DAFTAR_BANNER[n];
+    var daftar = daftarAktif();
+    var banner = daftar[nomorBanner(new Date(), daftar.length)];
+    if (banner.berkas === terpasang) return;
     function tampil() {
       foto.style.backgroundImage = 'url("' + banner.berkas + '")';
       foto.style.backgroundPosition = banner.posisi;
       foto.setAttribute("aria-label", banner.uraian);
       foto.classList.remove("memudar");
-      terpasang = n;
+      terpasang = banner.berkas;
     }
-    if (terpasang === -1) { tampil(); return; }
+    if (terpasang === "") { tampil(); return; }
     // Halaman yang dibiarkan terbuka: muat dulu gambarnya, lalu ganti dengan pudaran singkat.
     var muat = new Image();
     muat.onload = muat.onerror = function () {
@@ -467,6 +481,7 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
     setTimeout(function () { pasangBanner(); jadwalkan(); }, sisaWaktu(new Date()) + 1000);
   }
   pasangBanner();
+  document.addEventListener("modeberubah", pasangBanner);
   if (DAFTAR_BANNER.length > 1) {
     jadwalkan();
     document.addEventListener("visibilitychange", function () { if (!document.hidden) pasangBanner(); });

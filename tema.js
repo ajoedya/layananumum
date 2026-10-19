@@ -37,6 +37,8 @@
       tombol[i].setAttribute("aria-label", m === "gelap" ? "Ganti ke tampilan terang" : "Ganti ke tampilan gelap");
       tombol[i].title = m === "gelap" ? "Tampilan terang" : "Tampilan gelap";
     }
+    // Halaman diberi tahu supaya bisa menyesuaikan diri, misalnya mengganti banner siang dengan banner malam.
+    try { document.dispatchEvent(new CustomEvent("modeberubah", { detail: m })); } catch (e) { /* peramban lama */ }
     return m;
   }
 
