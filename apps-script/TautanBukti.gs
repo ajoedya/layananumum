@@ -5,7 +5,8 @@
  * Cara pasang (cukup sekali):
  * 1. Di Google Sheets, buka Ekstensi > Apps Script.
  * 2. Hapus isi Code.gs, tempel seluruh isi berkas ini, lalu simpan.
- * 3. Pilih fungsi pasangPemicu di atas, klik Jalankan, lalu izinkan aksesnya.
+ * 3. Pilih fungsi pasangPemicu di atas, klik Jalankan, lalu izinkan aksesnya
+ *    (termasuk izin "terhubung ke layanan eksternal", yang dipakai untuk membaca alamat chip).
  *    Kolom "Tautan Bukti" langsung terisi, lalu terisi ulang otomatis tiap 5 menit dan setiap ada perubahan.
  */
 
@@ -32,18 +33,36 @@ function isiTautanBukti() {
 
   var jumlah = tab.getLastRow() - 1;
   if (jumlah < 1) return;
+
+  // Chip berkas Drive tidak terbaca lewat SpreadsheetApp, jadi alamatnya diambil dari Sheets API (chipRuns).
+  var rentang = tab.getRange(2, kolBukti, jumlah, 1).getA1Notation();
+  var alamat = "https://sheets.googleapis.com/v4/spreadsheets/" + SpreadsheetApp.getActive().getId() +
+    "?ranges=" + encodeURIComponent("'" + tab.getName().replace(/'/g, "''") + "'!" + rentang) +
+    "&fields=" + encodeURIComponent("sheets.data.rowData.values.chipRuns,sheets.data.rowData.values.hyperlink");
+  var jawab = UrlFetchApp.fetch(alamat, { headers: { Authorization: "Bearer " + ScriptApp.getOAuthToken() } });
+  var data = JSON.parse(jawab.getContentText());
+  var baris = (((data.sheets || [])[0] || {}).data || [])[0];
+  baris = (baris && baris.rowData) || [];
+
+  // Cadangan untuk tautan biasa (Ctrl+K) yang bukan chip.
   var teks = tab.getRange(2, kolBukti, jumlah, 1).getRichTextValues();
-  var hasil = teks.map(function (baris) {
-    var rt = baris[0];
-    if (!rt) return [""];
-    // Tautan bisa melekat pada seluruh sel atau hanya pada sebagian teks, jadi tiap potongan teks diperiksa.
-    var url = rt.getLinkUrl() || "";
-    if (!url) {
+
+  var hasil = [];
+  for (var r = 0; r < jumlah; r++) {
+    var sel = ((baris[r] || {}).values || [])[0] || {};
+    var url = sel.hyperlink || "";
+    (sel.chipRuns || []).forEach(function (c) {
+      var p = c.chip && c.chip.richLinkProperties;
+      if (!url && p && p.uri) url = p.uri;
+    });
+    var rt = teks[r][0];
+    if (!url && rt) {
+      url = rt.getLinkUrl() || "";
       var potongan = rt.getRuns();
       for (var i = 0; i < potongan.length && !url; i++) url = potongan[i].getLinkUrl() || "";
     }
-    return [url];
-  });
+    hasil.push([url]);
+  }
   tab.getRange(2, kolTautan, jumlah, 1).setValues(hasil);
 }
 
