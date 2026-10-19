@@ -302,7 +302,7 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
     <p class="kosong" id="hasilKosong" hidden>Tidak ada surat tugas yang cocok dengan saringan ini.</p>
 
     <footer class="kaki">
-      <span>Ada yang keliru? Hubungi Bendahara Pengeluaran. Sumber data: <a id="tautanSumber" href="https://docs.google.com/spreadsheets/d/1SQnYYK0aKwihZ1Gl_ORtj2N0vSXb7ZNEGvRAornA04A/edit?usp=sharing" target="_blank" rel="noopener">Google Sheets</a>.</span>
+      <span>Ada yang keliru? Hubungi Bendahara Pengeluaran.</span>
       <span class="kredit">Built with Claude ft. GPT <svg class="kredit-hati" viewBox="0 0 24 24" width="14" height="14" role="img" aria-label="cinta"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 5 6.4 5c2 0 3.6 1.1 4.6 2.6l1 1.4 1-1.4C14 6.1 15.6 5 17.6 5 21 5 23.1 8.4 21.6 11.8 19.5 16.4 12 21 12 21z"/></svg></span>
     </footer>
   </main>
@@ -614,11 +614,7 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
       .catch(function (e) {
         elKeadaan.className = "keadaan galat";
         elKeadaan.textContent = "";
-        elKeadaan.appendChild(document.createTextNode("Data belum bisa dimuat (" + e.message + "). " + (semuaData.length ? "Yang tampil adalah data terakhir. " : "") + "Coba muat ulang, atau buka "));
-        var a = buat("a", "", "lembar kerjanya langsung");
-        a.href = document.getElementById("tautanSumber").href; a.target = "_blank"; a.rel = "noopener";
-        elKeadaan.appendChild(a);
-        elKeadaan.appendChild(document.createTextNode("."));
+        elKeadaan.appendChild(document.createTextNode("Data belum bisa dimuat (" + e.message + "). " + (semuaData.length ? "Yang tampil adalah data terakhir. " : "") + "Coba muat ulang beberapa saat lagi, atau hubungi Bendahara Pengeluaran."));
         if (!semuaData.length) elHasil.textContent = "";
       })
       .then(function () {
