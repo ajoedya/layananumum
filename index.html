@@ -10,9 +10,7 @@
 <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
 <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
 <link rel="apple-touch-icon" href="favicon-180.png">
-<style>html, body { margin: 0; padding: 0; } img { max-width: 100%; } [hidden] { display: none !important; }.kaki .kredit { color: var(--teks-contoh); white-space: nowrap; }
-@media (max-width: 560px) { .kaki .kredit { display: block; margin-top: 2px; } .kaki .pisah { display: none; } }
-</style>
+<style>html, body { margin: 0; padding: 0; } img { max-width: 100%; } [hidden] { display: none !important; }</style>
 <title>Layanan Subbagian Umum | KPKNL Balikpapan</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap">
 <style>
@@ -179,6 +177,9 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
 .buka { color: var(--tautan); font-size: 14px; font-weight: 700; white-space: nowrap; }
 .kosong { margin: 0; background: var(--emas-muda); border-left: 3px solid var(--emas-tua); border-radius: 4px; padding: 16px 22px; color: var(--tinta-lembut); }
 .kaki { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--garis); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 5px 20px; color: var(--tinta-lembut); font-size: 14px; }
+/* Kredit pembuat di ujung kanan footer, sama dengan Bengkel PDF; di layar sempit turun ke baris sendiri. */
+.kredit { font-weight: 600; color: var(--laut-tua); white-space: nowrap; }
+.kredit-hati { width: 14px; height: 14px; vertical-align: -2px; fill: #c8423b; }
 
 @media (max-width: 920px) {
   .panel { min-height: 0; padding: 26px var(--tepi) 24px; gap: 18px; }
@@ -353,8 +354,8 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
     <p class="kosong" id="layananKosong" hidden>Tidak ada layanan yang cocok. Coba kata kunci lain.</p>
 
     <footer class="kaki">
-      <span>KPKNL Balikpapan · Subbagian Umum <span class="kredit"><span class="pisah">· </span>Built with Claude ft. GPT ❤️</span></span>
-      <span>Berintegritas dalam Tugas, Prima dalam Pelayanan.</span>
+      <span>KPKNL Balikpapan · Berintegritas dalam Tugas, Prima dalam Pelayanan.</span>
+      <span class="kredit">Built with Claude ft. GPT <svg class="kredit-hati" viewBox="0 0 24 24" width="14" height="14" role="img" aria-label="cinta"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 5 6.4 5c2 0 3.6 1.1 4.6 2.6l1 1.4 1-1.4C14 6.1 15.6 5 17.6 5 21 5 23.1 8.4 21.6 11.8 19.5 16.4 12 21 12 21z"/></svg></span>
     </footer>
   </main>
 </div>
