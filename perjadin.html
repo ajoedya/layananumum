@@ -177,6 +177,16 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
 .lencana.belum { color: var(--abu-teks); background: var(--abu-latar); border-color: var(--abu-garis); }
 .catatan { color: var(--tinta-lembut); font-size: 13px; line-height: 1.45; overflow-wrap: anywhere; }
 .catatan.penting { color: var(--merah-teks); font-weight: 600; }
+.unduh {
+  display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 3px 10px; border-radius: 6px;
+  border: 1px solid var(--cari-garis); background: var(--putih); color: var(--tautan);
+  font-size: 13px; font-weight: 700; line-height: 1.45; text-decoration: none;
+}
+.unduh:hover { border-color: var(--tautan); background: var(--biru-latar); }
+.unduh:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: 2px; }
+.unduh svg { flex: none; width: 14px; height: 14px; }
+.unduh span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.berkas { color: var(--tinta-lembut); font-size: 13px; }
 
 .kosong { margin: 0; background: var(--emas-muda); border-left: 3px solid var(--emas-tua); border-radius: 4px; padding: 16px 22px; color: var(--tinta-lembut); }
 .kerangka { height: 64px; border-radius: 8px; background: linear-gradient(90deg, #edf2f5 25%, #f6f9fa 50%, #edf2f5 75%); background-size: 200% 100%; animation: kilap 1.4s infinite linear; }
@@ -399,7 +409,8 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
     }
     return {
       kelompok: cari("kelompok"), st: cari("surat tugas"), peserta: cari("peserta"),
-      tanggal: cari("tanggal"), tahap: cari("tahap"), ket: cari("keterangan")
+      tanggal: cari("tanggal"), tahap: cari("tahap"), ket: cari("keterangan"),
+      tautan: Math.max(cari("tautan"), cari("link"), cari("url"))
     };
   }
 
@@ -415,6 +426,12 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
     var m = teks.toLowerCase().match(/(\d{1,2})\s+([a-z]+)\s+(\d{4})\s*$/);
     if (!m || !(m[2] in BULAN)) return 0;
     return new Date(+m[3], BULAN[m[2]], +m[1]).getTime();
+  }
+  /* Tautan pratinjau Google Drive diubah menjadi tautan unduh langsung; tautan lain dipakai apa adanya. */
+  function alamatUnduh(url) {
+    if (!url) return "";
+    var m = url.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:[^#]*&)?id=)([\w-]{20,})/);
+    return m ? "https://drive.google.com/uc?export=download&id=" + m[1] : url;
   }
   function nomorST(teks) { var m = teks.match(/ST-(\d+)/i); return m ? +m[1] : 0; }
 
@@ -435,6 +452,10 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
       var tahap = ambil(b, k.tahap);
       var gol = GOLONGAN.hasOwnProperty(tahap.toLowerCase()) ? GOLONGAN[tahap.toLowerCase()] : "proses";
       var ket = ambil(b, k.ket);
+      var berkas = /\.pdf$|^ST-\d+\s+[A-Z]{3}$/i.test(ket);
+      // Tautan bukti bayar: dari kolom "Tautan Bukti" bila ada, atau dari sel mana pun di baris itu yang berisi alamat web.
+      var url = ambil(b, k.tautan);
+      if (!/^https?:\/\//i.test(url)) url = (b.join(" ").match(/https?:\/\/[^\s",]+/) || [""])[0];
       data.push({
         kelompok: ambil(b, k.kelompok) || "Lainnya",
         st: st,
@@ -443,7 +464,9 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
         tahap: tahap,
         golongan: gol,
         // Nama berkas bukti bayar tidak berguna bagi pegawai, jadi hanya keterangan selain berkas yang ditampilkan.
-        catatan: /\.pdf$|^ST-\d+\s+[A-Z]{3}$/i.test(ket) ? "" : ket,
+        catatan: berkas ? "" : ket,
+        berkas: berkas ? ket : "",
+        unduh: alamatUnduh(url),
         urutTanggal: tanggalAkhir(ambil(b, k.tanggal)),
         urutST: nomorST(st)
       });
@@ -536,6 +559,14 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
     var s = buat("div", "status");
     s.appendChild(buat("span", "lencana " + d.golongan, d.golongan === "belum" ? JUDUL_GOLONGAN.belum : d.tahap));
     if (d.catatan) s.appendChild(buat("span", "catatan" + (d.golongan !== "dibayar" ? " penting" : ""), d.catatan));
+    if (d.unduh) {
+      var a = buat("a", "unduh");
+      a.href = d.unduh; a.target = "_blank"; a.rel = "noopener";
+      a.title = "Unduh bukti bayar " + (d.berkas || d.st);
+      a.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 20h14"/></svg>';
+      a.appendChild(buat("span", "", d.berkas || "Unduh bukti bayar"));
+      s.appendChild(a);
+    } else if (d.berkas) s.appendChild(buat("span", "berkas", "Bukti: " + d.berkas));
     r.appendChild(s);
     return r;
   }
