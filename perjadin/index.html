@@ -157,6 +157,23 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
 .bagian h2 { margin: 0; display: flex; align-items: baseline; gap: 10px; color: var(--emas-teks); font-size: 12px; font-weight: 700; letter-spacing: .15em; line-height: 1.55; text-transform: uppercase; }
 .bagian h2 small { color: var(--tinta-lembut); font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: none; }
 .daftar { background: var(--putih); border: 1px solid var(--garis); border-radius: 8px; overflow: hidden; box-shadow: 0 1px 6px rgba(var(--rgb-laut),.04); }
+/* Baris judul kolom untuk mengurutkan daftar. Kolomnya sejajar dengan .baris di bawahnya. */
+.kepala {
+  display: grid; grid-template-columns: minmax(150px, 190px) minmax(0, 1fr) minmax(170px, 230px); gap: 4px 20px; align-items: center;
+  padding: 0 21px; margin-right: 6px;
+}
+.kepala > div { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 4px; min-width: 0; }
+.kepala-label { display: none; color: var(--emas-teks); font-size: 12px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; margin-right: 6px; }
+.urut {
+  display: inline-flex; align-items: center; gap: 5px; min-height: 30px; padding: 2px 8px; margin-left: -8px; border: 0; border-radius: 6px;
+  background: transparent; color: var(--tinta-lembut); font: 700 12px var(--huruf); letter-spacing: .06em; text-transform: uppercase; cursor: pointer;
+}
+.urut + .urut { margin-left: 0; }
+.urut:hover { background: var(--abu-latar); color: var(--laut-tua); }
+.urut:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: 1px; }
+.urut i { font-style: normal; font-size: 13px; line-height: 1; opacity: .35; }
+.urut[aria-pressed="true"] { color: var(--laut-tua); background: var(--putih); box-shadow: inset 0 0 0 1px var(--cari-garis); }
+.urut[aria-pressed="true"] i { opacity: 1; color: var(--emas-tua); }
 .baris {
   display: grid; grid-template-columns: minmax(150px, 190px) minmax(0, 1fr) minmax(170px, 230px); gap: 4px 20px; align-items: start;
   padding: 13px 20px; border-top: 1px solid var(--garis);
@@ -241,6 +258,10 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
   }
 }
 @media (max-width: 760px) {
+  .kepala { display: flex; flex-wrap: wrap; padding: 0; margin: 0; gap: 6px; }
+  .kepala > div { display: contents; }
+  .kepala-label { display: inline; }
+  .urut, .urut + .urut { margin-left: 0; box-shadow: inset 0 0 0 1px var(--garis); min-height: 34px; }
   .baris { grid-template-columns: minmax(0, 1fr) auto; }
   .peserta { grid-column: 1 / -1; grid-row: 2; }
   .status { align-items: flex-end; text-align: right; }
@@ -296,6 +317,12 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
 
     <div class="ringkas" id="ringkas" role="group" aria-label="Saring menurut status pembayaran"></div>
 
+    <div class="kepala" id="kepala" role="group" aria-label="Urutkan daftar surat tugas">
+      <span class="kepala-label" aria-hidden="true">Urutkan</span>
+      <div><button type="button" class="urut" data-urut="st">No. ST <i aria-hidden="true">↕</i></button><button type="button" class="urut" data-urut="tanggal">Tanggal <i aria-hidden="true">↕</i></button></div>
+      <div><button type="button" class="urut" data-urut="peserta">Peserta <i aria-hidden="true">↕</i></button></div>
+      <div><button type="button" class="urut" data-urut="status">Status <i aria-hidden="true">↕</i></button></div>
+    </div>
     <div id="hasil" tabindex="0" aria-label="Daftar surat tugas">
       <div class="kerangka"></div>
     </div>
@@ -470,6 +497,42 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
   /* ---------- Tampilan ---------- */
   var semuaData = [];
   var saringan = { kelompok: "", golongan: "", kata: "" };
+
+  /* ---------- Urutan daftar ----------
+     Klik judul kolom untuk mengurutkan, klik lagi untuk membalik arah.
+     Arah awal tiap kolom: No. ST dan Tanggal dari yang terbaru, Peserta dari A, Status dari yang tertahan. */
+  var ARAH_AWAL = { st: -1, tanggal: -1, peserta: 1, status: 1 };
+  var urutan = { kunci: "status", arah: 1 };
+  function namaUrut(d) { return (d.peserta[0] || "~").toLocaleLowerCase("id"); }
+  function banding(a, b) {
+    var k = urutan.kunci, h = 0;
+    if (k === "st") h = a.urutST - b.urutST;
+    else if (k === "tanggal") h = a.urutTanggal - b.urutTanggal;
+    else if (k === "peserta") h = namaUrut(a).localeCompare(namaUrut(b), "id");
+    else h = URUTAN_GOLONGAN[a.golongan] - URUTAN_GOLONGAN[b.golongan];
+    return h * urutan.arah || (b.urutTanggal - a.urutTanggal) || (b.urutST - a.urutST);
+  }
+  var elKepala = document.getElementById("kepala");
+  function tandaiUrut() {
+    Array.prototype.forEach.call(elKepala.querySelectorAll(".urut"), function (t) {
+      var aktif = t.dataset.urut === urutan.kunci;
+      t.setAttribute("aria-pressed", String(aktif));
+      var naik = urutan.arah === 1;
+      t.querySelector("i").textContent = aktif ? (naik ? "↑" : "↓") : "↕";
+      var nama = t.firstChild.textContent.trim();
+      t.title = aktif ? "Diurutkan menurut " + nama.toLowerCase() + ". Klik untuk membalik arah." : "Urutkan menurut " + nama.toLowerCase();
+    });
+  }
+  elKepala.addEventListener("click", function (e) {
+    var t = e.target.closest(".urut");
+    if (!t) return;
+    var k = t.dataset.urut;
+    urutan = urutan.kunci === k ? { kunci: k, arah: -urutan.arah } : { kunci: k, arah: ARAH_AWAL[k] };
+    tandaiUrut();
+    gambar();
+    elHasil.scrollTop = 0;
+  });
+  tandaiUrut();
   var elKeadaan = document.getElementById("keadaan");
   var elRingkas = document.getElementById("ringkas");
   var elHasil = document.getElementById("hasil");
@@ -574,9 +637,7 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
     tampil.forEach(function (d) { (perKelompok[d.kelompok] = perKelompok[d.kelompok] || []).push(d); });
     elHasil.textContent = "";
     Object.keys(perKelompok).sort(function (a, b) { return a.localeCompare(b, "id"); }).forEach(function (nama) {
-      var isi = perKelompok[nama].sort(function (a, b) {
-        return (URUTAN_GOLONGAN[a.golongan] - URUTAN_GOLONGAN[b.golongan]) || (b.urutTanggal - a.urutTanggal) || (b.urutST - a.urutST);
-      });
+      var isi = perKelompok[nama].sort(banding);
       var belumLunas = isi.filter(function (d) { return d.golongan !== "dibayar"; }).length;
       var sec = buat("section", "bagian");
       var h = buat("h2", "", nama);
