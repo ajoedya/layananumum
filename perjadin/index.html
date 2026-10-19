@@ -1,0 +1,664 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Monitoring E-Perjadin KPKNL Balikpapan: status pembayaran surat tugas perjalanan dinas yang diperbarui langsung dari Google Sheets.">
+<link rel="icon" type="image/x-icon" href="../favicon.ico">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="../favicon-16.png">
+<link rel="apple-touch-icon" href="../favicon-180.png">
+<style>html, body { margin: 0; padding: 0; } [hidden] { display: none !important; }</style>
+<title>Monitoring E-Perjadin | KPKNL Balikpapan</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap">
+<style>
+/* Halaman ini mengikuti tata letak index.html: panel samping biru laut dengan banner yang berganti,
+   lalu kolom isi. Data dibaca langsung dari CSV Google Sheets yang diterbitkan (lihat URL_CSV di skrip). */
+:root {
+  color-scheme: light;
+  --huruf: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --laut-tua: #0f3554;
+  --laut-hover: #1b4d75;
+  --emas-tua: #b8700f;
+  --emas-teks: #8a5208;
+  --emas-muda: #fff6e1;
+  --emas-garis: #e9d3a0;
+  --emas-terang: #ffd27a;
+  --putih: #ffffff;
+  --latar: #f5f8fa;
+  --tinta-lembut: #4f6577;
+  --garis: #e2e9ec;
+  --cari-garis: #cdd9e0;
+  --tombol-polos: #fbfdfd;
+  --baris-hover: #fbfcf7;
+  --tautan: #0f4a78;
+  --teks-contoh: #677d8e;
+  --panel-teks: #dbe6ee;
+  --panel-kecil: #c9d8e4;
+  --bayang-teks: #0a2338;
+  --rgb-laut: 15, 53, 84;
+  --rgb-gelap: 10, 40, 66;
+  /* Warna status */
+  --hijau-teks: #1d6b3f; --hijau-latar: #e6f4ec; --hijau-garis: #b9dfc8;
+  --biru-teks: #1b4f86;  --biru-latar: #e7f0fa;  --biru-garis: #bcd3ec;
+  --merah-teks: #9a2f21; --merah-latar: #fdecea; --merah-garis: #f1c2bb;
+  --abu-teks: #55636e;   --abu-latar: #eef2f4;   --abu-garis: #d3dce1;
+  --tepi: clamp(18px, 4vw, 56px);
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--latar); color: var(--laut-tua);
+  font-family: var(--huruf); font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased;
+}
+.sr-only {
+  position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important;
+  margin: -1px !important; overflow: hidden !important; clip: rect(0,0,0,0) !important;
+  white-space: nowrap !important; border: 0 !important;
+}
+.halaman { display: flex; flex-wrap: wrap; align-items: stretch; min-height: 100vh; }
+
+/* ---------- Panel samping ---------- */
+.panel {
+  flex: 1 1 340px; min-width: 0; min-height: 980px; position: relative; isolation: isolate; overflow: hidden;
+  background: var(--laut-tua); color: var(--putih); padding: 28px 36px 30px;
+  display: flex; flex-direction: column; gap: 18px;
+}
+.panel-foto, .panel-tabir { position: absolute; left: 0; right: 0; bottom: 0; }
+.panel-foto { height: 50%; z-index: -2; background: url("../banner-balikpapan.jpg") 72% center / cover no-repeat; transition: opacity .5s ease; }
+.panel-foto.memudar { opacity: 0; }
+.panel-tabir {
+  height: 56%; z-index: -1;
+  background:
+    linear-gradient(to bottom, rgba(var(--rgb-gelap),0) 80%, rgba(var(--rgb-gelap),.55) 100%),
+    linear-gradient(to bottom,
+      rgb(var(--rgb-laut)) 8%, rgba(var(--rgb-laut),.972) 10.2%, rgba(var(--rgb-laut),.896) 12.4%,
+      rgba(var(--rgb-laut),.784) 14.6%, rgba(var(--rgb-laut),.648) 16.8%, rgba(var(--rgb-laut),.5) 19%,
+      rgba(var(--rgb-laut),.352) 21.2%, rgba(var(--rgb-laut),.216) 23.4%, rgba(var(--rgb-laut),.104) 25.6%,
+      rgba(var(--rgb-laut),.028) 27.8%, rgba(var(--rgb-laut),0) 30%);
+}
+.merek { color: var(--putih); font: 800 21px/1.1 var(--huruf); letter-spacing: -.02em; text-decoration: none; align-self: flex-start; }
+.merek small { display: block; margin-top: 4px; color: var(--panel-kecil); font: 600 11px/1.4 var(--huruf); letter-spacing: .18em; }
+.panel-judul { display: flex; flex-direction: column; gap: 12px; padding-top: 6px; }
+.label { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .15em; line-height: 1.55; text-transform: uppercase; }
+.panel .label { color: var(--emas-terang); }
+h1 { margin: 0; font-size: 32px; font-weight: 700; line-height: 1.1; letter-spacing: -.025em; text-wrap: balance; }
+h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size: 22px; line-height: 1.25; letter-spacing: -.02em; }
+.panel-deskripsi { margin: 0; color: var(--panel-teks); font-size: 15px; line-height: 1.6; }
+.panel-keterangan {
+  margin: auto 0 0; padding-top: 150px; display: grid; gap: 4px; font-size: 14px; line-height: 1.4;
+  text-shadow: 0 1px 8px var(--bayang-teks), 0 0 2px var(--bayang-teks);
+}
+.panel-keterangan span:first-child { font-size: 12px; font-weight: 700; letter-spacing: .18em; }
+.panel-keterangan u { display: inline-block; background: var(--emas-terang); width: 37px; height: 2px; margin-left: 8px; vertical-align: middle; }
+.merek:focus-visible { outline: 3px solid var(--emas-terang); outline-offset: 3px; }
+
+/* ---------- Kolom isi ---------- */
+.isi { flex: 999 1 600px; min-width: 0; padding: 32px var(--tepi) 26px; display: flex; flex-direction: column; gap: 20px; }
+.alat { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
+.cari { flex: 1 1 320px; min-width: 0; display: flex; overflow: hidden; margin: 0; background: var(--putih); border: 1px solid var(--cari-garis); border-radius: 6px; }
+.cari:focus-within { outline: 3px solid var(--emas-garis); outline-offset: 1px; }
+#cariST {
+  flex: 1 1 auto; min-width: 0; width: 100%; border: 0; outline: 0; background: transparent;
+  color: var(--laut-tua); font: 400 16px var(--huruf); min-height: 48px; padding: 10px 17px;
+}
+#cariST::placeholder { color: var(--teks-contoh); opacity: 1; }
+.tombol {
+  flex: none; display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 10px 18px;
+  background: var(--tombol-polos); border: 1px solid var(--emas-garis); border-radius: 6px;
+  color: var(--laut-tua); font: 600 15px var(--huruf); text-decoration: none; cursor: pointer;
+}
+.tombol:hover { border-color: var(--emas-tua); background: var(--emas-muda); }
+.tombol:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: 3px; }
+.tombol[disabled] { opacity: .6; cursor: progress; }
+
+/* Saringan kelompok/seksi berupa deretan tombol di atas kartu ringkas */
+.seksi { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; }
+.seksi-label { color: var(--emas-teks); font-size: 12px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; margin-right: 4px; }
+.seksi button {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 38px; padding: 4px 6px 4px 14px;
+  border: 1px solid var(--cari-garis); border-radius: 999px; background: var(--putih); color: var(--laut-tua);
+  font: 600 14px var(--huruf); cursor: pointer; transition: border-color .16s ease, background-color .16s ease;
+}
+.seksi button:hover { border-color: var(--laut-tua); }
+.seksi button:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: 2px; }
+.seksi button[aria-pressed="true"] { background: var(--laut-tua); border-color: var(--laut-tua); color: var(--putih); }
+.seksi b {
+  min-width: 26px; padding: 1px 8px; border-radius: 12px; background: var(--abu-latar); color: var(--laut-tua);
+  font-size: 12px; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums;
+}
+.seksi button[aria-pressed="true"] b { background: rgba(255,255,255,.2); color: var(--putih); }
+.keadaan { margin: -6px 0 0; color: var(--tinta-lembut); font-size: 14px; }
+.keadaan.galat { background: var(--merah-latar); border-left: 3px solid var(--merah-teks); border-radius: 4px; padding: 12px 18px; margin: 0; color: var(--merah-teks); }
+.keadaan.galat a { color: inherit; font-weight: 700; }
+
+/* Kartu ringkas sekaligus penyaring status */
+.ringkas { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.kartu {
+  position: relative; display: flex; flex-direction: column; gap: 2px; padding: 14px 16px 14px 19px; text-align: left;
+  background: var(--putih); border: 1px solid var(--garis); border-radius: 8px; color: var(--laut-tua);
+  font-family: var(--huruf); cursor: pointer; box-shadow: 0 1px 6px rgba(var(--rgb-laut),.04);
+  transition: border-color .16s ease, box-shadow .16s ease;
+}
+.kartu::before { content: ""; position: absolute; left: 0; top: 12px; bottom: 12px; width: 3px; border-radius: 0 3px 3px 0; background: var(--warna, var(--laut-tua)); }
+.kartu:hover { border-color: var(--cari-garis); }
+.kartu[aria-pressed="true"] { border-color: var(--warna, var(--laut-tua)); box-shadow: 0 0 0 1px var(--warna, var(--laut-tua)); }
+.kartu:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: 2px; }
+.kartu span { color: var(--tinta-lembut); font-size: 13px; font-weight: 600; line-height: 1.35; }
+.kartu strong { font-size: 28px; font-weight: 800; line-height: 1.15; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.kartu small { color: var(--tinta-lembut); font-size: 12px; line-height: 1.4; }
+.kartu.semua { --warna: var(--laut-tua); }
+.kartu.dibayar { --warna: var(--hijau-teks); }
+.kartu.proses { --warna: var(--biru-teks); }
+.kartu.tertahan { --warna: var(--merah-teks); }
+.kartu.belum { --warna: var(--abu-teks); }
+
+.bagian { display: flex; flex-direction: column; gap: 8px; }
+.bagian h2 { margin: 0; display: flex; align-items: baseline; gap: 10px; color: var(--emas-teks); font-size: 12px; font-weight: 700; letter-spacing: .15em; line-height: 1.55; text-transform: uppercase; }
+.bagian h2 small { color: var(--tinta-lembut); font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: none; }
+.daftar { background: var(--putih); border: 1px solid var(--garis); border-radius: 8px; overflow: hidden; box-shadow: 0 1px 6px rgba(var(--rgb-laut),.04); }
+.baris {
+  display: grid; grid-template-columns: minmax(150px, 190px) minmax(0, 1fr) minmax(170px, 230px); gap: 4px 20px; align-items: start;
+  padding: 13px 20px; border-top: 1px solid var(--garis);
+}
+.baris:first-child { border-top: 0; }
+.baris:hover { background: var(--baris-hover); }
+.baris.sorot { background: #fffaf0; }
+.st { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.st strong { font-size: 15px; font-weight: 700; line-height: 1.35; font-variant-numeric: tabular-nums; }
+.st span, .peserta span { color: var(--tinta-lembut); font-size: 13px; line-height: 1.45; }
+.peserta { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.peserta p { margin: 0; font-size: 15px; line-height: 1.45; }
+.status { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; }
+.lencana {
+  display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border-radius: 999px; border: 1px solid;
+  font-size: 13px; font-weight: 700; line-height: 1.5; white-space: nowrap;
+}
+.lencana::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.lencana.dibayar { color: var(--hijau-teks); background: var(--hijau-latar); border-color: var(--hijau-garis); }
+.lencana.proses { color: var(--biru-teks); background: var(--biru-latar); border-color: var(--biru-garis); }
+.lencana.tertahan { color: var(--merah-teks); background: var(--merah-latar); border-color: var(--merah-garis); }
+.lencana.belum { color: var(--abu-teks); background: var(--abu-latar); border-color: var(--abu-garis); }
+.catatan { color: var(--tinta-lembut); font-size: 13px; line-height: 1.45; overflow-wrap: anywhere; }
+.catatan.penting { color: var(--merah-teks); font-weight: 600; }
+.unduh {
+  display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 3px 10px; border-radius: 6px;
+  border: 1px solid var(--cari-garis); background: var(--putih); color: var(--tautan);
+  font-size: 13px; font-weight: 700; line-height: 1.45; text-decoration: none;
+}
+.unduh:hover { border-color: var(--tautan); background: var(--biru-latar); }
+.unduh:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: 2px; }
+.unduh svg { flex: none; width: 14px; height: 14px; }
+.unduh span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.berkas { color: var(--tinta-lembut); font-size: 13px; }
+
+.kosong { margin: 0; background: var(--emas-muda); border-left: 3px solid var(--emas-tua); border-radius: 4px; padding: 16px 22px; color: var(--tinta-lembut); }
+.kerangka { height: 64px; border-radius: 8px; background: linear-gradient(90deg, #edf2f5 25%, #f6f9fa 50%, #edf2f5 75%); background-size: 200% 100%; animation: kilap 1.4s infinite linear; }
+@keyframes kilap { to { background-position: -200% 0; } }
+.kaki { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--garis); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 5px 20px; color: var(--tinta-lembut); font-size: 14px; }
+.kaki a { color: var(--tautan); font-weight: 600; }
+.kredit { font-weight: 600; color: var(--laut-tua); white-space: nowrap; }
+.kredit-hati { width: 14px; height: 14px; vertical-align: -2px; fill: #c8423b; }
+
+/* ---------- Layar lebar: halaman pas satu layar ----------
+   Panel, pencarian, dan kartu ringkas diam di tempat. Hanya daftar ST (#hasil) yang digulir di dalam kotaknya,
+   dan judul kelompok menempel di atas kotak saat digulir. Di layar sempit (≤ 920 px) halaman kembali bergulir biasa. */
+@media (min-width: 921px) {
+  .halaman { height: 100vh; height: 100dvh; min-height: 0; flex-wrap: nowrap; overflow: hidden; }
+  .panel { min-height: 0; height: 100%; flex: 0 0 360px; gap: 14px; padding-bottom: 24px; }
+  .panel-foto { height: 40%; }
+  .panel-tabir { height: 44%; }
+  .panel-keterangan { padding-top: 24px; }
+  .isi { height: 100%; padding-top: 26px; padding-bottom: 18px; gap: 16px; }
+  #hasil {
+    flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+    display: flex; flex-direction: column; gap: 18px; padding: 0 6px 4px 0; margin-right: -6px;
+    scrollbar-width: thin; scrollbar-color: var(--cari-garis) transparent;
+  }
+  #hasil .bagian h2 { position: sticky; top: 0; z-index: 1; margin: 0; padding: 4px 0 6px; background: var(--latar); }
+  .kaki { margin-top: 0; padding-top: 12px; }
+}
+@media (min-width: 921px) and (max-height: 700px) {
+  .panel-keterangan span:last-child { display: none; }
+  .kartu small { display: none; }
+  .kartu { padding-top: 10px; padding-bottom: 10px; }
+}
+
+@media (max-width: 920px) {
+  #hasil { display: flex; flex-direction: column; gap: 20px; }
+  .panel { min-height: 0; padding: 26px var(--tepi) 24px; gap: 18px; }
+  .panel-keterangan { padding-top: 170px; }
+  .panel-foto { height: 300px; }
+  .panel-tabir {
+    height: 360px;
+    background:
+      linear-gradient(to bottom, rgba(var(--rgb-gelap),0) 76%, rgba(var(--rgb-gelap),.55) 100%),
+      linear-gradient(to bottom,
+        rgb(var(--rgb-laut)) 18%, rgba(var(--rgb-laut),.972) 23%, rgba(var(--rgb-laut),.896) 28%,
+        rgba(var(--rgb-laut),.784) 33%, rgba(var(--rgb-laut),.648) 38%, rgba(var(--rgb-laut),.5) 43%,
+        rgba(var(--rgb-laut),.352) 48%, rgba(var(--rgb-laut),.216) 53%, rgba(var(--rgb-laut),.104) 58%,
+        rgba(var(--rgb-laut),.028) 63%, rgba(var(--rgb-laut),0) 68%);
+  }
+}
+@media (max-width: 760px) {
+  .baris { grid-template-columns: minmax(0, 1fr) auto; }
+  .peserta { grid-column: 1 / -1; grid-row: 2; }
+  .status { align-items: flex-end; text-align: right; }
+  .catatan { max-width: 180px; }
+}
+@media (max-width: 560px) {
+  h1 { font-size: 28px; }
+  h1 span { font-size: 20px; }
+  .baris { padding: 13px 16px; }
+  .ringkas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kartu.semua { grid-column: 1 / -1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .panel-foto, .seksi button, .kartu { transition: none; }
+  .kerangka { animation: none; }
+}
+</style>
+</head>
+<body>
+<div class="halaman">
+  <aside class="panel">
+    <div class="panel-foto" id="bannerFoto" role="img" aria-label="Pemandangan Teluk Balikpapan saat matahari terbit dengan gedung kota, pelabuhan, kapal, dan hutan mangrove"></div>
+    <div class="panel-tabir" aria-hidden="true"></div>
+
+    <a class="merek" href="../">Subbagian Umum<small>KPKNL BALIKPAPAN</small></a>
+
+    <div class="panel-judul">
+      <p class="label">Layanan &nbsp;/&nbsp; Perjalanan dinas</p>
+      <h1>Monitoring E-Perjadin <span>pantau pembayaran surat tugas Anda.</span></h1>
+      <p class="panel-deskripsi">Status pembayaran tiap surat tugas beserta catatannya, diperbarui langsung dari lembar kerja Subbagian Umum.</p>
+    </div>
+
+    <p class="panel-keterangan">
+      <span>KPKNL BALIKPAPAN <u aria-hidden="true"></u></span>
+      <span>Layanan sederhana untuk pekerjaan yang lebih baik.</span>
+    </p>
+  </aside>
+
+  <main id="konten" class="isi">
+    <div class="alat">
+      <form class="cari" role="search" id="formCari">
+        <label for="cariST" class="sr-only">Cari nama peserta atau nomor surat tugas</label>
+        <input type="search" id="cariST" autocomplete="off" placeholder="Cari nama atau nomor ST, misalnya Juana atau 1080">
+      </form>
+      <button type="button" class="tombol" id="tombolMuat">Muat ulang</button>
+      <a class="tombol" href="../">← Semua layanan</a>
+    </div>
+    <nav class="seksi" id="menuKelompok" aria-label="Saring menurut kelompok atau seksi">
+      <span class="seksi-label" aria-hidden="true">Seksi</span>
+      <button type="button" data-kelompok="" aria-pressed="true">Semua <b id="jumlahSemua">0</b></button>
+    </nav>
+    <p class="keadaan" id="keadaan" role="status" aria-live="polite">Memuat data...</p>
+
+    <div class="ringkas" id="ringkas" role="group" aria-label="Saring menurut status pembayaran"></div>
+
+    <div id="hasil" tabindex="0" aria-label="Daftar surat tugas">
+      <div class="kerangka"></div>
+    </div>
+    <p class="kosong" id="hasilKosong" hidden>Tidak ada surat tugas yang cocok dengan saringan ini.</p>
+
+    <footer class="kaki">
+      <span>Ada yang keliru? Hubungi Bendahara Pengeluaran. Sumber data: <a id="tautanSumber" href="https://docs.google.com/spreadsheets/d/1SQnYYK0aKwihZ1Gl_ORtj2N0vSXb7ZNEGvRAornA04A/edit?usp=sharing" target="_blank" rel="noopener">Google Sheets</a>.</span>
+      <span class="kredit">Built with Claude ft. GPT <svg class="kredit-hati" viewBox="0 0 24 24" width="14" height="14" role="img" aria-label="cinta"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 5 6.4 5c2 0 3.6 1.1 4.6 2.6l1 1.4 1-1.4C14 6.1 15.6 5 17.6 5 21 5 23.1 8.4 21.6 11.8 19.5 16.4 12 21 12 21z"/></svg></span>
+    </footer>
+  </main>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ============================================================
+     SUMBER DATA
+     URL_CSV adalah tautan "Publish to web" tab E-Perjadin v2 dalam format CSV.
+     Bila tab yang diterbitkan berganti, cukup ganti tautan ini.
+     Google menyimpan salinan sementara, jadi perubahan di lembar kerja baru tampil sekitar lima menit kemudian.
+     MENIT_MUAT_ULANG menentukan seberapa sering halaman yang dibiarkan terbuka mengambil data baru.
+     ============================================================ */
+  var URL_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTj3dHSGgIEcl6tPg7HypihXMFdHGnVcKgoo9PTxSLsHRIvHct2uAu29LST-iVWnRhGtlxrttu0aaS1/pub?gid=734508134&single=true&output=csv";
+  var MENIT_MUAT_ULANG = 5;
+
+  /* Pengelompokan status. Kunci berupa teks status di lembar kerja (huruf kecil). Status yang tidak dikenal masuk "proses". */
+  var GOLONGAN = {
+    "sudah dibayar": "dibayar",
+    "on hold": "tertahan",
+    "": "belum"
+  };
+  var JUDUL_GOLONGAN = {
+    dibayar: "Sudah dibayar",
+    proses: "Dalam verifikasi",
+    tertahan: "Tertahan",
+    belum: "Belum ada status"
+  };
+  var URUTAN_GOLONGAN = { tertahan: 0, belum: 1, proses: 2, dibayar: 3 };
+
+  /* ---------- Banner berganti (sama dengan index.html) ---------- */
+  var MENIT_PER_BANNER = 10;
+  var DAFTAR_BANNER = [
+    { berkas: "banner-balikpapan.jpg", posisi: "72% center", uraian: "Pemandangan Teluk Balikpapan saat matahari terbit dengan gedung kota, pelabuhan, kapal, dan hutan mangrove" },
+    { berkas: "banner-masjid.jpg", posisi: "70% center", uraian: "Masjid berkubah biru dengan empat menara di tengah kota, berlatar teluk dan perbukitan" },
+    { berkas: "banner-taman.jpg", posisi: "51% center", uraian: "Taman kota dengan air mancur di tengah, dikelilingi pohon palem dan gedung perkantoran" },
+    { berkas: "banner-pantai.jpg", posisi: "24% center", uraian: "Jalur pejalan kaki di tepi pantai dengan pohon palem, bebatuan, dan gedung kota di kejauhan" },
+    { berkas: "banner-enggang.jpg", posisi: "19% center", uraian: "Burung enggang terbang di atas hutan hujan berkabut dengan kota dan teluk saat matahari terbit" },
+    { berkas: "banner-beruang.jpg", posisi: "94% center", uraian: "Beruang madu di lereng hutan hujan memandang kota dan teluk saat matahari terbit" }
+  ];
+  var JEDA = MENIT_PER_BANNER * 60 * 1000;
+  function waktuSetempat(kini) { return kini.getTime() - kini.getTimezoneOffset() * 60000; }
+  var foto = document.getElementById("bannerFoto");
+  var terpasang = -1;
+  function pasangBanner() {
+    var n = Math.floor(waktuSetempat(new Date()) / JEDA) % DAFTAR_BANNER.length;
+    if (n === terpasang) return;
+    var banner = DAFTAR_BANNER[n];
+    function tampil() {
+      foto.style.backgroundImage = 'url("../' + banner.berkas + '")';
+      foto.style.backgroundPosition = banner.posisi;
+      foto.setAttribute("aria-label", banner.uraian);
+      foto.classList.remove("memudar");
+      terpasang = n;
+    }
+    if (terpasang === -1) { tampil(); return; }
+    var muat = new Image();
+    muat.onload = muat.onerror = function () { foto.classList.add("memudar"); setTimeout(tampil, 500); };
+    muat.src = "../" + banner.berkas;
+  }
+  function jadwalBanner() {
+    setTimeout(function () { pasangBanner(); jadwalBanner(); }, JEDA - (waktuSetempat(new Date()) % JEDA) + 1000);
+  }
+  pasangBanner();
+  jadwalBanner();
+
+  /* ---------- Pembaca CSV (mendukung sel bertanda kutip yang berisi koma dan baris baru) ---------- */
+  function bacaCSV(teks) {
+    var baris = [], sel = [], nilai = "", kutip = false;
+    teks = teks.replace(/^﻿/, "");
+    for (var i = 0; i < teks.length; i++) {
+      var c = teks[i];
+      if (kutip) {
+        if (c === '"') {
+          if (teks[i + 1] === '"') { nilai += '"'; i++; } else kutip = false;
+        } else nilai += c;
+      } else if (c === '"') kutip = true;
+      else if (c === ",") { sel.push(nilai); nilai = ""; }
+      // Hanya \n yang mengakhiri baris. \r diabaikan, karena lembar kerja ini memuat \r nyasar di dalam sel (misalnya ST-774).
+      else if (c === "\r") continue;
+      else if (c === "\n") { sel.push(nilai); baris.push(sel); sel = []; nilai = ""; }
+      else nilai += c;
+    }
+    if (nilai !== "" || sel.length) { sel.push(nilai); baris.push(sel); }
+    return baris;
+  }
+
+  /* Mencari kolom menurut kata di judulnya, supaya urutan kolom di lembar kerja boleh berubah. */
+  function petaKolom(judul) {
+    var bersih = judul.map(function (j) { return j.replace(/\s+/g, " ").trim().toLowerCase(); });
+    function cari(kata) {
+      for (var i = 0; i < bersih.length; i++) if (bersih[i].indexOf(kata) !== -1) return i;
+      return -1;
+    }
+    return {
+      kelompok: cari("kelompok"), st: cari("surat tugas"), peserta: cari("peserta"),
+      tanggal: cari("tanggal"), tahap: cari("tahap"), ket: cari("keterangan"),
+      tautan: Math.max(cari("tautan"), cari("link"), cari("url"))
+    };
+  }
+
+  /* Nama peserta tanpa NIP: "Nama / 1977..." menjadi "Nama". Penjagaan tambahan bila NIP masih tertulis di lembar kerja. */
+  function namaPeserta(teks) {
+    return teks.split(",").map(function (p) { return p.split("/")[0].replace(/\s+/g, " ").trim(); })
+      .filter(function (p) { return p && !/^\d{6,}$/.test(p); });
+  }
+
+  var BULAN = { januari: 0, februari: 1, maret: 2, april: 3, mei: 4, juni: 5, juli: 6, agustus: 7, september: 8, oktober: 9, november: 10, desember: 11 };
+  /* Tanggal terakhir dalam teks seperti "31 Agustus s.d. 1 September 2026", untuk mengurutkan. */
+  function tanggalAkhir(teks) {
+    var m = teks.toLowerCase().match(/(\d{1,2})\s+([a-z]+)\s+(\d{4})\s*$/);
+    if (!m || !(m[2] in BULAN)) return 0;
+    return new Date(+m[3], BULAN[m[2]], +m[1]).getTime();
+  }
+  /* Tautan pratinjau Google Drive diubah menjadi tautan unduh langsung; tautan lain dipakai apa adanya. */
+  function alamatUnduh(url) {
+    if (!url) return "";
+    var m = url.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:[^#]*&)?id=)([\w-]{20,})/);
+    return m ? "https://drive.google.com/uc?export=download&id=" + m[1] : url;
+  }
+  function nomorST(teks) { var m = teks.match(/ST-(\d+)/i); return m ? +m[1] : 0; }
+
+  function olahData(baris) {
+    var iJudul = -1;
+    for (var i = 0; i < Math.min(baris.length, 10); i++) {
+      if (baris[i].join(" ").toLowerCase().indexOf("surat tugas") !== -1) { iJudul = i; break; }
+    }
+    if (iJudul === -1) throw new Error("Judul kolom tidak ditemukan");
+    var k = petaKolom(baris[iJudul]);
+    if (k.st === -1 || k.tahap === -1) throw new Error("Kolom No. Surat Tugas atau Tahap Pembayaran tidak ditemukan");
+    function ambil(b, idx) { return idx === -1 ? "" : (b[idx] || "").replace(/\s+/g, " ").trim(); }
+    var data = [];
+    for (var j = iJudul + 1; j < baris.length; j++) {
+      var b = baris[j];
+      var st = ambil(b, k.st);
+      if (!st) continue;
+      var tahap = ambil(b, k.tahap);
+      var gol = GOLONGAN.hasOwnProperty(tahap.toLowerCase()) ? GOLONGAN[tahap.toLowerCase()] : "proses";
+      var ket = ambil(b, k.ket);
+      var berkas = /\.pdf$|^ST-\d+\s+[A-Z]{3}$/i.test(ket);
+      // Tautan bukti bayar: dari kolom "Tautan Bukti" bila ada, atau dari sel mana pun di baris itu yang berisi alamat web.
+      var url = ambil(b, k.tautan);
+      if (!/^https?:\/\//i.test(url)) url = (b.join(" ").match(/https?:\/\/[^\s",]+/) || [""])[0];
+      data.push({
+        kelompok: ambil(b, k.kelompok) || "Lainnya",
+        st: st,
+        peserta: namaPeserta(ambil(b, k.peserta)),
+        tanggal: ambil(b, k.tanggal),
+        tahap: tahap,
+        golongan: gol,
+        // Nama berkas bukti bayar tidak berguna bagi pegawai, jadi hanya keterangan selain berkas yang ditampilkan.
+        catatan: berkas ? "" : ket,
+        berkas: berkas ? ket : "",
+        unduh: alamatUnduh(url),
+        urutTanggal: tanggalAkhir(ambil(b, k.tanggal)),
+        urutST: nomorST(st)
+      });
+    }
+    return data;
+  }
+
+  /* ---------- Tampilan ---------- */
+  var semuaData = [];
+  var saringan = { kelompok: "", golongan: "", kata: "" };
+  var elKeadaan = document.getElementById("keadaan");
+  var elRingkas = document.getElementById("ringkas");
+  var elHasil = document.getElementById("hasil");
+  var elKosong = document.getElementById("hasilKosong");
+  var elMenu = document.getElementById("menuKelompok");
+  var elCari = document.getElementById("cariST");
+  var tombolMuat = document.getElementById("tombolMuat");
+
+  function buat(tag, kelas, teks) {
+    var el = document.createElement(tag);
+    if (kelas) el.className = kelas;
+    if (teks != null) el.textContent = teks;
+    return el;
+  }
+
+  function cocokKata(d, kata) {
+    if (!kata) return true;
+    var teks = (d.st + " " + d.peserta.join(" ") + " " + d.tanggal + " " + d.tahap + " " + d.catatan + " " + d.kelompok).toLowerCase();
+    return kata.split(/\s+/).every(function (k) { return teks.indexOf(k) !== -1; });
+  }
+
+  function gambarMenu() {
+    var hitung = {};
+    semuaData.forEach(function (d) { hitung[d.kelompok] = (hitung[d.kelompok] || 0) + 1; });
+    Array.prototype.slice.call(elMenu.querySelectorAll("button[data-kelompok]:not([data-kelompok=''])")).forEach(function (b) { b.remove(); });
+    document.getElementById("jumlahSemua").textContent = semuaData.length;
+    Object.keys(hitung).sort(function (a, b) { return a.localeCompare(b, "id"); }).forEach(function (nama) {
+      var t = buat("button");
+      t.type = "button";
+      t.dataset.kelompok = nama;
+      t.appendChild(document.createTextNode(nama + " "));
+      t.appendChild(buat("b", "", hitung[nama]));
+      elMenu.appendChild(t);
+    });
+    if (saringan.kelompok && !hitung[saringan.kelompok]) saringan.kelompok = "";
+    tandaiMenu();
+  }
+  function tandaiMenu() {
+    Array.prototype.forEach.call(elMenu.querySelectorAll("button"), function (b) {
+      b.setAttribute("aria-pressed", String(b.dataset.kelompok === saringan.kelompok));
+    });
+  }
+
+  function gambarRingkas(data) {
+    var hitung = { dibayar: 0, proses: 0, tertahan: 0, belum: 0 };
+    data.forEach(function (d) { hitung[d.golongan]++; });
+    var kartu = [
+      { kunci: "", kelas: "semua", label: "Seluruh surat tugas", n: data.length, ket: "Ketuk kartu untuk menyaring" },
+      { kunci: "dibayar", kelas: "dibayar", label: JUDUL_GOLONGAN.dibayar, n: hitung.dibayar, ket: data.length ? Math.round(hitung.dibayar / data.length * 100) + "% dari seluruh ST" : "" },
+      { kunci: "proses", kelas: "proses", label: JUDUL_GOLONGAN.proses, n: hitung.proses, ket: "Di Staf PPK atau bendahara" },
+      { kunci: "tertahan", kelas: "tertahan", label: JUDUL_GOLONGAN.tertahan, n: hitung.tertahan, ket: "Perlu tindakan peserta" },
+      { kunci: "belum", kelas: "belum", label: JUDUL_GOLONGAN.belum, n: hitung.belum, ket: "Belum mulai diproses" }
+    ];
+    elRingkas.textContent = "";
+    kartu.forEach(function (k) {
+      var t = buat("button", "kartu " + k.kelas);
+      t.type = "button";
+      t.dataset.golongan = k.kunci;
+      t.setAttribute("aria-pressed", String(saringan.golongan === k.kunci));
+      t.appendChild(buat("span", "", k.label));
+      t.appendChild(buat("strong", "", k.n));
+      t.appendChild(buat("small", "", k.ket));
+      elRingkas.appendChild(t);
+    });
+  }
+
+  function gambarBaris(d) {
+    var r = buat("div", "baris" + (d.golongan === "tertahan" ? " sorot" : ""));
+    var st = buat("div", "st");
+    st.appendChild(buat("strong", "", d.st.replace(/\/.*$/, "")));
+    st.appendChild(buat("span", "", d.tanggal || "Tanggal belum diisi"));
+    st.title = d.st;
+    r.appendChild(st);
+
+    var p = buat("div", "peserta");
+    p.appendChild(buat("p", "", d.peserta.length ? d.peserta.join(", ") : "Peserta belum diisi"));
+    if (d.peserta.length > 1) p.appendChild(buat("span", "", d.peserta.length + " peserta"));
+    r.appendChild(p);
+
+    var s = buat("div", "status");
+    s.appendChild(buat("span", "lencana " + d.golongan, d.golongan === "belum" ? JUDUL_GOLONGAN.belum : d.tahap));
+    if (d.catatan) s.appendChild(buat("span", "catatan" + (d.golongan !== "dibayar" ? " penting" : ""), d.catatan));
+    if (d.unduh) {
+      var a = buat("a", "unduh");
+      a.href = d.unduh; a.target = "_blank"; a.rel = "noopener";
+      a.title = "Unduh bukti bayar " + (d.berkas || d.st);
+      a.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 20h14"/></svg>';
+      a.appendChild(buat("span", "", d.berkas || "Unduh bukti bayar"));
+      s.appendChild(a);
+    } else if (d.berkas) s.appendChild(buat("span", "berkas", "Bukti: " + d.berkas));
+    r.appendChild(s);
+    return r;
+  }
+
+  function gambar() {
+    var kata = saringan.kata.toLowerCase();
+    var dasar = semuaData.filter(function (d) { return (!saringan.kelompok || d.kelompok === saringan.kelompok) && cocokKata(d, kata); });
+    gambarRingkas(dasar);
+    var tampil = dasar.filter(function (d) { return !saringan.golongan || d.golongan === saringan.golongan; });
+
+    var perKelompok = {};
+    tampil.forEach(function (d) { (perKelompok[d.kelompok] = perKelompok[d.kelompok] || []).push(d); });
+    elHasil.textContent = "";
+    Object.keys(perKelompok).sort(function (a, b) { return a.localeCompare(b, "id"); }).forEach(function (nama) {
+      var isi = perKelompok[nama].sort(function (a, b) {
+        return (URUTAN_GOLONGAN[a.golongan] - URUTAN_GOLONGAN[b.golongan]) || (b.urutTanggal - a.urutTanggal) || (b.urutST - a.urutST);
+      });
+      var belumLunas = isi.filter(function (d) { return d.golongan !== "dibayar"; }).length;
+      var sec = buat("section", "bagian");
+      var h = buat("h2", "", nama);
+      h.appendChild(buat("small", "", isi.length + " ST" + (belumLunas ? ", " + belumLunas + " belum dibayar" : ", semua sudah dibayar")));
+      sec.appendChild(h);
+      var daftar = buat("div", "daftar");
+      isi.forEach(function (d) { daftar.appendChild(gambarBaris(d)); });
+      sec.appendChild(daftar);
+      elHasil.appendChild(sec);
+    });
+    elKosong.hidden = tampil.length > 0 || !semuaData.length;
+  }
+
+  function jam(t) {
+    return t.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }).replace(":", ".");
+  }
+
+  var sedangMuat = false;
+  function muat() {
+    if (sedangMuat) return;
+    sedangMuat = true;
+    tombolMuat.disabled = true;
+    tombolMuat.textContent = "Memuat...";
+    // Parameter t mencegah peramban memakai salinan lama dari tembolok (cache).
+    fetch(URL_CSV + (URL_CSV.indexOf("?") === -1 ? "?" : "&") + "t=" + Date.now(), { cache: "no-store" })
+      .then(function (res) { if (!res.ok) throw new Error("HTTP " + res.status); return res.text(); })
+      .then(function (teks) {
+        if (/^\s*</.test(teks)) throw new Error("Tautan tidak menghasilkan CSV");
+        semuaData = olahData(bacaCSV(teks));
+        gambarMenu();
+        gambar();
+        elKeadaan.className = "keadaan";
+        elKeadaan.textContent = semuaData.length + " surat tugas. Data dimuat pukul " + jam(new Date()) + " dan diperbarui otomatis tiap " + MENIT_MUAT_ULANG + " menit.";
+      })
+      .catch(function (e) {
+        elKeadaan.className = "keadaan galat";
+        elKeadaan.textContent = "";
+        elKeadaan.appendChild(document.createTextNode("Data belum bisa dimuat (" + e.message + "). " + (semuaData.length ? "Yang tampil adalah data terakhir. " : "") + "Coba muat ulang, atau buka "));
+        var a = buat("a", "", "lembar kerjanya langsung");
+        a.href = document.getElementById("tautanSumber").href; a.target = "_blank"; a.rel = "noopener";
+        elKeadaan.appendChild(a);
+        elKeadaan.appendChild(document.createTextNode("."));
+        if (!semuaData.length) elHasil.textContent = "";
+      })
+      .then(function () {
+        sedangMuat = false;
+        tombolMuat.disabled = false;
+        tombolMuat.textContent = "Muat ulang";
+      });
+  }
+
+  /* ---------- Interaksi ---------- */
+  elMenu.addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-kelompok]");
+    if (!b) return;
+    saringan.kelompok = b.dataset.kelompok;
+    tandaiMenu();
+    gambar();
+    elHasil.scrollTop = 0;
+  });
+  elRingkas.addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-golongan]");
+    if (!b) return;
+    saringan.golongan = saringan.golongan === b.dataset.golongan ? "" : b.dataset.golongan;
+    gambar();
+    elHasil.scrollTop = 0;
+  });
+  document.getElementById("formCari").addEventListener("submit", function (e) { e.preventDefault(); });
+  elCari.addEventListener("input", function () { saringan.kata = elCari.value.trim(); gambar(); elHasil.scrollTop = 0; });
+  elCari.addEventListener("keydown", function (e) { if (e.key === "Escape" && elCari.value) { elCari.value = ""; saringan.kata = ""; gambar(); } });
+  tombolMuat.addEventListener("click", muat);
+
+  // Muat ulang berkala hanya saat halaman terlihat, dan langsung saat pegawai kembali ke tab ini.
+  var terakhir = 0;
+  function muatBila() { if (!document.hidden && Date.now() - terakhir >= MENIT_MUAT_ULANG * 60000) { terakhir = Date.now(); muat(); } }
+  setInterval(muatBila, 30000);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) { pasangBanner(); muatBila(); } });
+  terakhir = Date.now();
+  muat();
+
+  window.__perjadin = { bacaCSV: bacaCSV, olahData: olahData, data: function () { return semuaData; } };
+})();
+</script>
+</body>
+</html>
