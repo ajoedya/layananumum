@@ -793,6 +793,7 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
       elHasil.appendChild(sec);
     });
     elKosong.hidden = tampil.length > 0 || !semuaData.length;
+    if (typeof aturRingkas === "function") aturRingkas(false);
   }
 
   function jam(t) {
@@ -872,22 +873,32 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
 
   /* ---------- Kartu ringkas tersembunyi otomatis ----------
      Tersembunyi setelah daftar digulir ke bawah melewati AMBANG_SEMBUNYI piksel, muncul lagi
-     saat digulir ke atas sejauh AMBANG_MUNCUL piksel atau saat kembali ke puncak daftar. */
-  var AMBANG_SEMBUNYI = 48, AMBANG_MUNCUL = 60;
+     saat digulir ke atas sejauh AMBANG_MUNCUL piksel atau saat kembali ke puncak daftar.
+     Kartu hanya disembunyikan bila daftarnya cukup panjang, karena pada daftar pendek tinggi kotak yang
+     berubah ikut menggeser posisi gulir, sehingga kartu bisa muncul dan hilang berulang-ulang. */
+  var AMBANG_SEMBUNYI = 48, AMBANG_MUNCUL = 60, JEDA_PERALIHAN = 400;
   var elLipat = document.getElementById("lipatRingkas");
   var layarLebar = window.matchMedia("(min-width: 921px)");
-  var posisiLalu = 0, naikBerturut = 0;
+  var posisiLalu = 0, naikBerturut = 0, kunciSampai = 0;
   function aturRingkas(sembunyi) {
-    if (elLipat.classList.contains("tersembunyi") === sembunyi) return;
+    if (!elLipat || elLipat.classList.contains("tersembunyi") === sembunyi) return;
     elLipat.classList.toggle("tersembunyi", sembunyi);
     if (sembunyi) elLipat.setAttribute("inert", ""); else elLipat.removeAttribute("inert");
+    // Selama kartu terlipat atau terbuka, perubahan posisi gulir berasal dari tata letak, bukan dari pengguna.
+    kunciSampai = Date.now() + JEDA_PERALIHAN;
+    naikBerturut = 0;
+  }
+  function cukupPanjang() {
+    var sisa = elHasil.scrollHeight - elHasil.clientHeight;
+    var tinggiKartu = elLipat.classList.contains("tersembunyi") ? 0 : elLipat.offsetHeight + 16;
+    return sisa - tinggiKartu > AMBANG_SEMBUNYI * 3;
   }
   elHasil.addEventListener("scroll", function () {
     var y = elHasil.scrollTop, beda = y - posisiLalu;
     posisiLalu = y;
-    if (!layarLebar.matches) return;
-    if (y <= AMBANG_SEMBUNYI) { naikBerturut = 0; aturRingkas(false); return; }
-    if (beda > 0) { naikBerturut = 0; aturRingkas(true); }
+    if (!layarLebar.matches || Date.now() < kunciSampai) return;
+    if (y <= AMBANG_SEMBUNYI) { aturRingkas(false); return; }
+    if (beda > 0) { naikBerturut = 0; if (cukupPanjang()) aturRingkas(true); }
     else if (beda < 0) { naikBerturut -= beda; if (naikBerturut >= AMBANG_MUNCUL) aturRingkas(false); }
   }, { passive: true });
   function cekLayar() { if (!layarLebar.matches) aturRingkas(false); }
