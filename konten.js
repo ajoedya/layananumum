@@ -15,7 +15,7 @@
      **tebal**  → tebal
      _miring_   → miring (untuk istilah asing)
    ============================================================ */
-window.ALAMAT_SKRIP = "";
+window.ALAMAT_SKRIP = "https://script.google.com/macros/s/AKfycbz-jSdem8YddXJkAImPtBItSmyDafm8FSTmAZSuH0ixwV4pfQTLBko6pWAmCmK1SPtM/exec";
 
 window.KONTEN_BAWAAN = {
   "versi": 1,
