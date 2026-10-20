@@ -386,7 +386,8 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
 
   /* ============================================================
      SUMBER DATA
-     URL_CSV adalah tautan "Publish to web" tab E-Perjadin v2 dalam format CSV.
+     URL_CSV adalah tautan "Publish to web" tab Monitoring (spreadsheet "Data Merge Rincian Biaya Perjadin 2026")
+     dalam format CSV. Terbitkan tab Monitoring saja, jangan tab Data Merge yang memuat rincian biaya.
      Bila tab yang diterbitkan berganti, cukup ganti tautan ini.
      Google menyimpan salinan sementara, jadi perubahan di lembar kerja baru tampil sekitar lima menit kemudian.
      MENIT_MUAT_ULANG menentukan seberapa sering halaman yang dibiarkan terbuka mengambil data baru.
@@ -398,6 +399,7 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
   var GOLONGAN = {
     "sudah dibayar": "dibayar",
     "on hold": "tertahan",
+    "perbaikan": "tertahan",
     "": "belum"
   };
   var JUDUL_GOLONGAN = {
