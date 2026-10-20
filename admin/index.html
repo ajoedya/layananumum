@@ -1,0 +1,697 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://lh3.googleusercontent.com https://drive.google.com; connect-src 'self' https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
+<title>Dasbor Beranda | Layanan Subbagian Umum</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap">
+<script src="../konten.js"></script>
+<style>
+/* Dasbor admin beranda. Satu tampilan terang dengan warna yang sama dengan beranda. */
+:root {
+  color-scheme: light;
+  --huruf: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --laut: #0f3554; --laut-hover: #1b4d75; --emas: #b8700f; --emas-teks: #8a5208; --emas-muda: #fff6e1; --emas-garis: #e9d3a0;
+  --putih: #fff; --latar: #f5f8fa; --tinta: #0f3554; --lembut: #4f6577; --garis: #dbe4ea; --kolom: #cdd9e0;
+  --merah: #b3261e; --merah-muda: #fdecea; --hijau: #1f7a4a; --hijau-muda: #e7f5ed; --abu-muda: #eef2f5;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--latar); color: var(--tinta); font: 15px/1.55 var(--huruf); -webkit-font-smoothing: antialiased; }
+[hidden] { display: none !important; }
+button, input, select, textarea { font: inherit; color: inherit; }
+a { color: #0f4a78; }
+
+/* ---------- Kepala ---------- */
+.kepala { position: sticky; top: 0; z-index: 20; background: var(--laut); color: #fff; box-shadow: 0 2px 10px rgba(15,53,84,.18); }
+.kepala-isi { max-width: 1120px; margin: 0 auto; padding: 12px 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.merek { font-weight: 800; font-size: 18px; letter-spacing: -.02em; margin-right: auto; }
+.merek small { display: block; color: #c9d8e4; font-size: 11px; font-weight: 600; letter-spacing: .16em; }
+.status { font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,.14); }
+.status.ubah { background: #ffd27a; color: #4a2f05; }
+.kepala .tombol { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.3); color: #fff; }
+.kepala .tombol:hover { background: rgba(255,255,255,.22); }
+.kepala .tombol.utama { background: #ffd27a; border-color: #ffd27a; color: #3b2604; }
+.kepala .tombol.utama:hover { background: #ffe1a1; }
+
+/* ---------- Tombol dan kolom ---------- */
+.tombol { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 8px 14px; border: 1px solid var(--kolom); border-radius: 6px; background: var(--putih); font-weight: 600; cursor: pointer; text-decoration: none; color: var(--tinta); }
+.tombol:hover { border-color: var(--laut); }
+.tombol.utama { background: var(--laut); border-color: var(--laut); color: #fff; }
+.tombol.utama:hover { background: var(--laut-hover); }
+.tombol.bahaya { color: var(--merah); }
+.tombol.bahaya:hover { border-color: var(--merah); background: var(--merah-muda); }
+.tombol.kecil { min-height: 32px; padding: 4px 10px; font-size: 13px; }
+.tombol:disabled { opacity: .5; cursor: not-allowed; }
+.tombol:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, .tab:focus-visible { outline: 3px solid var(--emas); outline-offset: 1px; }
+.ikon { width: 32px; padding: 0; justify-content: center; }
+
+label.kolom { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 700; color: var(--lembut); min-width: 0; }
+label.kolom small { font-weight: 500; }
+input[type=text], input[type=password], input[type=url], input[type=number], select, textarea {
+  width: 100%; min-height: 40px; padding: 8px 11px; border: 1px solid var(--kolom); border-radius: 6px; background: var(--putih); font-size: 15px; font-weight: 400; color: var(--tinta);
+}
+textarea { min-height: 76px; resize: vertical; line-height: 1.5; }
+input.salah, textarea.salah { border-color: var(--merah); background: var(--merah-muda); }
+.centang { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.centang input { width: 18px; height: 18px; accent-color: var(--laut); }
+
+/* ---------- Tata letak ---------- */
+.wadah { max-width: 1120px; margin: 0 auto; padding: 20px; }
+.tab-baris { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; border-bottom: 1px solid var(--garis); }
+.tab { border: 0; background: none; padding: 10px 14px; font-weight: 700; color: var(--lembut); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -1px; }
+.tab[aria-selected="true"] { color: var(--laut); border-bottom-color: var(--emas); }
+.tab b { margin-left: 4px; padding: 1px 7px; border-radius: 10px; background: var(--abu-muda); font-size: 12px; }
+.bagian-judul { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 12px; }
+.bagian-judul h2 { margin: 0 auto 0 0; font-size: 18px; }
+.petunjuk { margin: 0 0 14px; color: var(--lembut); font-size: 14px; }
+.petunjuk code { background: var(--abu-muda); padding: 1px 5px; border-radius: 4px; }
+.kotak { background: var(--putih); border: 1px solid var(--garis); border-radius: 10px; padding: 16px; box-shadow: 0 1px 6px rgba(15,53,84,.04); }
+.kisi { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px 16px; }
+.penuh { grid-column: 1 / -1; }
+.daftar { display: flex; flex-direction: column; gap: 10px; }
+.kartu { background: var(--putih); border: 1px solid var(--garis); border-left: 4px solid var(--emas); border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+.kartu.sembunyi { border-left-color: #9aabb8; background: #fafbfc; }
+.kartu.sembunyi .kartu-isi { opacity: .6; }
+.kartu-kepala { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.kartu-kepala .nomor { font-weight: 800; color: var(--emas-teks); font-variant-numeric: tabular-nums; min-width: 26px; }
+.kartu-kepala .nama { font-weight: 700; margin-right: auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1 1 160px; }
+.lencana { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--abu-muda); color: var(--lembut); }
+.lencana.tersembunyi { background: #eceff1; color: #5c6b77; }
+.kosong { padding: 18px; text-align: center; color: var(--lembut); border: 1px dashed var(--kolom); border-radius: 8px; background: var(--putih); }
+.saring { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.saring button { border: 1px solid var(--kolom); background: var(--putih); border-radius: 999px; padding: 5px 12px; font-size: 13px; font-weight: 700; cursor: pointer; }
+.saring button[aria-pressed="true"] { background: var(--laut); border-color: var(--laut); color: #fff; }
+
+/* ---------- Banner ---------- */
+.banner-kartu { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 14px; }
+.cuplikan { width: 180px; height: 120px; border-radius: 6px; background: #c9d8e4 center / cover no-repeat; border: 1px solid var(--garis); }
+input[type=range] { width: 100%; accent-color: var(--emas); }
+@media (max-width: 600px) { .banner-kartu { grid-template-columns: 1fr; } .cuplikan { width: 100%; height: 150px; } }
+
+/* ---------- Masuk ---------- */
+.masuk { max-width: 460px; margin: 48px auto; display: flex; flex-direction: column; gap: 14px; }
+.masuk h1 { margin: 0; font-size: 22px; }
+.pesan { margin: 0; padding: 10px 14px; border-radius: 6px; font-size: 14px; }
+.pesan.galat { background: var(--merah-muda); color: var(--merah); }
+.pesan.baik { background: var(--hijau-muda); color: var(--hijau); }
+.pesan.info { background: var(--emas-muda); color: var(--emas-teks); }
+.daftar-galat { margin: 0; padding-left: 20px; }
+
+/* ---------- Kabar singkat ---------- */
+.kabar-singkat { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 50; max-width: calc(100% - 32px); padding: 10px 18px; border-radius: 8px; background: var(--laut); color: #fff; font-weight: 600; box-shadow: 0 6px 20px rgba(0,0,0,.2); }
+.kabar-singkat.galat { background: var(--merah); }
+table.riwayat { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.riwayat th, table.riwayat td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--garis); vertical-align: top; }
+table.riwayat th { color: var(--lembut); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+.sr-only { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<header class="kepala">
+  <div class="kepala-isi">
+    <div class="merek">Dasbor Beranda<small>LAYANAN SUBBAGIAN UMUM</small></div>
+    <span class="status" id="status" role="status" aria-live="polite" hidden></span>
+    <button type="button" class="tombol" id="tombolPratinjau" hidden>Pratinjau</button>
+    <button type="button" class="tombol utama" id="tombolTerbit" hidden>Terbitkan</button>
+    <button type="button" class="tombol" id="tombolKeluar" hidden>Keluar</button>
+  </div>
+</header>
+
+<!-- ---------- Layar masuk ---------- -->
+<section class="wadah" id="layarMasuk">
+  <form class="masuk kotak" id="formMasuk">
+    <h1>Masuk dasbor</h1>
+    <p class="petunjuk" style="margin:0">Dasbor ini mengatur isi beranda Layanan Subbagian Umum, yaitu teks panel, kotak informasi, kelompok, tautan layanan, dan banner.</p>
+    <p class="pesan info" id="pesanBelumSetel" hidden>Alamat Apps Script belum diisi di <code>konten.js</code>. Dasbor bisa dicoba dalam mode uji (isi bisa disunting dan dipratinjau, tetapi belum bisa diterbitkan).</p>
+    <label class="kolom">Nama penyunting <small>Dicatat di riwayat perubahan.</small>
+      <input type="text" id="namaPenyunting" autocomplete="name" maxlength="60" required>
+    </label>
+    <label class="kolom" id="kolomKunci">Kunci admin
+      <input type="password" id="kunciAdmin" autocomplete="current-password" required>
+    </label>
+    <p class="pesan galat" id="pesanMasuk" role="alert" hidden></p>
+    <button type="submit" class="tombol utama" id="tombolMasuk">Masuk</button>
+    <button type="button" class="tombol" id="tombolUji" hidden>Masuk mode uji</button>
+  </form>
+</section>
+
+<!-- ---------- Penyunting ---------- -->
+<main class="wadah" id="layarSunting" hidden>
+  <div class="tab-baris" role="tablist" aria-label="Bagian beranda" id="tabBaris"></div>
+  <p class="pesan galat" id="pesanGalat" role="alert" hidden></p>
+  <div id="panel" role="tabpanel"></div>
+</main>
+
+<div class="kabar-singkat" id="kabarSingkat" role="status" aria-live="polite" hidden></div>
+
+<script>
+(function () {
+  "use strict";
+  var K = window.Konten;
+  var ALAMAT = window.ALAMAT_SKRIP;
+  var KUNCI_DRAF = "layanan-draf", KUNCI_PRATINJAU = "layanan-pratinjau", KUNCI_NAMA = "layanan-penyunting";
+
+  var keadaan = {
+    konten: null,       // isi yang sedang disunting
+    terbit: "",         // JSON isi terakhir yang diterbitkan, untuk mendeteksi perubahan
+    dasar: "",          // cap waktu isi dari Apps Script saat dimuat, untuk mencegah saling timpa
+    kunci: "", nama: "", uji: false,
+    tab: "umum", saringTautan: "semua"
+  };
+
+  function $(id) { return document.getElementById(id); }
+  function el(tag, atr, anak) {
+    var n = document.createElement(tag);
+    if (atr) Object.keys(atr).forEach(function (k) {
+      if (k === "teks") n.textContent = atr[k];
+      else if (k === "kelas") n.className = atr[k];
+      else if (k.indexOf("on") === 0) n.addEventListener(k.slice(2), atr[k]);
+      else if (atr[k] === true) n.setAttribute(k, "");
+      else if (atr[k] !== false && atr[k] != null) n.setAttribute(k, atr[k]);
+    });
+    (anak || []).forEach(function (a) { if (a) n.appendChild(typeof a === "string" ? document.createTextNode(a) : a); });
+    return n;
+  }
+  function simpanLokal(k, v) { try { localStorage.setItem(k, typeof v === "string" ? v : JSON.stringify(v)); } catch (e) { /* abaikan */ } }
+  function bacaLokal(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function hapusLokal(k) { try { localStorage.removeItem(k); } catch (e) { /* abaikan */ } }
+
+  var pewaktuKabar;
+  function kabar(teks, galat) {
+    var n = $("kabarSingkat");
+    n.textContent = teks; n.className = "kabar-singkat" + (galat ? " galat" : ""); n.hidden = false;
+    clearTimeout(pewaktuKabar);
+    pewaktuKabar = setTimeout(function () { n.hidden = true; }, 3500);
+  }
+
+  /* ---------- Hubungan dengan Apps Script ----------
+     Dikirim sebagai text/plain supaya peramban tidak meminta izin CORS terlebih dahulu. */
+  function kirim(isi) {
+    isi.kunci = keadaan.kunci;
+    return fetch(ALAMAT, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(isi) })
+      .then(function (r) { return r.json(); })
+      .catch(function () { return { ok: false, pesan: "Tidak tersambung ke Apps Script. Periksa jaringan atau alamat di konten.js." }; });
+  }
+
+  /* ---------- Masuk ---------- */
+  $("namaPenyunting").value = bacaLokal(KUNCI_NAMA) || "";
+  if (!ALAMAT) {
+    $("pesanBelumSetel").hidden = false;
+    $("kolomKunci").hidden = true; $("kunciAdmin").required = false;
+    $("tombolMasuk").hidden = true; $("tombolUji").hidden = false;
+  }
+  $("tombolUji").addEventListener("click", function () {
+    keadaan.nama = $("namaPenyunting").value.trim() || "Mode uji";
+    keadaan.uji = true;
+    mulaiSunting(window.KONTEN_BAWAAN, "");
+  });
+  $("formMasuk").addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (!ALAMAT) { $("tombolUji").click(); return; }
+    var tombol = $("tombolMasuk");
+    keadaan.nama = $("namaPenyunting").value.trim();
+    keadaan.kunci = $("kunciAdmin").value;
+    tombol.disabled = true; tombol.textContent = "Memeriksa...";
+    $("pesanMasuk").hidden = true;
+    kirim({ aksi: "cek" }).then(function (h) {
+      tombol.disabled = false; tombol.textContent = "Masuk";
+      if (!h.ok) { $("pesanMasuk").textContent = h.pesan || "Gagal masuk."; $("pesanMasuk").hidden = false; return; }
+      simpanLokal(KUNCI_NAMA, keadaan.nama);
+      $("kunciAdmin").value = "";
+      mulaiSunting(h.konten || window.KONTEN_BAWAAN, h.diperbarui || "");
+    });
+  });
+  $("tombolKeluar").addEventListener("click", function () {
+    if (adaPerubahan() && !confirm("Ada perubahan yang belum diterbitkan. Tetap keluar? Suntingan tetap tersimpan di peramban ini.")) return;
+    location.reload();
+  });
+
+  function mulaiSunting(konten, diperbarui) {
+    keadaan.konten = K.rapikan(konten);
+    keadaan.terbit = JSON.stringify(keadaan.konten);
+    keadaan.dasar = diperbarui;
+    // Suntingan yang belum diterbitkan dari kunjungan sebelumnya bisa dipulihkan.
+    var draf = bacaLokal(KUNCI_DRAF);
+    if (draf) {
+      try {
+        var d = JSON.parse(draf);
+        if (d.dasar === diperbarui && JSON.stringify(K.rapikan(d.konten)) !== keadaan.terbit &&
+            confirm("Ada suntingan yang belum diterbitkan dari kunjungan sebelumnya (" + waktuBaca(d.waktu) + "). Pulihkan?")) {
+          keadaan.konten = K.rapikan(d.konten);
+        } else if (d.dasar !== diperbarui) hapusLokal(KUNCI_DRAF);
+      } catch (e) { hapusLokal(KUNCI_DRAF); }
+    }
+    $("layarMasuk").hidden = true; $("layarSunting").hidden = false;
+    ["status", "tombolPratinjau", "tombolTerbit", "tombolKeluar"].forEach(function (id) { $(id).hidden = false; });
+    if (keadaan.uji) $("tombolTerbit").disabled = true;
+    gambarTab(); berubah(true);
+  }
+
+  /* ---------- Perubahan, draf, dan pratinjau ---------- */
+  function adaPerubahan() { return keadaan.konten && JSON.stringify(keadaan.konten) !== keadaan.terbit; }
+  var pewaktuDraf;
+  function berubah(tanpaDraf) {
+    var ubah = adaPerubahan();
+    var s = $("status");
+    s.textContent = keadaan.uji ? "Mode uji" : ubah ? "Belum diterbitkan" : "Sesuai beranda";
+    s.classList.toggle("ubah", ubah || keadaan.uji);
+    simpanLokal(KUNCI_PRATINJAU, keadaan.konten);
+    if (tanpaDraf) return;
+    clearTimeout(pewaktuDraf);
+    pewaktuDraf = setTimeout(function () {
+      if (adaPerubahan()) simpanLokal(KUNCI_DRAF, { dasar: keadaan.dasar, waktu: new Date().toISOString(), konten: keadaan.konten });
+      else hapusLokal(KUNCI_DRAF);
+    }, 400);
+  }
+  window.addEventListener("beforeunload", function (e) { if (adaPerubahan()) { e.preventDefault(); e.returnValue = ""; } });
+  $("tombolPratinjau").addEventListener("click", function () {
+    simpanLokal(KUNCI_PRATINJAU, keadaan.konten);
+    window.open("../?pratinjau=1", "pratinjau-beranda");
+  });
+
+  /* ---------- Pemeriksaan sebelum terbit ---------- */
+  function periksa() {
+    var k = keadaan.konten, galat = [];
+    function cekAlamat(a, nama) {
+      if (!String(a || "").trim()) galat.push(nama + ": alamat masih kosong.");
+      else if (!K.alamatAman(a)) galat.push(nama + ": alamat harus diawali https:// atau berupa alamat di situs ini (misalnya perjadin/).");
+    }
+    if (!k.umum.judul.trim()) galat.push("Umum: judul beranda masih kosong.");
+    if (k.umum.gerbang.tampil) cekAlamat(k.umum.gerbang.alamat, "Tombol Gerbang");
+    var kode = {};
+    k.kelompok.forEach(function (g, i) {
+      if (!g.nama.trim()) galat.push("Kelompok " + (i + 1) + ": nama masih kosong.");
+      if (!/^[a-z0-9-]+$/.test(g.id)) galat.push("Kelompok " + (g.nama || i + 1) + ": kode hanya boleh huruf kecil, angka, dan tanda hubung.");
+      if (kode[g.id]) galat.push("Kelompok " + g.nama + ": kode \"" + g.id + "\" sudah dipakai kelompok lain.");
+      kode[g.id] = true;
+    });
+    k.tautan.forEach(function (t, i) {
+      var nama = "Tautan \"" + (K.polos(t.judul) || "tanpa judul " + (i + 1)) + "\"";
+      if (!t.judul.trim()) galat.push(nama + ": judul masih kosong.");
+      if (!kode[t.kelompok]) galat.push(nama + ": kelompoknya tidak ditemukan.");
+      cekAlamat(t.alamat, nama);
+    });
+    ["siang", "malam"].forEach(function (w) {
+      k.banner[w].forEach(function (b, i) { cekAlamat(b.berkas, "Banner " + w + " " + (i + 1)); });
+    });
+    if (!k.banner.siang.some(function (b) { return b.tampil; })) galat.push("Banner: minimal satu banner siang harus tampil.");
+    return galat;
+  }
+  function tampilGalat(galat) {
+    var p = $("pesanGalat");
+    p.textContent = "";
+    if (!galat.length) { p.hidden = true; return; }
+    p.appendChild(el("strong", { teks: "Belum bisa diterbitkan:" }));
+    var ul = el("ul", { kelas: "daftar-galat" });
+    galat.forEach(function (g) { ul.appendChild(el("li", { teks: g })); });
+    p.appendChild(ul); p.hidden = false;
+    p.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  $("tombolTerbit").addEventListener("click", function () {
+    var galat = periksa();
+    tampilGalat(galat);
+    if (galat.length) return;
+    if (!adaPerubahan()) { kabar("Tidak ada perubahan untuk diterbitkan."); return; }
+    var catatan = prompt("Catatan singkat perubahan (boleh dikosongkan):", "");
+    if (catatan === null) return;
+    var tombol = $("tombolTerbit");
+    tombol.disabled = true; tombol.textContent = "Menerbitkan...";
+    kirim({ aksi: "simpan", konten: keadaan.konten, penyunting: keadaan.nama, catatan: catatan, dasar: keadaan.dasar }).then(function (h) {
+      tombol.disabled = false; tombol.textContent = "Terbitkan";
+      if (h.bentrok) {
+        alert(h.pesan + "\n\nSuntingan Anda tetap tersimpan di peramban ini. Unduh cadangannya dari tab Riwayat & Cadangan bila perlu, lalu muat ulang dasbor.");
+        return;
+      }
+      if (!h.ok) { kabar(h.pesan || "Gagal menerbitkan.", true); return; }
+      keadaan.terbit = JSON.stringify(keadaan.konten);
+      keadaan.dasar = h.diperbarui;
+      hapusLokal(KUNCI_DRAF);
+      berubah(true);
+      kabar("Terbit. Beranda memakai isi baru dalam satu menit.");
+      if (keadaan.tab === "riwayat") gambarPanel();
+    });
+  });
+
+  /* ---------- Kolom isian ----------
+     Kolom menulis langsung ke objek isi tanpa menggambar ulang, supaya kursor tidak lompat. */
+  function kolom(label, obj, kunci, opsi) {
+    opsi = opsi || {};
+    var masukan;
+    if (opsi.jenis === "area") masukan = el("textarea", { rows: opsi.baris || 3 });
+    else if (opsi.jenis === "pilih") {
+      masukan = el("select");
+      opsi.pilihan.forEach(function (p) { masukan.appendChild(el("option", { value: p[0], teks: p[1] })); });
+    } else masukan = el("input", { type: opsi.jenis || "text" });
+    if (opsi.maks) masukan.maxLength = opsi.maks;
+    if (opsi.contoh) masukan.placeholder = opsi.contoh;
+    masukan.value = obj[kunci] == null ? "" : obj[kunci];
+    var periksaAlamat = function () {
+      if (!opsi.alamat) return;
+      var v = masukan.value.trim();
+      masukan.classList.toggle("salah", !!v && !K.alamatAman(v));
+    };
+    masukan.addEventListener(opsi.jenis === "pilih" ? "change" : "input", function () {
+      obj[kunci] = opsi.jenis === "number" ? Number(masukan.value) : masukan.value;
+      periksaAlamat();
+      if (opsi.ubah) opsi.ubah(masukan.value);
+      berubah();
+    });
+    periksaAlamat();
+    var lbl = el("label", { kelas: "kolom" + (opsi.penuh ? " penuh" : "") }, [label]);
+    if (opsi.ket) lbl.appendChild(el("small", { teks: opsi.ket }));
+    lbl.appendChild(masukan);
+    return lbl;
+  }
+  function centang(label, obj, kunci, ubah) {
+    var m = el("input", { type: "checkbox" });
+    m.checked = !!obj[kunci];
+    m.addEventListener("change", function () { obj[kunci] = m.checked; berubah(); if (ubah) ubah(); });
+    return el("label", { kelas: "centang" }, [m, label]);
+  }
+  var KET_PENANDA = "Penanda: **tebal**, _miring_ untuk istilah asing.";
+
+  // Tombol urut, sembunyikan, dan hapus untuk satu kartu dalam daftar.
+  function kendaliKartu(daftar, i, opsi) {
+    opsi = opsi || {};
+    var butir = daftar[i];
+    var tetangga = function (arah) {
+      for (var j = i + arah; j >= 0 && j < daftar.length; j += arah) if (!opsi.sama || opsi.sama(daftar[j])) return j;
+      return -1;
+    };
+    var atas = tetangga(-1), bawah = tetangga(1);
+    function pindah(j) { daftar[i] = daftar[j]; daftar[j] = butir; berubah(); gambarPanel(); }
+    return [
+      el("button", { type: "button", kelas: "tombol kecil ikon", title: "Naikkan", "aria-label": "Naikkan", disabled: atas < 0, onclick: function () { pindah(atas); }, teks: "↑" }),
+      el("button", { type: "button", kelas: "tombol kecil ikon", title: "Turunkan", "aria-label": "Turunkan", disabled: bawah < 0, onclick: function () { pindah(bawah); }, teks: "↓" }),
+      el("button", { type: "button", kelas: "tombol kecil", onclick: function () { butir.tampil = !butir.tampil; berubah(); gambarPanel(); }, teks: butir.tampil ? "Sembunyikan" : "Tampilkan" }),
+      el("button", { type: "button", kelas: "tombol kecil bahaya", onclick: function () {
+        if (opsi.bolehHapus && !opsi.bolehHapus()) return;
+        if (!confirm("Hapus " + (opsi.nama || "butir ini") + "?")) return;
+        daftar.splice(i, 1); berubah(); gambarPanel(); gambarTab();
+      }, teks: "Hapus" })
+    ];
+  }
+  function kartu(judul, nomor, butir, kendali, isi) {
+    var namaEl = el("span", { kelas: "nama", teks: judul || "(tanpa judul)" });
+    var kepala = el("div", { kelas: "kartu-kepala" }, [nomor != null ? el("span", { kelas: "nomor", teks: nomor }) : null, namaEl]);
+    if (!butir.tampil) kepala.appendChild(el("span", { kelas: "lencana tersembunyi", teks: "Tersembunyi" }));
+    kendali.forEach(function (k) { kepala.appendChild(k); });
+    var k = el("div", { kelas: "kartu" + (butir.tampil ? "" : " sembunyi") }, [kepala, el("div", { kelas: "kartu-isi kisi" }, isi)]);
+    k._nama = namaEl;
+    return k;
+  }
+
+  /* ---------- Tab ---------- */
+  var TAB = [
+    ["umum", "Umum"], ["info", "Informasi"], ["kelompok", "Kelompok"], ["tautan", "Tautan"], ["banner", "Banner"], ["riwayat", "Riwayat & Cadangan"]
+  ];
+  function hitung(id) {
+    var k = keadaan.konten;
+    if (id === "info") return k.info.length;
+    if (id === "kelompok") return k.kelompok.length;
+    if (id === "tautan") return k.tautan.length;
+    if (id === "banner") return k.banner.siang.length + k.banner.malam.length;
+    return null;
+  }
+  function gambarTab() {
+    var baris = $("tabBaris");
+    baris.textContent = "";
+    TAB.forEach(function (t) {
+      var n = hitung(t[0]);
+      baris.appendChild(el("button", {
+        type: "button", kelas: "tab", role: "tab", "aria-selected": String(keadaan.tab === t[0]),
+        onclick: function () { keadaan.tab = t[0]; gambarTab(); gambarPanel(); }
+      }, [t[1], n != null ? el("b", { teks: String(n) }) : null]));
+    });
+    gambarPanel();
+  }
+  function gambarPanel() {
+    var p = $("panel");
+    p.textContent = "";
+    ({ umum: panelUmum, info: panelInfo, kelompok: panelKelompok, tautan: panelTautan, banner: panelBanner, riwayat: panelRiwayat })[keadaan.tab](p);
+  }
+  function judulBagian(teks, tombol) {
+    return el("div", { kelas: "bagian-judul" }, [el("h2", { teks: teks })].concat(tombol || []));
+  }
+
+  /* ---------- Tab Umum ---------- */
+  function panelUmum(p) {
+    var u = keadaan.konten.umum;
+    p.appendChild(judulBagian("Teks beranda"));
+    p.appendChild(el("p", { kelas: "petunjuk", teks: "Teks di panel biru sebelah kiri beranda, tombol Gerbang, dan kaki halaman. " + KET_PENANDA }));
+    p.appendChild(el("div", { kelas: "kotak kisi" }, [
+      kolom("Label kecil di atas judul", u, "label", { maks: 120 }),
+      kolom("Judul", u, "judul", { maks: 120 }),
+      kolom("Subjudul (warna emas)", u, "subjudul", { maks: 160, penuh: true }),
+      kolom("Deskripsi", u, "deskripsi", { jenis: "area", maks: 400, penuh: true }),
+      kolom("Keterangan di atas banner", u, "keteranganAtas", { maks: 60 }),
+      kolom("Slogan di atas banner", u, "keteranganBawah", { maks: 160 }),
+      kolom("Kaki halaman", u, "kaki", { maks: 200, penuh: true }),
+      kolom("Lama satu informasi tampil (detik)", u, "detikPerInfo", { jenis: "number" })
+    ]));
+    p.appendChild(judulBagian("Tombol Gerbang"));
+    p.appendChild(el("div", { kelas: "kotak kisi" }, [
+      el("div", { kelas: "penuh" }, [centang("Tampilkan tombol di samping kolom pencarian", u.gerbang, "tampil")]),
+      kolom("Teks tombol", u.gerbang, "teks", { maks: 60 }),
+      kolom("Alamat", u.gerbang, "alamat", { alamat: true, contoh: "https://..." })
+    ]));
+  }
+
+  /* ---------- Tab Informasi ---------- */
+  function panelInfo(p) {
+    var d = keadaan.konten.info;
+    p.appendChild(judulBagian("Kotak informasi", [el("button", { type: "button", kelas: "tombol utama", teks: "+ Tambah informasi", onclick: function () {
+      d.unshift({ tampil: true, label: "[Kategori]", judul: "", isi: "" }); berubah(); gambarTab();
+    } })]));
+    p.appendChild(el("p", { kelas: "petunjuk", teks: "Informasi bergeser bergantian di atas daftar layanan. Bila hanya satu yang tampil, kotak tidak bergeser. " + KET_PENANDA }));
+    if (!d.length) { p.appendChild(el("div", { kelas: "kosong", teks: "Belum ada informasi. Kotak informasi tidak tampil di beranda." })); return; }
+    var wadah = el("div", { kelas: "daftar" });
+    d.forEach(function (x, i) {
+      var kt = kartu(K.polos(x.judul), String(i + 1), x, kendaliKartu(d, i, { nama: "informasi ini" }), [
+        kolom("Label", x, "label", { maks: 80, contoh: "[Perjalanan Dinas]" }),
+        kolom("Judul", x, "judul", { maks: 250, ubah: function (v) { kt._nama.textContent = K.polos(v) || "(tanpa judul)"; } }),
+        kolom("Isi", x, "isi", { jenis: "area", maks: 800, penuh: true })
+      ]);
+      wadah.appendChild(kt);
+    });
+    p.appendChild(wadah);
+  }
+
+  /* ---------- Tab Kelompok ---------- */
+  function panelKelompok(p) {
+    var k = keadaan.konten;
+    p.appendChild(judulBagian("Kelompok layanan", [el("button", { type: "button", kelas: "tombol utama", teks: "+ Tambah kelompok", onclick: function () {
+      var id = "kelompok-" + (k.kelompok.length + 1);
+      while (k.kelompok.some(function (g) { return g.id === id; })) id += "-baru";
+      k.kelompok.push({ id: id, nama: "", judulBagian: "", arsip: false, tampil: true }); berubah(); gambarTab();
+    } })]));
+    p.appendChild(el("p", { kelas: "petunjuk", teks: "Kelompok muncul sebagai menu di panel kiri dan sebagai bagian di daftar layanan. Kelompok tanpa tautan yang tampil otomatis tidak ditampilkan. Kode dipakai sebagai alamat lompatan (misalnya layananumum/#perjadin)." }));
+    var wadah = el("div", { kelas: "daftar" });
+    k.kelompok.forEach(function (g, i) {
+      var jumlah = k.tautan.filter(function (t) { return t.kelompok === g.id; }).length;
+      var kodeLama = g.id;
+      var kt = kartu(g.nama, String(i + 1), g, kendaliKartu(k.kelompok, i, {
+        nama: "kelompok \"" + (g.nama || g.id) + "\"",
+        bolehHapus: function () {
+          if (!jumlah) return true;
+          alert("Kelompok ini masih berisi " + jumlah + " tautan. Pindahkan atau hapus tautannya dulu di tab Tautan.");
+          return false;
+        }
+      }), [
+        kolom("Nama di menu", g, "nama", { maks: 60, ubah: function (v) { kt._nama.textContent = v || "(tanpa judul)"; } }),
+        kolom("Judul bagian", g, "judulBagian", { maks: 120, ket: "Kosongkan untuk memakai nama menu." }),
+        kolom("Kode", g, "id", { maks: 40, ket: "Huruf kecil, angka, tanda hubung.", ubah: function (v) {
+          var baru = v.toLowerCase().replace(/[^a-z0-9-]/g, "");
+          g.id = baru;
+          // Tautan di kelompok ini ikut memakai kode baru.
+          k.tautan.forEach(function (t) { if (t.kelompok === kodeLama) t.kelompok = baru; });
+          kodeLama = baru;
+        } }),
+        el("div", { kelas: "kolom" }, [centang("Gaya arsip (warna abu)", g, "arsip"), el("small", { teks: jumlah + " tautan" })])
+      ]);
+      wadah.appendChild(kt);
+    });
+    p.appendChild(wadah);
+  }
+
+  /* ---------- Tab Tautan ---------- */
+  function panelTautan(p) {
+    var k = keadaan.konten;
+    var pilihan = k.kelompok.map(function (g) { return [g.id, K.polos(g.nama) || g.id]; });
+    var saring = keadaan.saringTautan;
+    if (saring !== "semua" && !k.kelompok.some(function (g) { return g.id === saring; })) saring = keadaan.saringTautan = "semua";
+
+    p.appendChild(judulBagian("Tautan layanan", [el("button", { type: "button", kelas: "tombol utama", teks: "+ Tambah tautan", disabled: !k.kelompok.length, onclick: function () {
+      var kel = saring !== "semua" ? saring : k.kelompok[0].id;
+      // Tautan baru ditaruh di akhir kelompoknya.
+      var akhir = -1;
+      k.tautan.forEach(function (t, i) { if (t.kelompok === kel) akhir = i; });
+      var baru = { tampil: true, kelompok: kel, judul: "", uraian: "", alamat: "", kunci: "" };
+      if (akhir < 0) k.tautan.push(baru); else k.tautan.splice(akhir + 1, 0, baru);
+      keadaan.saringTautan = kel;
+      berubah(); gambarTab();
+      setTimeout(function () { var n = document.querySelectorAll(".kartu"); var t = n[n.length - 1]; if (t) { t.scrollIntoView({ block: "center" }); var m = t.querySelector("input"); if (m) m.focus(); } }, 0);
+    } })]));
+    p.appendChild(el("p", { kelas: "petunjuk", teks: "Nomor urut di beranda dihitung sendiri dari urutan kelompok lalu urutan tautan. Alamat boleh https:// atau halaman di situs ini (misalnya perjadin/). Tautan luar otomatis dibuka di tab baru. " + KET_PENANDA }));
+    if (!k.kelompok.length) { p.appendChild(el("div", { kelas: "kosong", teks: "Buat kelompok dulu di tab Kelompok." })); return; }
+
+    var bar = el("div", { kelas: "saring", role: "group", "aria-label": "Saring kelompok" });
+    [["semua", "Semua"]].concat(pilihan).forEach(function (p2) {
+      var n = p2[0] === "semua" ? k.tautan.length : k.tautan.filter(function (t) { return t.kelompok === p2[0]; }).length;
+      bar.appendChild(el("button", { type: "button", "aria-pressed": String(saring === p2[0]), teks: p2[1] + " (" + n + ")", onclick: function () { keadaan.saringTautan = p2[0]; gambarPanel(); } }));
+    });
+    p.appendChild(bar);
+
+    var wadah = el("div", { kelas: "daftar" });
+    var urutKelompok = k.kelompok.map(function (g) { return g.id; });
+    // Tampilan mengikuti urutan kelompok, sama seperti di beranda.
+    var urutan = k.tautan.map(function (t, i) { return i; }).sort(function (a, b) {
+      return (urutKelompok.indexOf(k.tautan[a].kelompok) - urutKelompok.indexOf(k.tautan[b].kelompok)) || (a - b);
+    });
+    var nomor = 0;
+    urutan.forEach(function (i) {
+      var t = k.tautan[i];
+      var tampilBeranda = t.tampil && k.kelompok.some(function (g) { return g.id === t.kelompok && g.tampil; });
+      if (tampilBeranda) nomor += 1;
+      if (saring !== "semua" && t.kelompok !== saring) return;
+      var namaKel = (pilihan.filter(function (p2) { return p2[0] === t.kelompok; })[0] || [0, "?"])[1];
+      var kt = kartu(K.polos(t.judul), tampilBeranda ? (nomor < 10 ? "0" : "") + nomor : "–", t,
+        [el("span", { kelas: "lencana", teks: namaKel })].concat(kendaliKartu(k.tautan, i, { nama: "tautan \"" + (K.polos(t.judul) || "tanpa judul") + "\"", sama: function (x) { return x.kelompok === t.kelompok; } })), [
+        kolom("Judul", t, "judul", { maks: 120, ubah: function (v) { kt._nama.textContent = K.polos(v) || "(tanpa judul)"; } }),
+        kolom("Kelompok", t, "kelompok", { jenis: "pilih", pilihan: pilihan, ubah: function () { gambarPanel(); } }),
+        kolom("Uraian singkat", t, "uraian", { maks: 300, penuh: true }),
+        kolom("Alamat", t, "alamat", { alamat: true, maks: 1000, contoh: "https://... atau perjadin/", penuh: true }),
+        kolom("Kata kunci pencarian", t, "kunci", { maks: 400, penuh: true, ket: "Dipisah spasi. Tidak tampil, hanya membantu pencarian di beranda." })
+      ]);
+      wadah.appendChild(kt);
+    });
+    if (!wadah.childNodes.length) wadah.appendChild(el("div", { kelas: "kosong", teks: "Belum ada tautan di kelompok ini." }));
+    p.appendChild(wadah);
+  }
+
+  /* ---------- Tab Banner ---------- */
+  function alamatGambar(berkas) {
+    var a = K.alamatAman(berkas);
+    return !a ? "" : K.luar(a) ? a : "../" + a;
+  }
+  function panelBanner(p) {
+    var b = keadaan.konten.banner;
+    p.appendChild(judulBagian("Banner panel kiri"));
+    p.appendChild(el("p", { kelas: "petunjuk", teks: "Banner berganti mengikuti jam, jadi semua pegawai melihat banner yang sama. Banner malam dipakai saat tampilan gelap. Berkas bisa berupa nama berkas di repo (misalnya banner-masjid.jpg, unggah manual ke repo) atau alamat gambar https. Untuk gambar dari Google Drive, bagikan berkasnya ke siapa saja lalu pakai alamat https://lh3.googleusercontent.com/d/ID_BERKAS." }));
+    p.appendChild(el("div", { kelas: "kotak kisi", style: "margin-bottom:18px" }, [kolom("Lama satu banner tampil (menit)", b, "menit", { jenis: "number" })]));
+    [["siang", "Banner siang (tampilan terang)"], ["malam", "Banner malam (tampilan gelap)"]].forEach(function (w) {
+      var d = b[w[0]];
+      p.appendChild(judulBagian(w[1], [el("button", { type: "button", kelas: "tombol", teks: "+ Tambah banner", onclick: function () {
+        d.push({ tampil: true, berkas: "", posisi: 50, uraian: "" }); berubah(); gambarTab();
+      } })]));
+      var wadah = el("div", { kelas: "daftar", style: "margin-bottom:22px" });
+      if (!d.length) wadah.appendChild(el("div", { kelas: "kosong", teks: "Belum ada banner." }));
+      d.forEach(function (x, i) {
+        var cup = el("div", { kelas: "cuplikan", role: "img", "aria-label": "Cuplikan banner" });
+        function segarkan() {
+          var a = alamatGambar(x.berkas);
+          cup.style.backgroundImage = a ? 'url("' + a.replace(/"/g, "%22") + '")' : "none";
+          cup.style.backgroundPosition = (Number(x.posisi) || 0) + "% center";
+        }
+        var geser = el("input", { type: "range", min: "0", max: "100", step: "1", "aria-label": "Posisi mendatar" });
+        geser.value = x.posisi;
+        var nilai = el("span", { teks: x.posisi + "%" });
+        geser.addEventListener("input", function () { x.posisi = Number(geser.value); nilai.textContent = x.posisi + "%"; segarkan(); berubah(); });
+        segarkan();
+        var kt = kartu(x.berkas.split("/").pop(), String(i + 1), x, kendaliKartu(d, i, { nama: "banner ini" }), [
+          el("div", { kelas: "penuh banner-kartu" }, [cup, el("div", { kelas: "kisi" }, [
+            kolom("Berkas atau alamat gambar", x, "berkas", { alamat: true, penuh: true, contoh: "banner-baru.jpg", ubah: function (v) { segarkan(); kt._nama.textContent = v.split("/").pop() || "(tanpa judul)"; } }),
+            el("label", { kelas: "kolom penuh" }, ["Bagian foto yang tampil (geser kiri–kanan) ", nilai, geser]),
+            kolom("Keterangan gambar untuk pembaca layar", x, "uraian", { maks: 250, penuh: true })
+          ])])
+        ]);
+        wadah.appendChild(kt);
+      });
+      p.appendChild(wadah);
+    });
+  }
+
+  /* ---------- Tab Riwayat & Cadangan ---------- */
+  function waktuBaca(iso) {
+    var d = new Date(iso);
+    return isNaN(d) ? String(iso || "") : d.toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" });
+  }
+  function muatKeEditor(konten, asal) {
+    if (adaPerubahan() && !confirm("Suntingan yang belum diterbitkan akan diganti dengan " + asal + ". Lanjutkan?")) return;
+    keadaan.konten = K.rapikan(konten);
+    berubah(); gambarTab();
+    kabar("Isi " + asal + " dimuat. Periksa, lalu Terbitkan bila sudah sesuai.");
+  }
+  function panelRiwayat(p) {
+    p.appendChild(judulBagian("Cadangan"));
+    var impor = el("input", { type: "file", accept: "application/json,.json", hidden: true });
+    impor.addEventListener("change", function () {
+      var f = impor.files[0]; if (!f) return;
+      f.text().then(function (t) {
+        var isi = JSON.parse(t);
+        if (!isi || !isi.umum || !Array.isArray(isi.tautan)) throw new Error("bukan berkas cadangan beranda");
+        muatKeEditor(isi, "berkas cadangan");
+      }).catch(function (e) { kabar("Berkas tidak bisa dibaca: " + e.message, true); });
+      impor.value = "";
+    });
+    p.appendChild(el("div", { kelas: "kotak" }, [
+      el("p", { kelas: "petunjuk", teks: "Unduh cadangan untuk disimpan, atau tempel isinya ke KONTEN_BAWAAN di konten.js supaya isi cadangan beranda ikut mutakhir." }),
+      el("div", { kelas: "bagian-judul", style: "margin:0" }, [
+        el("button", { type: "button", kelas: "tombol", teks: "Unduh cadangan (.json)", onclick: function () {
+          var blob = new Blob([JSON.stringify(keadaan.konten, null, 2)], { type: "application/json" });
+          var a = el("a", { href: URL.createObjectURL(blob), download: "isi-beranda-" + new Date().toISOString().slice(0, 10) + ".json" });
+          document.body.appendChild(a); a.click(); a.remove();
+          setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+        } }),
+        el("button", { type: "button", kelas: "tombol", teks: "Impor cadangan", onclick: function () { impor.click(); } }),
+        el("button", { type: "button", kelas: "tombol", teks: "Muat isi bawaan konten.js", onclick: function () { muatKeEditor(window.KONTEN_BAWAAN, "bawaan konten.js"); } }),
+        el("button", { type: "button", kelas: "tombol bahaya", teks: "Batalkan semua suntingan", disabled: !adaPerubahan(), onclick: function () {
+          if (!confirm("Kembalikan ke isi yang sedang tayang di beranda?")) return;
+          keadaan.konten = JSON.parse(keadaan.terbit); hapusLokal(KUNCI_DRAF); berubah(true); gambarTab();
+        } }),
+        impor
+      ])
+    ]));
+
+    p.appendChild(judulBagian("Riwayat penerbitan"));
+    var kotak = el("div", { kelas: "kotak" });
+    p.appendChild(kotak);
+    if (keadaan.uji) { kotak.appendChild(el("p", { kelas: "petunjuk", style: "margin:0", teks: "Riwayat tersedia setelah Apps Script tersambung." })); return; }
+    kotak.appendChild(el("p", { kelas: "petunjuk", style: "margin:0", teks: "Memuat riwayat..." }));
+    kirim({ aksi: "riwayat" }).then(function (h) {
+      kotak.textContent = "";
+      if (!h.ok) { kotak.appendChild(el("p", { kelas: "pesan galat", teks: h.pesan || "Riwayat gagal dimuat." })); return; }
+      if (!h.riwayat.length) { kotak.appendChild(el("p", { kelas: "petunjuk", style: "margin:0", teks: "Belum ada penerbitan." })); return; }
+      var tb = el("tbody");
+      h.riwayat.forEach(function (r, i) {
+        tb.appendChild(el("tr", null, [
+          el("td", { teks: waktuBaca(r.waktu) + (i === 0 ? " (tayang)" : "") }),
+          el("td", { teks: r.penyunting }),
+          el("td", { teks: r.catatan || "–" }),
+          el("td", null, [el("button", { type: "button", kelas: "tombol kecil", teks: "Muat ke editor", onclick: function (e) {
+            var t = e.currentTarget; t.disabled = true;
+            kirim({ aksi: "ambilRiwayat", baris: r.baris }).then(function (h2) {
+              t.disabled = false;
+              if (!h2.ok) { kabar(h2.pesan || "Gagal memuat.", true); return; }
+              muatKeEditor(h2.konten, "versi " + waktuBaca(r.waktu));
+            });
+          } })])
+        ]));
+      });
+      kotak.appendChild(el("table", { kelas: "riwayat" }, [
+        el("thead", null, [el("tr", null, [el("th", { teks: "Waktu" }), el("th", { teks: "Penyunting" }), el("th", { teks: "Catatan" }), el("th", null, [el("span", { kelas: "sr-only", teks: "Aksi" })])])]),
+        tb
+      ]));
+    });
+  }
+})();
+</script>
+</body>
+</html>

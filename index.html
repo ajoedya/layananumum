@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://lh3.googleusercontent.com https://drive.google.com; connect-src 'self' https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="Layanan Subbagian Umum KPKNL Balikpapan: perjalanan dinas, keuangan, dan perkakas kerja dalam satu halaman.">
 <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -12,13 +12,14 @@
 <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
 <link rel="apple-touch-icon" href="favicon-180.png">
 <script src="tema.js"></script>
+<script src="konten.js"></script>
 <style>html, body { margin: 0; padding: 0; } img { max-width: 100%; } [hidden] { display: none !important; }</style>
 <title>Layanan Subbagian Umum | KPKNL Balikpapan</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap">
 <style>
 /* Tata letak: panel samping biru laut (merek, judul, menu kelompok, foto banner yang berganti)
    dan kolom isi berupa baris layanan bernomor per kelompok. Satu tampilan terang.
-   Semua warna lewat variabel di bawah. Daftar banner dan jeda pergantiannya ada di skrip paling bawah. */
+   Semua warna lewat variabel di bawah. Isi beranda (teks, tautan, informasi, banner) diatur dari dasbor admin (admin/) dan cadangannya ada di konten.js. */
 :root {
   color-scheme: light;
   --huruf: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -131,6 +132,10 @@ i { font-style: italic; }
 .panel .label { color: var(--emas-terang); }
 h1 { margin: 0; font-size: 32px; font-weight: 700; line-height: 1.1; letter-spacing: -.025em; text-wrap: balance; }
 h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size: 22px; line-height: 1.25; letter-spacing: -.02em; }
+h1 .judul-utama { display: inline; margin: 0; color: inherit; font-size: inherit; line-height: inherit; letter-spacing: inherit; }
+.daftar-bagian { display: flex; flex-direction: column; gap: 22px; }
+.daftar-bagian:empty { display: none; }
+.pratinjau { margin: 0; padding: 10px 16px; border: 1px dashed var(--emas-tua); border-radius: 6px; background: var(--emas-muda); color: var(--emas-teks); font-size: 14px; font-weight: 700; }
 .panel-deskripsi { margin: 0; color: var(--panel-teks); font-size: 15px; line-height: 1.6; }
 .kelompok { display: flex; flex-direction: column; gap: 4px; margin: 4px -12px 0; }
 .kelompok a {
@@ -260,146 +265,58 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
 <body>
 <div class="halaman">
   <aside class="panel">
-    <div class="panel-foto" id="bannerFoto" role="img" aria-label="Pemandangan Teluk Balikpapan saat matahari terbit dengan gedung kota, pelabuhan, kapal, dan hutan mangrove"></div>
+    <div class="panel-foto" id="bannerFoto" role="img" aria-label=""></div>
     <div class="panel-tabir" aria-hidden="true"></div>
 
     <a class="merek" href="#konten">Subbagian Umum<small>KPKNL BALIKPAPAN</small></a>
 
     <div class="panel-judul">
-      <p class="label">Layanan &nbsp;/&nbsp; Umum &nbsp;/&nbsp; Bubuhan BPP</p>
-      <h1>Layanan Subbagian Umum <span>untuk urusan kantor yang lebih mudah.</span></h1>
-      <p class="panel-deskripsi">Perjalanan dinas, keuangan, dan perkakas kerja pegawai KPKNL Balikpapan dalam satu halaman.</p>
+      <p class="label" id="isiLabel"></p>
+      <h1><span id="isiJudul" class="judul-utama"></span> <span id="isiSubjudul"></span></h1>
+      <p class="panel-deskripsi" id="isiDeskripsi"></p>
     </div>
 
-    <nav class="kelompok" aria-label="Kelompok layanan">
-      <a href="#perjadin">Perjalanan dinas <b>3</b></a>
-      <a href="#keuangan">Keuangan <b>3</b></a>
-      <a href="#perkakas">Perkakas <b>1</b></a>
-      <a href="#arsip">Arsip <b>2</b></a>
-    </nav>
+    <nav class="kelompok" id="menuKelompok" aria-label="Kelompok layanan"></nav>
 
     <p class="panel-keterangan">
-      <span>KPKNL BALIKPAPAN <u aria-hidden="true"></u></span>
-      <span>Layanan sederhana untuk pekerjaan yang lebih Josjis.</span>
+      <span><span id="isiKetAtas"></span> <u aria-hidden="true"></u></span>
+      <span id="isiKetBawah"></span>
     </p>
   </aside>
 
   <main id="konten" class="isi">
+    <p class="pratinjau" id="tandaPratinjau" hidden>Pratinjau dari dasbor admin. Isi ini belum diterbitkan.</p>
     <div class="alat">
       <form class="cari" role="search" id="formCari">
         <label for="cariLayanan" class="sr-only">Cari layanan Subbagian Umum</label>
         <input type="search" id="cariLayanan" name="q" autocomplete="off" placeholder="Contoh: perjadin, rekening, SKTJM...">
         <button type="submit" id="tombolCari">Cari</button>
       </form>
-      <a class="gerbang" href="https://sites.google.com/view/gerbanginternal/halaman-muka" target="_blank" rel="noopener">Gerbang Internal (Old) &nbsp;→</a>
+      <a class="gerbang" id="tombolGerbang" href="#" target="_blank" rel="noopener" hidden></a>
       <button type="button" class="saklar-tema" data-tombol-mode aria-pressed="false" aria-label="Ganti ke tampilan gelap" title="Tampilan gelap">
         <svg class="ikon-bulan" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>
         <svg class="ikon-matahari" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
       </button>
     </div>
-    <p class="sr-only" id="jumlahLayanan" role="status" aria-live="polite">9 layanan tersedia</p>
+    <p class="sr-only" id="jumlahLayanan" role="status" aria-live="polite"></p>
 
-    <!-- KOTAK INFORMASI
-         Menambah informasi: salin satu blok <article class="info"> ... </article>, tempel di bawah blok terakhir, lalu ganti isinya.
-         Menghapus informasi: hapus bloknya. Kalau tinggal satu informasi, kotak berhenti bergeser dan tombolnya hilang sendiri. -->
-    <div class="kabar" id="kabar" role="region" aria-roledescription="carousel" aria-label="Informasi terkait">
+    <!-- KOTAK INFORMASI: isinya diatur dari dasbor admin, tab Informasi. -->
+    <div class="kabar" id="kabar" role="region" aria-roledescription="carousel" aria-label="Informasi terkait" hidden>
       <div class="kabar-jendela" id="kabarJendela">
-        <div class="kabar-jalur" id="kabarJalur">
-          <article class="info">
-            <p class="label">[Perjalanan Dinas]</p>
-            <strong>Mau SPJ E-Perjadin, tapi rumah Surat Tugasnya belum ada?</strong>
-            <p>Apabila rumah ST belum muncul di E-Perjadin, mohon untuk dapat menunggu dan cek secara berkala, karena masih menunggu antrean input dan validasi Staf PPK/PPK.</p>
-          </article>
-          <article class="info">
-            <p class="label">[Efisiensi Belanja]</p>
-            <strong>S-708/MK.03/2026 Langkah Strategis Belanja Kementerian/Lembaga pada Triwulan IV Tahun Anggaran 2026</strong>
-            <p>Tedapat penyesuaian kembali pagu belanja birokrasi pada akhir Triwulan IV TA 2026, rincian perubahan akan disampaikan pada kesempatan pertama.</p>
-          </article>
-          <article class="info">
-            <p class="label">[Perubahan Alamat Layanan]</p>
-            <strong>Terdapat Perubahan Alamat Dashboard Anggaran dan Penyunting PDF.</strong>
-            <p>Alamat situs Dashboard Anggaran (<b>ajoedya.github.io/jagakas</b>) & Alamat situs Penyunting PDF (<b>ajoedya.github.io/bengkelpdf</b>).</p>
-          </article>
-        </div>
+        <div class="kabar-jalur" id="kabarJalur"></div>
       </div>
       <div class="kabar-kendali" id="kabarKendali" hidden>
         <button type="button" class="jeda" id="kabarJeda" aria-pressed="false">Jeda</button>
       </div>
     </div>
 
-    <section class="bagian" id="perjadin" aria-labelledby="j-perjadin">
-      <h2 id="j-perjadin">Perjalanan dinas</h2>
-      <div class="daftar">
-        <a class="baris" href="perjadin/" data-cari="perjadin perjalanan dinas spd pencairan pantau koreksi ppk bendahara surat tugas st status pembayaran">
-          <span class="nomor">01</span>
-          <span class="uraian"><strong>Monitoring E-Perjadin v2</strong><span>Pantau pencairan SPD dan catatan koreksi dari staf PPK, PPK, atau bendahara.</span></span>
-          <span class="buka">Buka &nbsp;→</span>
-        </a>
-        <a class="baris" href="https://s.kemenkeu.go.id/ndperjadinbpp" target="_blank" rel="noopener" data-cari="perjadin perjalanan dinas nota dinas nd usulan template templat unduh">
-          <span class="nomor">02</span>
-          <span class="uraian"><strong><i>Template</i> ND Usulan Perjadin</strong><span>Unduh templat nota dinas usulan perjalanan dinas yang tinggal diisi.</span></span>
-          <span class="buka">Buka &nbsp;→</span>
-        </a>
-        <a class="baris" href="https://kemenkeu-my.sharepoint.com/:f:/g/personal/ivandana_saputra_kemenkeu_go_id/IgBzAJyhaYfyQrE5qxD3-0H8Aefxuv8gEhwlVeqqI8RJPf4?e=eiDoWD" target="_blank" rel="noopener" data-cari="perjadin perjalanan dinas suket kehadiran presensi sktjm surat pernyataan tidak menginap data dukung">
-          <span class="nomor">03</span>
-          <span class="uraian"><strong>Data Dukung Perjadin</strong><span>Suket kehadiran, SKTJM peserta eksternal, dan surat pernyataan tidak menginap.</span></span>
-          <span class="buka">Buka &nbsp;→</span>
-        </a>
-      </div>
-    </section>
-
-    <section class="bagian" id="keuangan" aria-labelledby="j-keuangan">
-      <h2 id="j-keuangan">Keuangan</h2>
-      <div class="daftar">
-        <a class="baris" href="https://ajoedya.github.io/jagakas/" target="_blank" rel="noopener" data-cari="keuangan saldo sisa dana pagu anggaran realisasi">
-          <span class="nomor">04</span>
-          <span class="uraian"><strong>Sisa Dana</strong><span>Cek dana yang masih tersedia sebelum mengusulkan kegiatan.</span></span>
-          <span class="buka">Buka &nbsp;→</span>
-        </a>
-        <a class="baris" href="https://forms.office.com/r/1nnq1CSKEC" target="_blank" rel="noopener" data-cari="keuangan rekening bank honor pembayaran update perbarui pemutakhiran">
-          <span class="nomor">05</span>
-          <span class="uraian"><strong>Pemutakhiran Rekening</strong><span>Perbarui rekening penerima pembayaran perjalanan dinas atau honor.</span></span>
-          <span class="buka">Buka &nbsp;→</span>
-        </a>
-        <a class="baris" href="https://kemenkeu-my.sharepoint.com/:x:/g/personal/ivandana_saputra_kemenkeu_go_id/EXBeprZHSmBNnoMqSDTGhjAByrGOoIzKgq89T399r4HyeA?e=5yLWYP" target="_blank" rel="noopener" data-cari="keuangan caput capaian output keluaran pic seksi">
-          <span class="nomor">06</span>
-          <span class="uraian"><strong>Pengisian Capaian Output</strong><span>Tempat PIC Caput tiap seksi mengisi capaian keluaran (<i>output</i>) seksinya.</span></span>
-          <span class="buka">Buka &nbsp;→</span>
-        </a>
-      </div>
-    </section>
-
-    <section class="bagian" id="perkakas" aria-labelledby="j-perkakas">
-      <h2 id="j-perkakas">Perkakas</h2>
-      <div class="daftar">
-        <a class="baris" href="https://ajoedya.github.io/bengkelpdf/" target="_blank" rel="noopener" data-cari="perkakas pdf edit teks gabung pecah watermark tanda air kompres word naskah">
-          <span class="nomor">07</span>
-          <span class="uraian"><strong>Perkakas PDF</strong><span>Edit teks, gabung, pecah, dan beri tanda air langsung di peramban tanpa mengunggah berkas.</span></span>
-          <span class="buka">Buka &nbsp;→</span>
-        </a>
-      </div>
-    </section>
-
-    <section class="bagian arsip" id="arsip" aria-labelledby="j-arsip">
-      <h2 id="j-arsip">Arsip E-Perjadin versi 1</h2>
-      <div class="daftar">
-        <a class="baris" href="https://sites.google.com/view/gerbanginternal/halaman-muka/monitoring-spd" target="_blank" rel="noopener" data-cari="arsip perjadin perjalanan dinas spd monitoring lama versi 1">
-          <span class="nomor">08</span>
-          <span class="uraian"><strong>Monitoring E-Perjadin v1</strong><span>Pemantauan SPD untuk perjalanan dinas sebelum <b>27 Juli 2026</b>.</span></span>
-          <span class="buka">Buka &nbsp;→</span>
-        </a>
-        <a class="baris" href="https://forms.gle/MLRRTcoCkZ9Mc31AA" target="_blank" rel="noopener" data-cari="arsip perjadin perjalanan dinas formulir form lama versi 1">
-          <span class="nomor">09</span>
-          <span class="uraian"><strong>Formulir E-Perjadin v1</strong><span>Wajib diisi untuk perjalanan dinas sebelum <b>27 Juli 2026</b>.</span></span>
-          <span class="buka">Buka &nbsp;→</span>
-        </a>
-      </div>
-    </section>
+    <!-- BAGIAN LAYANAN: kelompok dan tautannya diatur dari dasbor admin, tab Kelompok dan Tautan. -->
+    <div id="daftarBagian" class="daftar-bagian"></div>
 
     <p class="kosong" id="layananKosong" hidden>Tidak ada layanan yang cocok. Coba kata kunci lain.</p>
 
     <footer class="kaki">
-      <span>KPKNL Balikpapan · Berintegritas dalam Tugas, Prima dalam Pelayanan.</span>
+      <span id="isiKaki"></span>
       <span class="kredit">Built with Claude ft. GPT <svg class="kredit-hati" viewBox="0 0 24 24" width="14" height="14" role="img" aria-label="cinta"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 5 6.4 5c2 0 3.6 1.1 4.6 2.6l1 1.4 1-1.4C14 6.1 15.6 5 17.6 5 21 5 23.1 8.4 21.6 11.8 19.5 16.4 12 21 12 21z"/></svg></span>
     </footer>
   </main>
@@ -410,93 +327,127 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
   "use strict";
 
   /* ============================================================
-     BANNER BERGANTI
-     Menambah banner: taruh berkas gambarnya satu folder dengan halaman ini,
-     lalu tambahkan satu baris di DAFTAR_BANNER.
-       berkas : nama berkas gambar
-       posisi : bagian foto yang ditampilkan di panel (nilai background-position)
-       uraian : keterangan gambar untuk pembaca layar
-     MENIT_PER_BANNER menentukan berapa menit satu banner tampil sebelum berganti.
-     Pergantian mengikuti jam perangkat, jadi semua pegawai melihat banner yang sama pada waktu yang sama.
+     ISI BERANDA
+     Urutan sumber: pratinjau dari dasbor (bila alamat diakhiri ?pratinjau=1),
+     lalu simpanan terakhir di peramban ini, lalu KONTEN_BAWAAN di konten.js.
+     Setelah halaman tampil, isi terbaru diambil dari Apps Script (ALAMAT_SKRIP).
+     Bila berbeda dengan yang tampil, beranda digambar ulang dan disimpan untuk kunjungan berikutnya.
      ============================================================ */
-  var MENIT_PER_BANNER = 10;
-  var DAFTAR_BANNER = [
-    { berkas: "banner-balikpapan.jpg", posisi: "72% center",
-      uraian: "Pemandangan Teluk Balikpapan saat matahari terbit dengan gedung kota, pelabuhan, kapal, dan hutan mangrove" },
-    { berkas: "banner-masjid.jpg", posisi: "70% center",
-      uraian: "Masjid berkubah biru dengan empat menara di tengah kota, berlatar teluk dan perbukitan" },
-    { berkas: "banner-taman.jpg", posisi: "51% center",
-      uraian: "Taman kota dengan air mancur di tengah, dikelilingi pohon palem dan gedung perkantoran" },
-    { berkas: "banner-pantai.jpg", posisi: "24% center",
-      uraian: "Jalur pejalan kaki di tepi pantai dengan pohon palem, bebatuan, dan gedung kota di kejauhan" },
-    { berkas: "banner-enggang.jpg", posisi: "19% center",
-      uraian: "Burung enggang terbang di atas hutan hujan berkabut dengan kota dan teluk saat matahari terbit" },
-    { berkas: "banner-beruang.jpg", posisi: "94% center",
-      uraian: "Beruang madu di lereng hutan hujan memandang kota dan teluk saat matahari terbit" }
-  ];
+  var KUNCI_SIMPAN = "layanan-konten";
+  var KUNCI_PRATINJAU = "layanan-pratinjau";
+  var K = window.Konten;
+  var pratinjau = /[?&]pratinjau=1\b/.test(location.search);
 
-  /* Banner mode gelap: foto malam Balikpapan (sama dengan Dashboard Anggaran/jagakas), berganti dengan jadwal yang sama.
-     Saat mode berganti lewat saklar tema, banner langsung ikut berganti. */
-  var DAFTAR_MALAM = [
-    { berkas: "banner-malam-teluk.jpg", posisi: "28% center",
-      uraian: "Teluk Balikpapan pada malam hari dengan lampu kota di perbukitan dan pantulan cahaya di air" },
-    { berkas: "banner-malam-tepian.jpg", posisi: "22% center",
-      uraian: "Jalur pejalan kaki tepi laut pada malam hari dengan pohon palem, lampu taman, dan gedung kota di kejauhan" },
-    { berkas: "banner-malam-pelabuhan.jpg", posisi: "72% center",
-      uraian: "Pelabuhan dan kilang di teluk pada malam hari dengan kapal-kapal berlampu" },
-    { berkas: "banner-malam-jalan.jpg", posisi: "20% center",
-      uraian: "Jalan tepi pantai yang basah sehabis hujan pada malam hari dengan lampu jalan dan pohon palem" }
-  ];
-  function daftarAktif() { return document.documentElement.getAttribute("data-mode") === "gelap" ? DAFTAR_MALAM : DAFTAR_BANNER; }
+  function baca(kunci) { try { var t = localStorage.getItem(kunci); return t ? JSON.parse(t) : null; } catch (e) { return null; } }
+  function tulis(kunci, isi) { try { localStorage.setItem(kunci, JSON.stringify(isi)); } catch (e) { /* abaikan */ } }
 
-  var JEDA = MENIT_PER_BANNER * 60 * 1000;
-  // Waktu setempat dalam milidetik, supaya pergantian jatuh tepat pada menit bulat setempat (08.00, 08.10, dan seterusnya).
+  var sumber = (pratinjau && baca(KUNCI_PRATINJAU)) || baca(KUNCI_SIMPAN) || window.KONTEN_BAWAAN;
+  var konten = K.rapikan(sumber);
+  var jejak = JSON.stringify(konten);
+
+  function $(id) { return document.getElementById(id); }
+  function el(tag, kelas) { var n = document.createElement(tag); if (kelas) n.className = kelas; return n; }
+
+  /* ---------- Teks panel, tombol Gerbang, dan kaki ---------- */
+  function gambarUmum() {
+    var u = konten.umum;
+    $("isiLabel").textContent = u.label;
+    K.isiTeks($("isiJudul"), u.judul);
+    K.isiTeks($("isiSubjudul"), u.subjudul);
+    $("isiSubjudul").hidden = !u.subjudul;
+    K.isiTeks($("isiDeskripsi"), u.deskripsi);
+    $("isiKetAtas").textContent = u.keteranganAtas;
+    K.isiTeks($("isiKetBawah"), u.keteranganBawah);
+    K.isiTeks($("isiKaki"), u.kaki);
+    var g = $("tombolGerbang"), alamat = K.alamatAman(u.gerbang.alamat);
+    g.hidden = !(u.gerbang.tampil && alamat && u.gerbang.teks);
+    g.href = alamat || "#";
+    g.textContent = u.gerbang.teks + "  →";
+    $("tandaPratinjau").hidden = !pratinjau;
+  }
+
+  /* ---------- Menu kelompok dan bagian layanan ----------
+     Nomor tautan berurutan di semua bagian, angka di menu kelompok dihitung sendiri. */
+  function gambarLayanan() {
+    var kelompok = konten.kelompok.filter(function (k) { return k.tampil !== false; });
+    var tautan = konten.tautan.filter(function (t) { return t.tampil !== false && K.alamatAman(t.alamat); });
+    var menu = $("menuKelompok"), wadah = $("daftarBagian"), nomor = 0;
+    menu.textContent = ""; wadah.textContent = "";
+    kelompok.forEach(function (k) {
+      var isi = tautan.filter(function (t) { return t.kelompok === k.id; });
+      if (!isi.length) return;
+      var a = el("a"); a.href = "#" + k.id;
+      a.appendChild(document.createTextNode(K.polos(k.nama) + " "));
+      var b = el("b"); b.textContent = isi.length; a.appendChild(b);
+      menu.appendChild(a);
+
+      var s = el("section", "bagian" + (k.arsip ? " arsip" : ""));
+      s.id = k.id; s.setAttribute("aria-labelledby", "j-" + k.id);
+      var h = el("h2"); h.id = "j-" + k.id; K.isiTeks(h, k.judulBagian || k.nama); s.appendChild(h);
+      var d = el("div", "daftar");
+      isi.forEach(function (t) {
+        nomor += 1;
+        var alamat = K.alamatAman(t.alamat);
+        var r = el("a", "baris"); r.href = alamat;
+        if (K.luar(alamat)) { r.target = "_blank"; r.rel = "noopener"; }
+        r.dataset.cari = K.polos(k.nama) + " " + (t.kunci || "");
+        var n = el("span", "nomor"); n.textContent = (nomor < 10 ? "0" : "") + nomor;
+        var u = el("span", "uraian"), j = el("strong"), ket = el("span");
+        K.isiTeks(j, t.judul); K.isiTeks(ket, t.uraian);
+        u.appendChild(j); if (t.uraian) u.appendChild(ket);
+        var buka = el("span", "buka"); buka.textContent = "Buka  →";
+        r.appendChild(n); r.appendChild(u); r.appendChild(buka);
+        d.appendChild(r);
+      });
+      s.appendChild(d);
+      wadah.appendChild(s);
+    });
+  }
+
+  /* ---------- Banner berganti ----------
+     Pergantian mengikuti jam perangkat, jadi semua pegawai melihat banner yang sama pada waktu yang sama.
+     Banner malam dipakai di mode gelap. Berkas banner boleh nama berkas di repo ini atau alamat https. */
+  var foto = $("bannerFoto"), terpasang = "", pewaktuBanner = null;
+  function daftarAktif() {
+    var b = konten.banner, gelap = document.documentElement.getAttribute("data-mode") === "gelap";
+    var pilih = function (d) { return (d || []).filter(function (x) { return x.tampil !== false && K.alamatAman(x.berkas); }); };
+    var d = pilih(gelap ? b.malam : b.siang);
+    return d.length ? d : pilih(gelap ? b.siang : b.malam);
+  }
+  function jeda() { return Math.max(1, Number(konten.banner.menit) || 10) * 60000; }
   function waktuSetempat(kini) { return kini.getTime() - kini.getTimezoneOffset() * 60000; }
-  function nomorBanner(kini, jumlah) { return Math.floor(waktuSetempat(kini) / JEDA) % jumlah; }
-  function sisaWaktu(kini) { return JEDA - (waktuSetempat(kini) % JEDA); }
-  window.__banner = { nomorBanner: nomorBanner, sisaWaktu: sisaWaktu, daftar: DAFTAR_BANNER };
-
-  var foto = document.getElementById("bannerFoto");
-  var terpasang = "";
+  function nomorBanner(kini, jumlah) { return Math.floor(waktuSetempat(kini) / jeda()) % jumlah; }
+  function sisaWaktu(kini) { return jeda() - (waktuSetempat(kini) % jeda()); }
   function pasangBanner() {
     var daftar = daftarAktif();
+    if (!daftar.length) { foto.style.backgroundImage = "none"; terpasang = ""; return; }
     var banner = daftar[nomorBanner(new Date(), daftar.length)];
-    if (banner.berkas === terpasang) return;
+    var berkas = K.alamatAman(banner.berkas), kunci = berkas + "|" + banner.posisi;
+    if (kunci === terpasang) return;
     function tampil() {
-      foto.style.backgroundImage = 'url("' + banner.berkas + '")';
-      foto.style.backgroundPosition = banner.posisi;
-      foto.setAttribute("aria-label", banner.uraian);
+      foto.style.backgroundImage = 'url("' + berkas.replace(/"/g, "%22") + '")';
+      foto.style.backgroundPosition = (Number(banner.posisi) || 50) + "% center";
+      foto.setAttribute("aria-label", banner.uraian || "");
       foto.classList.remove("memudar");
-      terpasang = banner.berkas;
+      terpasang = kunci;
     }
     if (terpasang === "") { tampil(); return; }
     // Halaman yang dibiarkan terbuka: muat dulu gambarnya, lalu ganti dengan pudaran singkat.
     var muat = new Image();
-    muat.onload = muat.onerror = function () {
-      foto.classList.add("memudar");
-      setTimeout(tampil, 500);
-    };
-    muat.src = banner.berkas;
+    muat.onload = muat.onerror = function () { foto.classList.add("memudar"); setTimeout(tampil, 500); };
+    muat.src = berkas;
   }
   function jadwalkan() {
-    setTimeout(function () { pasangBanner(); jadwalkan(); }, sisaWaktu(new Date()) + 1000);
+    clearTimeout(pewaktuBanner);
+    pewaktuBanner = setTimeout(function () { pasangBanner(); jadwalkan(); }, sisaWaktu(new Date()) + 1000);
   }
-  pasangBanner();
   document.addEventListener("modeberubah", pasangBanner);
-  if (DAFTAR_BANNER.length > 1) {
-    jadwalkan();
-    document.addEventListener("visibilitychange", function () { if (!document.hidden) pasangBanner(); });
-  }
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) pasangBanner(); });
 
   /* ---------- Pencarian ---------- */
-  var form = document.getElementById("formCari");
-  var input = document.getElementById("cariLayanan");
-  var baris = Array.prototype.slice.call(document.querySelectorAll(".baris"));
-  var bagian = Array.prototype.slice.call(document.querySelectorAll(".bagian"));
-  var status = document.getElementById("jumlahLayanan");
-  var kosong = document.getElementById("layananKosong");
-
+  var form = $("formCari"), input = $("cariLayanan"), status = $("jumlahLayanan"), kosong = $("layananKosong");
   function cari() {
+    var baris = Array.prototype.slice.call(document.querySelectorAll(".baris"));
     var kata = input.value.trim().toLocaleLowerCase("id");
     var terlihat = 0;
     baris.forEach(function (b) {
@@ -505,7 +456,7 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
       b.hidden = !cocok;
       if (cocok) terlihat++;
     });
-    bagian.forEach(function (s) {
+    Array.prototype.forEach.call(document.querySelectorAll(".bagian"), function (s) {
       var tampak = s.querySelectorAll(".baris:not([hidden])");
       s.hidden = tampak.length === 0;
       // Baris pertama yang tampak tidak diberi garis atas.
@@ -517,98 +468,142 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
   }
   form.addEventListener("submit", function (e) { e.preventDefault(); cari(); });
   input.addEventListener("input", cari);
-  input.addEventListener("keydown", function (e) {
-    if (e.key === "Escape" && input.value) { input.value = ""; cari(); }
-  });
-  cari();
+  input.addEventListener("keydown", function (e) { if (e.key === "Escape" && input.value) { input.value = ""; cari(); } });
 
   /* ---------- Menu kelompok: gulir ke bagian yang dipilih ---------- */
   var halus = !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-  Array.prototype.forEach.call(document.querySelectorAll('.kelompok a, .merek'), function (a) {
-    a.addEventListener("click", function (e) {
-      var tujuan = document.getElementById(a.getAttribute("href").slice(1));
-      if (!tujuan) return;
-      e.preventDefault();
-      if (input.value) { input.value = ""; cari(); }
-      tujuan.scrollIntoView({ behavior: halus ? "smooth" : "auto", block: "start" });
-    });
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest(".kelompok a, .merek");
+    if (!a) return;
+    var tujuan = document.getElementById(a.getAttribute("href").slice(1));
+    if (!tujuan) return;
+    e.preventDefault();
+    if (input.value) { input.value = ""; cari(); }
+    tujuan.scrollIntoView({ behavior: halus ? "smooth" : "auto", block: "start" });
   });
 
   /* ---------- Kotak informasi bergeser dari bawah ke atas ----------
-     DETIK_PER_INFO menentukan berapa detik satu informasi tampil sebelum bergeser ke informasi berikutnya.
      Pergeseran berhenti sementara saat kotak disorot tetikus atau difokus papan ketik, dan bisa dihentikan lewat tombol Jeda. */
-  var DETIK_PER_INFO = 7;
-  var kabar = document.getElementById("kabar");
-  var jendela = document.getElementById("kabarJendela");
-  var jalur = document.getElementById("kabarJalur");
-  var info = Array.prototype.slice.call(jalur.querySelectorAll(".info"));
-  if (info.length > 1) {
-    kabar.classList.add("bergeser");
+  var kabar = $("kabar"), jendela = $("kabarJendela"), jalur = $("kabarJalur");
+  var kendali = $("kabarKendali"), tombolJeda = $("kabarJeda");
+  var animasi = halus;
+  var sk = { info: [], semua: [], titik: [], aktif: 0, tinggi: 0, pewaktu: null, dijeda: false, disorot: false };
+
+  function ukur() {
+    if (sk.info.length < 2) return;
+    sk.semua.forEach(function (n) { n.style.height = "auto"; });
+    sk.tinggi = Math.max.apply(null, sk.info.map(function (n) { return n.offsetHeight; }));
+    sk.semua.forEach(function (n) { n.style.height = sk.tinggi + "px"; });
+    jendela.style.height = sk.tinggi + "px";
+    geser(false);
+  }
+  function geser(halusGeser) {
+    jalur.style.transition = halusGeser && animasi ? "" : "none";
+    jalur.style.transform = "translateY(" + (-sk.aktif * sk.tinggi) + "px)";
+    var tampak = sk.aktif % sk.info.length;
+    sk.titik.forEach(function (t, i) { t.setAttribute("aria-current", String(i === tampak)); });
+    sk.info.forEach(function (n, i) { n.setAttribute("aria-hidden", String(i !== tampak)); });
+  }
+  function maju() {
+    if (sk.aktif >= sk.info.length) return;
+    sk.aktif += 1;
+    geser(true);
+    if (sk.aktif === sk.info.length && !animasi) { sk.aktif = 0; geser(false); }
+  }
+  function mulai() {
+    clearInterval(sk.pewaktu);
+    var detik = Math.max(3, Number(konten.umum.detikPerInfo) || 7);
+    if (sk.info.length > 1 && !sk.dijeda && !sk.disorot) sk.pewaktu = setInterval(maju, detik * 1000);
+  }
+  jalur.addEventListener("transitionend", function (e) {
+    if (e.target === jalur && sk.aktif === sk.info.length) { sk.aktif = 0; geser(false); }
+  });
+  kabar.addEventListener("mouseenter", function () { sk.disorot = true; mulai(); });
+  kabar.addEventListener("mouseleave", function () { sk.disorot = false; mulai(); });
+  kabar.addEventListener("focusin", function () { sk.disorot = true; mulai(); });
+  kabar.addEventListener("focusout", function (e) { if (!kabar.contains(e.relatedTarget)) { sk.disorot = false; mulai(); } });
+  tombolJeda.addEventListener("click", function () {
+    sk.dijeda = !sk.dijeda;
+    tombolJeda.setAttribute("aria-pressed", String(sk.dijeda));
+    tombolJeda.textContent = sk.dijeda ? "Lanjut" : "Jeda";
+    mulai();
+  });
+  window.addEventListener("resize", ukur);
+
+  function gambarInfo() {
+    clearInterval(sk.pewaktu);
+    jalur.textContent = "";
+    Array.prototype.forEach.call(kendali.querySelectorAll(".titik"), function (t) { t.remove(); });
+    jendela.style.height = ""; jalur.style.transform = "";
+    sk.aktif = 0;
+    var daftar = konten.info.filter(function (x) { return x.tampil !== false && (x.judul || x.isi); });
+    sk.info = daftar.map(function (x) {
+      var a = el("article", "info");
+      if (x.label) { var l = el("p", "label"); l.textContent = x.label; a.appendChild(l); }
+      if (x.judul) a.appendChild(K.isiTeks(el("strong"), x.judul));
+      if (x.isi) a.appendChild(K.isiTeks(el("p"), x.isi));
+      jalur.appendChild(a);
+      return a;
+    });
+    kabar.hidden = !sk.info.length;
+    kabar.classList.toggle("bergeser", sk.info.length > 1);
+    kendali.hidden = sk.info.length < 2;
+    if (sk.info.length < 2) { sk.semua = sk.info; sk.titik = []; return; }
     // Salinan informasi pertama di ujung jalur, supaya pergeseran dari informasi terakhir ke pertama tetap ke atas.
-    var salinan = info[0].cloneNode(true);
+    var salinan = sk.info[0].cloneNode(true);
     salinan.setAttribute("aria-hidden", "true");
     jalur.appendChild(salinan);
-    var semua = info.concat([salinan]);
-
-    var kendali = document.getElementById("kabarKendali");
-    var tombolJeda = document.getElementById("kabarJeda");
-    kendali.hidden = false;
-    var titik = info.map(function (_, i) {
-      var b = document.createElement("button");
-      b.type = "button";
-      b.className = "titik";
-      b.setAttribute("aria-label", "Tampilkan informasi " + (i + 1) + " dari " + info.length);
-      b.addEventListener("click", function () { aktif = i; geser(true); mulai(); });
+    sk.semua = sk.info.concat([salinan]);
+    sk.titik = sk.info.map(function (_, i) {
+      var b = el("button", "titik"); b.type = "button";
+      b.setAttribute("aria-label", "Tampilkan informasi " + (i + 1) + " dari " + sk.info.length);
+      b.addEventListener("click", function () { sk.aktif = i; geser(true); mulai(); });
       kendali.insertBefore(b, tombolJeda);
       return b;
     });
-
-    var animasi = !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-    var aktif = 0, tinggi = 0, pewaktu = null, dijeda = false, disorot = false;
-
-    function ukur() {
-      semua.forEach(function (el) { el.style.height = "auto"; });
-      tinggi = Math.max.apply(null, info.map(function (el) { return el.offsetHeight; }));
-      semua.forEach(function (el) { el.style.height = tinggi + "px"; });
-      jendela.style.height = tinggi + "px";
-      geser(false);
-    }
-    function geser(halusGeser) {
-      jalur.style.transition = halusGeser && animasi ? "" : "none";
-      jalur.style.transform = "translateY(" + (-aktif * tinggi) + "px)";
-      var tampak = aktif % info.length;
-      titik.forEach(function (t, i) { t.setAttribute("aria-current", String(i === tampak)); });
-      info.forEach(function (el, i) { el.setAttribute("aria-hidden", String(i !== tampak)); });
-    }
-    function maju() {
-      if (aktif >= info.length) return;
-      aktif += 1;
-      geser(true);
-      if (aktif === info.length && !animasi) { aktif = 0; geser(false); }
-    }
-    jalur.addEventListener("transitionend", function (e) {
-      if (e.target === jalur && aktif === info.length) { aktif = 0; geser(false); }
-    });
-    function mulai() {
-      clearInterval(pewaktu);
-      if (!dijeda && !disorot) pewaktu = setInterval(maju, DETIK_PER_INFO * 1000);
-    }
-    kabar.addEventListener("mouseenter", function () { disorot = true; mulai(); });
-    kabar.addEventListener("mouseleave", function () { disorot = false; mulai(); });
-    kabar.addEventListener("focusin", function () { disorot = true; mulai(); });
-    kabar.addEventListener("focusout", function (e) { if (!kabar.contains(e.relatedTarget)) { disorot = false; mulai(); } });
-    tombolJeda.addEventListener("click", function () {
-      dijeda = !dijeda;
-      tombolJeda.setAttribute("aria-pressed", String(dijeda));
-      tombolJeda.textContent = dijeda ? "Lanjut" : "Jeda";
-      mulai();
-    });
-    window.addEventListener("resize", ukur);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(ukur);
     ukur();
     mulai();
-    window.__kabar = { maju: maju, keadaan: function () { return { aktif: aktif, tinggi: tinggi, dijeda: dijeda }; } };
   }
+
+  /* ---------- Menggambar seluruh beranda ---------- */
+  function gambar() {
+    gambarUmum();
+    gambarLayanan();
+    gambarInfo();
+    terpasang = "";
+    pasangBanner();
+    jadwalkan();
+    cari();
+  }
+  gambar();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(ukur);
+
+  /* ---------- Mengambil isi terbaru dari Apps Script ---------- */
+  if (window.ALAMAT_SKRIP && !pratinjau && window.fetch) {
+    fetch(window.ALAMAT_SKRIP + "?aksi=baca", { cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .then(function (hasil) {
+        if (!hasil || !hasil.ok || !hasil.konten) return;
+        var baru = K.rapikan(hasil.konten);
+        tulis(KUNCI_SIMPAN, baru);
+        if (JSON.stringify(baru) === jejak) return;
+        konten = baru; jejak = JSON.stringify(baru);
+        gambar();
+      })
+      .catch(function () { /* tetap memakai isi yang sudah tampil */ });
+  }
+
+  // Pratinjau ikut berubah selama dasbor admin terbuka di tab lain.
+  if (pratinjau) {
+    window.addEventListener("storage", function (e) {
+      if (e.key !== KUNCI_PRATINJAU) return;
+      var p = baca(KUNCI_PRATINJAU);
+      if (p) { konten = K.rapikan(p); gambar(); }
+    });
+  }
+
+  window.__banner = { nomorBanner: nomorBanner, sisaWaktu: sisaWaktu };
+  window.__kabar = { maju: maju, keadaan: function () { return { aktif: sk.aktif, tinggi: sk.tinggi, dijeda: sk.dijeda }; } };
 })();
 </script>
 </body>
