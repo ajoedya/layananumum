@@ -173,6 +173,11 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
 
 /* Kartu ringkas sekaligus penyaring status */
 .ringkas { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+/* Kartu ringkas tersembunyi otomatis saat daftar digulir ke bawah, dan muncul lagi saat digulir ke atas.
+   Hanya di layar lebar, tempat daftar ST bergulir di kotaknya sendiri. */
+.lipat { display: grid; grid-template-rows: 1fr; transition: grid-template-rows .3s ease, opacity .25s ease, margin .3s ease; }
+.lipat > .ringkas { min-height: 0; overflow: hidden; padding: 3px; margin: -3px; }
+.lipat.tersembunyi { grid-template-rows: 0fr; opacity: 0; margin-top: -16px; pointer-events: none; }
 .kartu {
   position: relative; display: flex; flex-direction: column; gap: 2px; padding: 14px 16px 14px 19px; text-align: left;
   background: var(--putih); border: 1px solid var(--garis); border-radius: 8px; color: var(--laut-tua);
@@ -316,7 +321,7 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
   .kartu.semua { grid-column: 1 / -1; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .panel-foto, .seksi button, .kartu { transition: none; }
+  .panel-foto, .seksi button, .kartu, .lipat { transition: none; }
   .kerangka { animation: none; }
 }
 </style>
@@ -360,7 +365,9 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
     </nav>
     <p class="keadaan" id="keadaan" role="status" aria-live="polite">Memuat data...</p>
 
-    <div class="ringkas" id="ringkas" role="group" aria-label="Saring menurut status pembayaran"></div>
+    <div class="lipat" id="lipatRingkas">
+      <div class="ringkas" id="ringkas" role="group" aria-label="Saring menurut status pembayaran"></div>
+    </div>
 
     <div class="kepala" id="kepala" role="group" aria-label="Urutkan daftar surat tugas">
       <span class="kepala-label" aria-hidden="true">Urutkan</span>
@@ -765,6 +772,29 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
   });
   document.getElementById("formCari").addEventListener("submit", function (e) { e.preventDefault(); });
   elCari.addEventListener("input", function () { saringan.kata = elCari.value.trim(); gambar(); elHasil.scrollTop = 0; });
+
+  /* ---------- Kartu ringkas tersembunyi otomatis ----------
+     Tersembunyi setelah daftar digulir ke bawah melewati AMBANG_SEMBUNYI piksel, muncul lagi
+     saat digulir ke atas sejauh AMBANG_MUNCUL piksel atau saat kembali ke puncak daftar. */
+  var AMBANG_SEMBUNYI = 48, AMBANG_MUNCUL = 60;
+  var elLipat = document.getElementById("lipatRingkas");
+  var layarLebar = window.matchMedia("(min-width: 921px)");
+  var posisiLalu = 0, naikBerturut = 0;
+  function aturRingkas(sembunyi) {
+    if (elLipat.classList.contains("tersembunyi") === sembunyi) return;
+    elLipat.classList.toggle("tersembunyi", sembunyi);
+    if (sembunyi) elLipat.setAttribute("inert", ""); else elLipat.removeAttribute("inert");
+  }
+  elHasil.addEventListener("scroll", function () {
+    var y = elHasil.scrollTop, beda = y - posisiLalu;
+    posisiLalu = y;
+    if (!layarLebar.matches) return;
+    if (y <= AMBANG_SEMBUNYI) { naikBerturut = 0; aturRingkas(false); return; }
+    if (beda > 0) { naikBerturut = 0; aturRingkas(true); }
+    else if (beda < 0) { naikBerturut -= beda; if (naikBerturut >= AMBANG_MUNCUL) aturRingkas(false); }
+  }, { passive: true });
+  function cekLayar() { if (!layarLebar.matches) aturRingkas(false); }
+  if (layarLebar.addEventListener) layarLebar.addEventListener("change", cekLayar); else layarLebar.addListener(cekLayar);
   elCari.addEventListener("keydown", function (e) { if (e.key === "Escape" && elCari.value) { elCari.value = ""; saringan.kata = ""; gambar(); } });
   tombolMuat.addEventListener("click", muat);
 
