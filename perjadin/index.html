@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://docs.google.com https://*.googleusercontent.com; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://docs.google.com https://*.googleusercontent.com; frame-src https://drive.google.com; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="Monitoring E-Perjadin KPKNL Balikpapan: status pembayaran surat tugas perjalanan dinas yang diperbarui langsung dari Google Sheets.">
 <link rel="icon" type="image/x-icon" href="../favicon.ico">
@@ -251,6 +251,40 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
 .unduh:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: 2px; }
 .unduh svg { flex: none; width: 14px; height: 14px; }
 .unduh span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---------- Jendela pratinjau bukti bayar ---------- */
+.pratinjau {
+  width: min(1000px, calc(100vw - 32px)); height: min(900px, calc(100dvh - 32px)); max-width: none; max-height: none;
+  padding: 0; border: 1px solid var(--garis); border-radius: 10px; background: var(--putih); color: var(--laut-tua);
+  box-shadow: 0 20px 60px rgba(0,0,0,.35); overflow: hidden;
+}
+.pratinjau[open] { display: flex; flex-direction: column; }
+.pratinjau::backdrop { background: rgba(8, 20, 32, .62); }
+.pratinjau-kepala { flex: none; display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; padding: 12px 14px 12px 20px; border-bottom: 1px solid var(--garis); }
+.pratinjau-judul { flex: 1 1 220px; min-width: 0; display: flex; flex-direction: column; }
+.pratinjau-judul strong { font-size: 16px; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pratinjau-judul span { color: var(--tinta-lembut); font-size: 13px; }
+.pratinjau-aksi { display: flex; align-items: center; gap: 8px; }
+.pratinjau-aksi a, .pratinjau-aksi button {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 6px 14px; border-radius: 6px;
+  border: 1px solid var(--cari-garis); background: var(--tombol-polos); color: var(--laut-tua);
+  font: 700 14px var(--huruf); text-decoration: none; cursor: pointer;
+}
+.pratinjau-aksi a:hover, .pratinjau-aksi button:hover { border-color: var(--laut-tua); }
+.pratinjau-aksi .utama { background: var(--laut-tua); border-color: var(--laut-tua); color: var(--putih); }
+.pratinjau-aksi .utama:hover { opacity: .9; }
+.pratinjau-aksi .tutup { width: 40px; padding: 0; justify-content: center; font-size: 22px; line-height: 1; }
+.pratinjau-aksi a:focus-visible, .pratinjau-aksi button:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: 2px; }
+.pratinjau-aksi svg { width: 16px; height: 16px; flex: none; }
+.pratinjau-isi { position: relative; flex: 1 1 auto; min-height: 0; background: var(--latar); }
+.pratinjau-isi p { position: absolute; inset: 0; margin: 0; display: grid; place-items: center; padding: 24px; text-align: center; color: var(--tinta-lembut); font-size: 14px; }
+.pratinjau-isi iframe { position: relative; width: 100%; height: 100%; border: 0; display: block; background: transparent; }
+@media (max-width: 560px) {
+  .pratinjau { width: 100vw; height: 100dvh; border-radius: 0; border: 0; }
+  .pratinjau-aksi { flex: 1 1 100%; }
+  .pratinjau-aksi .utama { flex: 1; justify-content: center; }
+  .pratinjau-aksi .teks-tab { display: none; }
+}
 .berkas { color: var(--tinta-lembut); font-size: 13px; }
 
 .kosong { margin: 0; background: var(--emas-muda); border-left: 3px solid var(--emas-tua); border-radius: 4px; padding: 16px 22px; color: var(--tinta-lembut); }
@@ -387,6 +421,28 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
   </main>
 </div>
 
+<dialog class="pratinjau" id="pratinjau" aria-labelledby="pratinjauJudul">
+  <div class="pratinjau-kepala">
+    <div class="pratinjau-judul">
+      <strong id="pratinjauJudul">Bukti bayar</strong>
+      <span id="pratinjauKet"></span>
+    </div>
+    <div class="pratinjau-aksi">
+      <a class="utama" id="pratinjauUnduh" href="#" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 20h14"/></svg>Unduh
+      </a>
+      <a id="pratinjauTab" href="#" target="_blank" rel="noopener" title="Buka di tab baru">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg><span class="teks-tab">Tab baru</span>
+      </a>
+      <button type="button" class="tutup" id="pratinjauTutup" aria-label="Tutup pratinjau">×</button>
+    </div>
+  </div>
+  <div class="pratinjau-isi">
+    <p>Memuat pratinjau... Kalau tidak tampil, pakai tombol Tab baru atau Unduh.</p>
+    <iframe id="pratinjauBingkai" title="Pratinjau bukti bayar" referrerpolicy="no-referrer"></iframe>
+  </div>
+</dialog>
+
 <script>
 (function () {
   "use strict";
@@ -522,6 +578,11 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
     /* Hanya alamat https yang dipakai, supaya isian seperti "javascript:" di lembar kerja tidak bisa dijalankan. */
     return /^https:\/\//i.test(url) ? url : "";
   }
+  /* Alamat pratinjau Google Drive (ditampilkan di jendela pratinjau). Tautan selain Drive tidak bisa dipratinjau. */
+  function alamatPratinjau(url) {
+    var m = (url || "").match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:[^#]*&)?id=)([\w-]{20,})/);
+    return m ? "https://drive.google.com/file/d/" + m[1] + "/preview" : "";
+  }
   function nomorST(teks) { var m = teks.match(/ST-(\d+)/i); return m ? +m[1] : 0; }
 
   function olahData(baris) {
@@ -556,6 +617,7 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
         catatan: berkas ? "" : ket,
         berkas: berkas ? ket : "",
         unduh: alamatUnduh(url),
+        pratinjau: alamatPratinjau(url),
         urutTanggal: tanggalAkhir(ambil(b, k.tanggal)),
         urutST: nomorST(st)
       });
@@ -686,9 +748,22 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
     if (d.catatan) s.appendChild(buat("span", "catatan" + (d.golongan !== "dibayar" ? " penting" : ""), d.catatan));
     if (d.unduh) {
       var a = buat("a", "unduh");
-      a.href = d.unduh; a.target = "_blank"; a.rel = "noopener";
-      a.title = "Unduh bukti bayar " + (d.berkas || d.st);
-      a.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 20h14"/></svg>';
+      a.target = "_blank"; a.rel = "noopener";
+      if (d.pratinjau) {
+        // Berkas Drive: klik membuka jendela pratinjau, dan tombol Unduh ada di dalamnya.
+        a.href = d.pratinjau.replace(/\/preview$/, "/view");
+        a.title = "Lihat bukti bayar " + (d.berkas || d.st);
+        a.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+        a.addEventListener("click", function (e) {
+          if (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
+          e.preventDefault();
+          bukaPratinjau(d);
+        });
+      } else {
+        a.href = d.unduh;
+        a.title = "Unduh bukti bayar " + (d.berkas || d.st);
+        a.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 20h14"/></svg>';
+      }
       a.appendChild(buat("span", "", d.berkas || "Unduh bukti bayar"));
       s.appendChild(a);
     } else if (d.berkas) s.appendChild(buat("span", "berkas", "Bukti: " + d.berkas));
@@ -772,6 +847,28 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
   });
   document.getElementById("formCari").addEventListener("submit", function (e) { e.preventDefault(); });
   elCari.addEventListener("input", function () { saringan.kata = elCari.value.trim(); gambar(); elHasil.scrollTop = 0; });
+
+  /* ---------- Jendela pratinjau bukti bayar ---------- */
+  var elPratinjau = document.getElementById("pratinjau");
+  var elBingkai = document.getElementById("pratinjauBingkai");
+  var pemicuPratinjau = null;
+  function bukaPratinjau(d) {
+    pemicuPratinjau = document.activeElement;
+    document.getElementById("pratinjauJudul").textContent = d.berkas || ("Bukti bayar " + d.st.replace(/\/.*$/, ""));
+    document.getElementById("pratinjauKet").textContent = d.st.replace(/\/.*$/, "") + (d.tanggal ? " · " + d.tanggal : "");
+    document.getElementById("pratinjauUnduh").href = d.unduh;
+    document.getElementById("pratinjauTab").href = d.pratinjau.replace(/\/preview$/, "/view");
+    elBingkai.src = d.pratinjau;
+    if (elPratinjau.showModal) elPratinjau.showModal(); else window.open(d.pratinjau.replace(/\/preview$/, "/view"), "_blank", "noopener");
+  }
+  function tutupPratinjau() { if (elPratinjau.open) elPratinjau.close(); }
+  elPratinjau.addEventListener("close", function () {
+    elBingkai.removeAttribute("src");
+    if (pemicuPratinjau && pemicuPratinjau.focus) pemicuPratinjau.focus();
+  });
+  document.getElementById("pratinjauTutup").addEventListener("click", tutupPratinjau);
+  // Klik di luar jendela (di latar gelap) menutup pratinjau.
+  elPratinjau.addEventListener("click", function (e) { if (e.target === elPratinjau) tutupPratinjau(); });
 
   /* ---------- Kartu ringkas tersembunyi otomatis ----------
      Tersembunyi setelah daftar digulir ke bawah melewati AMBANG_SEMBUNYI piksel, muncul lagi
