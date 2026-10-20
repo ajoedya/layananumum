@@ -318,7 +318,8 @@ table.riwayat th { color: var(--lembut); font-size: 12px; text-transform: upperc
     var galat = periksa();
     tampilGalat(galat);
     if (galat.length) return;
-    if (!adaPerubahan()) { kabar("Tidak ada perubahan untuk diterbitkan."); return; }
+    // Penerbitan pertama (spreadsheet masih kosong) boleh tanpa perubahan, supaya isi sekarang tercatat di riwayat.
+    if (!adaPerubahan() && keadaan.dasar) { kabar("Tidak ada perubahan untuk diterbitkan."); return; }
     var catatan = prompt("Catatan singkat perubahan (boleh dikosongkan):", "");
     if (catatan === null) return;
     var tombol = $("tombolTerbit");
