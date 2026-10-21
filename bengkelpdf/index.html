@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' blob: data: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Bengkel PDF KPKNL Balikpapan. Gabung, pecah, koreksi, konversi, kompres, dan kelola PDF langsung di peramban.">
+<title>Bengkel PDF — KPKNL Balikpapan</title>
+<script src="tema.js"></script>
+<link rel="stylesheet" href="gaya.css">
+<link rel="stylesheet" href="editorial.css">
+<style>
+/* ============================================================
+   Beranda: panel banner menempel di kiri, kisi perkakas ringkas
+   di kanan. Warna, huruf, banner, dan anyaman memakai variabel gaya.css,
+   jadi ikut berganti bersama tema acak.
+   ============================================================ */
+.beranda-c .editorial-halaman { position: relative; }
+.beranda-c .editorial-halaman::before,
+.beranda-c .editorial-halaman::after {
+  content: ""; position: absolute; top: 0; bottom: 0; width: 48px;
+  background: url("ornamen-kalimantan-anyaman.svg") left top / 48px 24px repeat-y;
+  opacity: var(--anyaman-opasitas); pointer-events: none; z-index: 0;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 6%, #000 94%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 6%, #000 94%, transparent);
+}
+.beranda-c .editorial-halaman::before { left: calc(var(--editorial-gutter) * .5 - 24px); }
+.beranda-c .editorial-halaman::after { right: calc(var(--editorial-gutter) * .5 - 24px); }
+
+.c-split {
+  position: relative; z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, .4fr) minmax(0, .6fr);
+  gap: clamp(22px, 3vw, 44px);
+  align-items: start;
+  padding: 26px 0 40px;
+}
+
+/* ---------- Panel kiri ---------- */
+.c-panel {
+  position: sticky;
+  top: 100px;
+  min-height: min(640px, calc(100vh - 124px));
+  border-radius: 6px;
+  overflow: hidden;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  background: var(--banner) var(--banner-latar-posisi) / var(--banner-latar-ukuran, cover) no-repeat;
+}
+/* Kabut terang: bagian atas dipudarkan ke warna kertas, foto jelas di bawah. */
+.c-panel::before {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background:
+    linear-gradient(to bottom, rgba(var(--rgb-latar),.97) 0%, rgba(var(--rgb-latar),.94) 48%, rgba(var(--rgb-latar),.6) 66%, rgba(var(--rgb-latar),0) 84%),
+    linear-gradient(to bottom, transparent 70%, rgba(var(--rgb-gelap),.5));
+}
+.c-panel-isi { padding: 30px clamp(20px, 2.4vw, 32px) 24px; }
+.beranda-c .editorial-label { margin: 0 0 12px; }
+.beranda-c h1 { font-size: clamp(30px, 2.7vw, 42px); margin-bottom: 12px; }
+.beranda-c .editorial-deskripsi { font-size: 16px; margin-bottom: 18px; }
+.beranda-c .editorial-cari button { min-width: 88px; }
+.c-privasi { margin: 12px 0 0; color: var(--editorial-muted); font-size: 14px; line-height: 1.5; }
+.c-privasi strong { color: var(--editorial-navy); }
+.c-keterangan {
+  margin-top: auto;
+  padding: 0 clamp(20px, 2.4vw, 32px) 18px;
+  color: #fff; font-size: 12px; font-weight: 700; letter-spacing: .18em;
+  text-shadow: 0 1px 10px rgba(0,0,0,.6);
+}
+
+/* ---------- Kolom kanan ---------- */
+.c-alat { min-width: 0; scroll-margin-top: 100px; }
+.c-kepala {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  padding: 4px 0 12px; margin-bottom: 14px; border-bottom: 1px solid var(--garis-editorial);
+}
+.c-kepala h2 { margin: 0; color: var(--editorial-navy); font-size: clamp(22px, 2vw, 26px); }
+.c-kepala p {
+  margin: 0; color: var(--editorial-gold-text); font-size: 12px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase;
+}
+.c-kisi { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.beranda-c .editorial-kartu { min-height: 128px; padding: 18px 20px; }
+/* Nomor kartu menjadi hiasan latar di kanan tengah: 24px, gradasi putih
+   ke navy tema (--biru-tua) yang samar. Teks kartu diberi ruang di
+   kanan supaya tidak bertumpuk dengan nomor. */
+.beranda-c .editorial-kartu { position: relative; padding-right: 72px; }
+.beranda-c .editorial-kartu > strong,
+.beranda-c .editorial-kartu > span:not(.editorial-kartu-nomor) { position: relative; z-index: 1; }
+.beranda-c .editorial-kartu-nomor {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  margin: 0;
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: .04em;
+  background: linear-gradient(160deg, #ffffff 0%, var(--nomor-ujung) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  opacity: var(--nomor-opasitas);
+  pointer-events: none;
+}
+/* Deskripsi kartu yang diberi label tambahan tetap bergaya sama. */
+.beranda-c .editorial-kartu > strong + span { color: var(--editorial-muted); font-size: 14px; line-height: 1.55; }
+.c-tanda {
+  align-self: flex-start;
+  margin: 0 0 8px;
+  padding: 4px 8px;
+  background: var(--lencana-latar);
+  border-radius: 12px;
+  color: var(--lencana-teks);
+  font: 700 10px/1 "Public Sans", sans-serif;
+  letter-spacing: .04em;
+}
+.beranda-c .editorial-kartu strong { margin-bottom: 6px; }
+.c-kisi > .editorial-kartu:last-child:nth-child(odd) { grid-column: 1 / -1; min-height: 0; }
+.beranda-c .editorial-kosong { margin: 14px 0 0; }
+
+/* Gerbang Internal sebagai pita ringkas di bawah kisi. */
+.c-gerbang {
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px 20px; flex-wrap: wrap;
+  margin-top: 18px; padding: 22px 24px;
+  border: 1px solid var(--kartu-garis); border-radius: 4px;
+  background: linear-gradient(110deg, var(--penutup-1), var(--penutup-2) 60%, var(--penutup-3));
+  color: var(--editorial-navy); text-decoration: none;
+}
+.c-gerbang::after {
+  content: ""; position: absolute; top: 0; bottom: 0; right: 0; width: 45%;
+  background: url("ornamen-kalimantan-anyaman.svg") right center / 48px 24px repeat;
+  opacity: calc(var(--anyaman-opasitas) * 1.4); pointer-events: none;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 60%);
+  mask-image: linear-gradient(to right, transparent, #000 60%);
+}
+.c-gerbang:hover { border-color: var(--kartu-garis-hover); }
+.c-gerbang:focus-visible { outline: 3px solid var(--editorial-gold); outline-offset: 3px; }
+.c-gerbang > span { position: relative; z-index: 1; }
+.c-gerbang .editorial-label { display: block; margin: 0 0 6px; }
+.c-gerbang strong { display: block; font-size: clamp(18px, 1.7vw, 22px); overflow-wrap: anywhere; }
+.c-gerbang .c-buka { font-weight: 700; color: var(--tautan-kartu); white-space: nowrap; }
+.beranda-c .editorial-kaki { margin-top: 18px; }
+
+@media (max-width: 1040px) {
+  .c-split { grid-template-columns: 1fr; }
+  .c-panel { position: relative; top: 0; min-height: 0; padding-bottom: 150px; background-position: center bottom; }
+  .beranda-c .editorial-halaman::before,
+  .beranda-c .editorial-halaman::after { width: 24px; }
+  .beranda-c .editorial-halaman::before { left: calc(var(--editorial-gutter) * .5 - 12px); }
+  .beranda-c .editorial-halaman::after { right: calc(var(--editorial-gutter) * .5 - 12px); }
+}
+@media (max-width: 700px) {
+  .beranda-c .editorial-halaman::before,
+  .beranda-c .editorial-halaman::after { display: none; }
+  .c-split { padding-top: 16px; }
+}
+@media (max-width: 440px) {
+  .c-kisi { grid-template-columns: 1fr; }
+  .beranda-c .editorial-kartu { min-height: 0; }
+}
+</style>
+</head>
+<body class="beranda-editorial beranda-c">
+<a class="lewati-konten" href="#konten">Lewati navigasi</a>
+
+<main id="konten" class="editorial-halaman">
+  <div class="c-split">
+    <aside class="c-panel" aria-labelledby="judul-utama">
+      <div class="c-panel-isi">
+        <p class="editorial-label">OLAH <span>/</span> PDF <span>/</span> BUBUHAN BPP</p>
+        <h1 id="judul-utama">Bengkel PDF <span>untuk pekerjaan yang lebih JOSJIS.</span></h1>
+        <p class="editorial-deskripsi">Berbagai perkakas PDF yang mudah digunakan, cepat, dan aman.</p>
+        <form class="editorial-cari" role="search" id="cariPerkakas">
+          <label for="cariAlat" class="sr-only">Cari perkakas PDF</label>
+          <div class="editorial-cari-baris">
+            <input type="search" id="cariAlat" name="q" autocomplete="off" placeholder="Contoh: gabung, watermark, Word..." aria-controls="daftarAlat">
+            <button type="submit">Cari <span aria-hidden="true">→</span></button>
+          </div>
+        </form>
+        <p class="c-privasi"><strong>Privasi terjaga.</strong> Dokumen diproses langsung di browser, tidak diunggah ke server aplikasi.</p>
+      </div>
+      <div class="c-keterangan" data-banner-tema role="img" aria-label="Pemandangan teluk saat matahari terbenam dengan perbukitan, gedung kota, dermaga, kilang, dan kapal">KPKNL BALIKPAPAN</div>
+    </aside>
+
+    <section class="c-alat" id="alat" aria-labelledby="judul-alat">
+      <header class="c-kepala">
+        <h2 id="judul-alat">Daftar perkakas</h2>
+        <p id="jumlahAlat" role="status" aria-live="polite">8 perkakas tersedia</p>
+      </header>
+      <div class="c-kisi" id="daftarAlat">
+        <a class="editorial-kartu" href="gabung-pecah" data-cari="gabung susun pecah pisah ekstrak ambil halaman urut putar hapus nomor">
+          <span class="editorial-kartu-nomor" aria-hidden="true">01</span><strong>Gabung/Pecah</strong>
+          <span>Gabungkan, susun, ambil halaman tertentu, atau pecah per halaman.</span></a>
+        <a class="editorial-kartu" href="koreksi" data-cari="edit teks koreksi sunting isi pdf">
+          <span class="editorial-kartu-nomor" aria-hidden="true">02</span><strong>Edit Teks</strong>
+          <span>Koreksi, tambahkan, atau hapus teks dalam naskah.</span>
+        </a>
+        <a class="editorial-kartu" href="tanda-air" data-cari="watermark tanda air salinan konsep">
+          <span class="editorial-kartu-nomor" aria-hidden="true">03</span><strong>Watermark</strong>
+          <span>Tambahkan tulisan seperti SALINAN atau KONSEP.</span>
+        </a>
+        <a class="editorial-kartu" href="gambar" data-cari="pdf gambar jpg png konversi foto">
+          <span class="editorial-kartu-nomor" aria-hidden="true">04</span><strong>PDF &amp; Gambar</strong>
+          <span>Ubah halaman PDF ke JPG atau susun gambar jadi PDF.</span>
+        </a>
+        <a class="editorial-kartu" href="word" data-cari="pdf ke word docx ocr pindai konversi">
+          <span class="editorial-kartu-nomor" aria-hidden="true">05</span><strong>PDF ke Word</strong>
+          <span>Konversi menjadi dokumen Word, termasuk hasil pindaian.</span>
+        </a>
+        <a class="editorial-kartu" href="penanda" data-cari="penanda tte elektronik tandatangan tanda tangan">
+          <span class="editorial-kartu-nomor" aria-hidden="true">06</span><strong>Penanda TTE</strong>
+          <span>Tambahkan penanda tulisan tanda tangan elektronik.</span>
+        </a>
+        <a class="editorial-kartu" href="pengubah-uk" data-cari="ubah ukuran kertas a4 f4 legal halaman">
+          <span class="editorial-kartu-nomor" aria-hidden="true">07</span><strong>Ubah Ukuran Kertas</strong>
+          <span>Sesuaikan ukuran halaman PDF dengan kebutuhan.</span>
+        </a>
+        <a class="editorial-kartu" href="kompres" data-cari="kompres kecilkan perkecil ukuran berkas hemat optimasi">
+          <span class="editorial-kartu-nomor" aria-hidden="true">08</span><strong>Kompres PDF</strong>
+          <span>Perkecil ukuran berkas, teks tetap utuh dan bisa dicari.</span>
+        </a>
+      </div>
+      <p class="editorial-kosong" id="alatKosong" hidden>Tidak ada perkakas yang cocok. Coba kata kunci lain.</p>
+
+      <a class="c-gerbang" href="https://s.kemenkeu.go.id/GerbangInternal">
+        <span>
+          <span class="editorial-label">Subbagian Umum Presents</span>
+          <strong>s.kemenkeu.go.id/<wbr>GerbangInternal</strong>
+        </span>
+        <span class="c-buka">Buka <span aria-hidden="true">→</span></span>
+      </a>
+
+      <footer class="editorial-kaki">
+        <span>KPKNL Balikpapan · Berintegritas dalam Tugas, Prima dalam Pelayanan.</span>
+        <span class="kredit">Built with Claude ft. GPT <svg class="kredit-hati" viewBox="0 0 24 24" width="14" height="14" role="img" aria-label="cinta"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 5 6.4 5c2 0 3.6 1.1 4.6 2.6l1 1.4 1-1.4C14 6.1 15.6 5 17.6 5 21 5 23.1 8.4 21.6 11.8 19.5 16.4 12 21 12 21z"/></svg></span>
+      </footer>
+    </section>
+  </div>
+</main>
+
+<script src="bersama.js"></script>
+<script>
+(function () {
+  "use strict";
+  const form = document.getElementById("cariPerkakas");
+  const input = document.getElementById("cariAlat");
+  const cards = Array.from(document.querySelectorAll(".editorial-kartu"));
+  const status = document.getElementById("jumlahAlat");
+  const kosong = document.getElementById("alatKosong");
+
+  function cari() {
+    const query = input.value.trim().toLocaleLowerCase("id");
+    let terlihat = 0;
+    for (const kartu of cards) {
+      const teks = (kartu.textContent + " " + kartu.dataset.cari).toLocaleLowerCase("id");
+      const cocok = !query || teks.includes(query);
+      kartu.hidden = !cocok;
+      if (cocok) terlihat++;
+    }
+    status.textContent = query ? terlihat + " dari " + cards.length + " perkakas cocok" : cards.length + " perkakas tersedia";
+    kosong.hidden = terlihat > 0;
+  }
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    cari();
+    document.getElementById("alat").scrollIntoView({ behavior: "auto", block: "start" });
+  });
+  input.addEventListener("input", cari);
+  input.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && input.value) { input.value = ""; cari(); }
+  });
+})();
+</script>
+</body>
+</html>

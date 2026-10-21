@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' blob: data: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gabung/Pecah — Bengkel PDF</title>
+<script src="tema.js"></script>
+<link rel="stylesheet" href="gaya.css">
+<style>
+  /* CATATAN NAMA KELAS. Petak halaman di sini memakai kelas .lembar, bukan
+     .petak, sebab gaya.css sudah memakai .petak untuk kisi kartu di beranda
+     dan aturannya ikut mengenai halaman ini sehingga gambar halamannya
+     bergeser dan terpotong. Jangan dikembalikan ke .petak. */
+
+  /* ---------- Daftar urutan berkas ---------- */
+  .urutan-berkas{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:8px;}
+  .baris-berkas{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;
+    padding:9px 10px 9px 12px;background:var(--putih,#fff);
+    border:1px solid var(--garis,#e2e8f0);border-left:6px solid var(--asal,var(--garis-fokus));
+    border-radius:var(--radius-sm,6px);box-shadow:var(--bayangan-sm,none);}
+  .urut-berkas{flex:none;min-width:28px;height:28px;display:flex;align-items:center;
+    justify-content:center;font-size:14px;font-weight:700;color:var(--biru-tua,#002f5f);
+    background:var(--biru-muda,#ebf3fc);border-radius:var(--radius-sm,6px);}
+  .isi-berkas{flex:1 1 190px;min-width:0;line-height:1.35;}
+  .nama-berkas{display:block;font-size:15px;font-weight:600;color:var(--tinta,#0f172a);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .rinci-berkas{display:block;font-size:13px;color:var(--tinta-lembut,#475569);}
+  .baris-berkas.kosong .nama-berkas{color:var(--tinta-lembut,#475569);font-weight:500;}
+  .baris-berkas.kosong .urut-berkas{background:var(--garis);color:var(--tinta-lembut,#475569);}
+  .alat-berkas{display:flex;gap:6px;margin-left:auto;}
+  .tb-kecil{flex:none;min-width:34px;height:34px;padding:0 9px;font:inherit;font-size:16px;
+    line-height:1;cursor:pointer;color:var(--biru-tua,#002f5f);background:var(--putih,#fff);
+    border:1px solid var(--garis-fokus,#cbd5e1);border-radius:var(--radius-sm,6px);}
+  .tb-kecil.teks{font-size:13px;font-weight:600;}
+  .tb-kecil:hover:not(:disabled){background:var(--biru-muda,#ebf3fc);border-color:var(--biru,#14539a);}
+  .tb-kecil.bahaya:hover:not(:disabled){background:var(--bahaya-muda,#fef2f2);
+    border-color:var(--bahaya,#dc2626);color:var(--bahaya,#dc2626);}
+  .tb-kecil:focus-visible{outline:3px solid var(--emas,#f5b301);outline-offset:2px;}
+  .tb-kecil:disabled{opacity:.35;cursor:not-allowed;}
+
+  /* ---------- Papan halaman ----------
+     Tiap lembar mewakili satu halaman dari salah satu berkas, dan warna pita
+     di tepi kirinya sama dengan warna berkas asalnya pada daftar di atas. */
+  .papan{display:grid;grid-template-columns:repeat(auto-fill,minmax(146px,1fr));
+    gap:14px;list-style:none;padding:0;margin:16px 0 0;}
+  /* Badan lembar sengaja tetap boleh digulir dengan jari, sebab papan yang
+     panjang mustahil digulir di ponsel kalau seluruh permukaannya menangkap
+     sentuhan. Seretan dengan jari karena itu dimulai dari pegangannya. */
+  .lembar{position:relative;border:1px solid var(--garis,#e2e8f0);
+    border-radius:var(--radius-sm,6px);background:var(--putih,#fff);
+    padding:7px 8px 7px 12px;cursor:grab;touch-action:pan-y;
+    user-select:none;-webkit-user-select:none;overflow:hidden;}
+  .lembar::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--asal,var(--garis-fokus));}
+  .lembar:focus-visible{outline:3px solid var(--emas,#f5b301);outline-offset:2px;}
+  .lembar.melayang{position:fixed;z-index:60;pointer-events:none;cursor:grabbing;
+    box-shadow:0 8px 22px rgba(0,30,61,.3);opacity:.95;margin:0;}
+  .lembar.sisip{border-style:dashed;border-color:var(--emas-tua,#c48a00);
+    background:var(--emas-muda,#fff8e6);}
+  .lembar.sisip::before{display:none;}
+  .bingkai{height:176px;display:flex;align-items:center;
+    justify-content:center;background:var(--biru-muda);border-radius:3px;overflow:hidden;}
+  .bingkai canvas{display:block;flex:none;box-shadow:0 1px 3px rgba(0,30,61,.25);}
+  .bingkai .tunggu{font-size:13px;color:var(--tinta-lembut,#475569);}
+  /* Nomor urut dan tombolnya duduk pada palang di atas gambar, supaya
+     gambar halamannya sendiri tidak tertutup apa pun. */
+  .palang{display:flex;align-items:center;gap:5px;margin-bottom:6px;}
+  .urutPetak{margin-right:auto;min-width:24px;padding:3px 6px;font-size:13px;line-height:1.3;
+    font-weight:700;text-align:center;color:var(--aksen-teks);background:var(--aksen-latar);border-radius:4px;}
+  .lembar .alat{flex:none;width:28px;height:28px;padding:0;display:flex;
+    align-items:center;justify-content:center;font:inherit;font-size:16px;line-height:1;
+    color:var(--tinta,#0f172a);background:var(--putih,#fff);
+    border:1px solid var(--garis-fokus,#cbd5e1);border-radius:4px;}
+  .lembar .pegangan{cursor:grab;touch-action:none;}
+  .lembar .pegangan:hover{border-color:var(--emas-tua,#c48a00);}
+  .lembar .buang{cursor:pointer;}
+  .lembar .buang:hover{border-color:var(--bahaya,#dc2626);color:var(--bahaya,#dc2626);}
+  .lembar .besar{cursor:zoom-in;}
+  .lembar .besar:hover{border-color:var(--biru,#14539a);color:var(--biru,#14539a);}
+  .lembar button.alat:focus-visible{outline:3px solid var(--emas,#f5b301);outline-offset:1px;}
+  /* Tombol putar duduk di bawah gambar, sebab palang di atasnya sudah penuh. */
+  .putar-baris{display:flex;gap:6px;margin-top:6px;}
+  .lembar .putar{flex:1 1 0;width:auto;cursor:pointer;}
+  .lembar .putar:hover{border-color:var(--biru,#14539a);color:var(--biru,#14539a);}
+  .kaki{display:block;margin-top:6px;font-size:13px;line-height:1.35;color:var(--tinta-lembut,#475569);}
+  .kaki b{display:block;font-weight:600;color:var(--tinta,#0f172a);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .cap-nomor{display:block;font-weight:600;color:var(--biru,#14539a);}
+  .cap-nomor.tanpa{font-weight:400;color:var(--tinta-lembut,#475569);}
+  .cap-nomor:empty{display:none;}
+
+  /* ---------- Nomor halaman ---------- */
+  .centang{display:flex;gap:10px;align-items:flex-start;margin:4px 0 18px;
+    font-size:15px;font-weight:600;line-height:1.4;cursor:pointer;}
+  .centang input{flex:none;width:18px;height:18px;margin:2px 0 0;accent-color:var(--biru,#14539a);}
+  .centang small{display:block;margin-top:2px;font-size:13px;font-weight:400;color:var(--tinta-lembut,#475569);}
+  #ringkas{font-size:15px;font-weight:600;color:var(--biru-tua,#002f5f);margin:0;}
+  .siar{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
+
+  /* ---------- Pratinjau besar ---------- */
+  dialog.pratinjau{width:min(96vw,940px);max-height:94vh;padding:0;border:none;overflow:hidden;
+    border-radius:var(--radius-md,10px);box-shadow:var(--bayangan-lg,0 12px 28px rgba(0,0,0,.2));
+    color:var(--tinta,#0f172a);background:var(--putih,#fff);}
+  dialog.pratinjau[open]{display:flex;flex-direction:column;}
+  dialog.pratinjau::backdrop{background:rgba(0,30,61,.6);}
+  .pratinjau-kepala{display:flex;align-items:center;gap:12px;padding:10px 12px 10px 18px;
+    border-bottom:1px solid var(--garis,#e2e8f0);}
+  .pratinjau-kepala strong{flex:1;min-width:0;font-size:15px;font-weight:600;line-height:1.35;
+    overflow-wrap:anywhere;}
+  .pratinjau-badan{flex:1;min-height:120px;overflow:auto;background:var(--biru-muda);padding:16px;
+    text-align:center;font-size:14px;color:var(--tinta-lembut,#475569);}
+  .pratinjau-badan canvas{display:block;margin:0 auto;max-width:100%;height:auto;
+    background:var(--kertas);box-shadow:0 2px 8px rgba(0,30,61,.25);}
+  .pratinjau-kaki{display:flex;flex-wrap:wrap;gap:10px;padding:12px 18px;
+    border-top:1px solid var(--garis,#e2e8f0);}
+  .pratinjau-kaki .ke-kanan{margin-left:auto;}
+</style>
+</head>
+<body>
+
+<header class="kop">
+  <div class="kop-isi">
+    <p class="kop-label"><a href="./">Bengkel PDF</a> / 01</p>
+    <h1>Gabung/Pecah</h1>
+    <p>Menyatukan beberapa berkas menjadi satu dokumen, mengambil halaman tertentu, atau memecahnya menjadi <em>satu berkas per halaman</em>, termasuk merapikan satu berkas saja, dengan susunan yang <em>kamu tentukan sendiri</em>. Tiap halaman tampil sebagai petak gambar yang bisa diseret, diputar, diperbesar, atau dibuang, lalu hasilnya bisa sekalian diberi nomor halaman. Halaman yang tersimpan disalin apa adanya, jadi teks dan mutunya tidak berubah.</p>
+  </div>
+</header>
+
+<div class="bungkus">
+
+  <section>
+    <p class="nomor">Langkah 1</p>
+    <h2>Pilih berkas</h2>
+    <div class="jatuhan" id="jatuhan" tabindex="0" role="button" aria-label="Pilih berkas PDF">
+      <strong>Seret satu atau beberapa berkas PDF ke sini</strong>
+      <span>atau klik untuk memilih, bisa dipilih berkali-kali</span>
+    </div>
+    <input type="file" id="berkas" accept="application/pdf" multiple class="sembunyi">
+    <div id="kabar" class="kabar" role="status"></div>
+  </section>
+
+  <section id="bagianBerkas" class="sembunyi">
+    <p class="nomor">Langkah 2</p>
+    <h2>Atur urutan berkas</h2>
+    <p class="petunjuk" style="margin-top:0;">Berkas digabung dari atas ke bawah. Tekan tombol panah untuk menaikkan atau menurunkan sebuah berkas, lalu seluruh halamannya ikut berpindah di papan halaman pada langkah berikutnya.</p>
+    <ol class="urutan-berkas" id="daftarBerkas"></ol>
+  </section>
+
+  <section id="bagianPapan" class="sembunyi">
+    <p class="nomor" id="nomorPapan">Langkah 3</p>
+    <h2>Susun halamannya</h2>
+    <p id="ringkas" aria-live="polite"></p>
+    <ul class="papan" id="papan"></ul>
+    <p class="petunjuk">Seret petak ke tempat yang kamu kehendaki. Dengan tetikus, petak bisa diseret dari bagian mana saja, sedangkan dengan jari seretan dimulai dari pegangan bergaris tiga di sudut kiri atas supaya gerak jari yang lain tetap menggulir layar. Halaman dari berkas yang berbeda boleh saling menyelip. Dua tombol panah melingkar di bawah gambar memutar halaman seperempat putaran, tombol kaca pembesar menampilkan halaman dalam ukuran besar, dan tanda silang membuang halaman itu dari hasil.</p>
+    <p class="petunjuk">Dengan papan ketik, pilih petak memakai Tab, pindahkan dengan tombol panah, taruh di ujung dengan Home atau End, putar dengan R, perbesar dengan Enter, dan buang dengan Delete. Halaman yang terbuang masih bisa dikembalikan selama berkasnya belum dihapus dari daftar.</p>
+    <div class="baris-tombol" style="margin-top:18px;">
+      <button class="tombol sekunder kecil" id="pulihkan">Batalkan buang terakhir</button>
+      <button class="tombol sekunder kecil" id="semula">Urutkan halaman seperti semula</button>
+      <button class="tombol sekunder kecil" id="pulihSemua">Pulihkan semua</button>
+    </div>
+  </section>
+
+  <section id="bagianNomor" class="sembunyi">
+    <p class="nomor" id="nomorNomor">Langkah 4</p>
+    <h2>Beri nomor halaman</h2>
+    <label class="centang"><input type="checkbox" id="pakaiNomor"><span>Bubuhkan nomor halaman pada hasil<small>Langkah ini boleh dilewati. Nomor mengikuti urutan di papan, jadi halaman yang dipindah atau dibuang sudah ikut terhitung.</small></span></label>
+
+    <div id="aturNomor" class="sembunyi">
+      <div class="isian-baris">
+        <div class="isian">
+          <label for="posisi">Posisi</label>
+          <select id="posisi">
+            <option value="bawah-tengah">Bawah tengah</option>
+            <option value="bawah-kanan">Bawah kanan</option>
+            <option value="bawah-kiri">Bawah kiri</option>
+            <option value="atas-tengah">Atas tengah</option>
+            <option value="atas-kanan">Atas kanan</option>
+            <option value="atas-kiri">Atas kiri</option>
+          </select>
+        </div>
+        <div class="isian">
+          <label for="bentuk">Bentuk tulisan</label>
+          <select id="bentuk">
+            <option value="angka">1</option>
+            <option value="dari">1 dari 10</option>
+            <option value="strip">- 1 -</option>
+            <option value="halaman">Halaman 1</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="isian-baris">
+        <div class="isian">
+          <label for="mulaiHal">Mulai dibubuhkan pada urutan ke</label>
+          <input type="number" id="mulaiHal" value="1" min="1">
+        </div>
+        <div class="isian">
+          <label for="mulaiNomor">Nomor pertama yang dipakai</label>
+          <input type="number" id="mulaiNomor" value="1" min="0">
+        </div>
+        <div class="isian">
+          <label for="besar">Ukuran huruf</label>
+          <input type="number" id="besar" value="10" min="6" max="24">
+        </div>
+      </div>
+
+      <div id="kabarNomor" class="kabar" role="status"></div>
+      <p class="petunjuk" style="margin-top:0;">Contoh pemakaian, kalau lembar pengantar tidak boleh bernomor, isi urutan ke dengan 2 dan nomor pertama dengan 1, sehingga penomoran dimulai dari lembar kedua tetapi angkanya tetap mulai dari satu. Nomor ditaruh mengikuti arah halaman sesudah diputar. Nomor yang didapat tiap halaman tertulis di bawah petaknya, dan letaknya bisa diperiksa lewat tombol kaca pembesar.</p>
+    </div>
+  </section>
+
+  <section id="bagianSimpan" class="sembunyi">
+    <p class="nomor" id="nomorSimpan">Langkah 5</p>
+    <h2>Simpan hasilnya</h2>
+    <div class="isian-baris">
+      <div class="isian">
+        <label for="bentukHasil">Bentuk hasil</label>
+        <select id="bentukHasil">
+          <option value="satu">Satu berkas (gabung)</option>
+          <option value="satuan">Satu berkas per halaman (pecah)</option>
+        </select>
+      </div>
+      <div class="isian">
+        <label for="ambilHal">Halaman yang diambil</label>
+        <input type="text" id="ambilHal" placeholder="Kosongkan untuk semua, contoh: 1-3, 5">
+      </div>
+    </div>
+    <p class="petunjuk" style="margin-top:-8px;">Nomor halaman mengikuti urutan di papan pada langkah 3. Untuk memecah, pilih satu berkas per halaman; tiap halaman akan tersimpan sebagai berkas sendiri.</p>
+    <div class="isian">
+      <label for="namaHasil">Nama berkas hasil</label>
+      <input type="text" id="namaHasil" value="gabungan.pdf">
+    </div>
+    <div id="kabarSimpan" class="kabar" role="status"></div>
+    <div class="baris-tombol" style="margin-top:0;">
+      <button class="tombol" id="gabung">Gabung lalu simpan</button>
+      <button class="tombol sekunder" id="kosongkan">Kosongkan daftar</button>
+    </div>
+    <p class="petunjuk">Tanda tangan elektronik bersertifikat pada berkas asal tidak lagi terverifikasi setelah digabung, sebab isi dokumennya berubah. Isian formulir dan markah buku juga tidak ikut terbawa.</p>
+  </section>
+
+  <footer>
+    <span>Seluruh pengolahan berjalan di peramban. Tidak ada berkas yang diunggah ke server mana pun.</span>
+    <span>KPKNL Balikpapan · Berintegritas dalam Tugas, Prima dalam Pelayanan.</span>
+    <span class="kredit">Built with Claude ft. GPT <svg class="kredit-hati" viewBox="0 0 24 24" width="14" height="14" role="img" aria-label="cinta"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 5 6.4 5c2 0 3.6 1.1 4.6 2.6l1 1.4 1-1.4C14 6.1 15.6 5 17.6 5 21 5 23.1 8.4 21.6 11.8 19.5 16.4 12 21 12 21z"/></svg></span>
+  </footer>
+</div>
+
+<dialog class="pratinjau" id="pratinjau" aria-labelledby="pratinjauJudul">
+  <div class="pratinjau-kepala">
+    <strong id="pratinjauJudul"></strong>
+    <button type="button" class="tb-kecil" id="pratinjauTutup" title="Tutup" aria-label="Tutup pratinjau">&times;</button>
+  </div>
+  <div class="pratinjau-badan" id="pratinjauBadan"></div>
+  <div class="pratinjau-kaki">
+    <button type="button" class="tombol sekunder kecil" id="pratinjauSebelum">Sebelumnya</button>
+    <button type="button" class="tombol sekunder kecil" id="pratinjauSesudah">Berikutnya</button>
+    <button type="button" class="tombol sekunder kecil" id="pratinjauPutarKiri">Putar kiri</button>
+    <button type="button" class="tombol sekunder kecil" id="pratinjauPutarKanan">Putar kanan</button>
+    <button type="button" class="tombol sekunder kecil ke-kanan" id="pratinjauBuang">Buang halaman ini</button>
+  </div>
+</dialog>
+
+<div class="siar" id="siar" aria-live="polite"></div>
+
+<script src="pustaka/pdfjs/pdf.min.js"></script>
+<script src="pustaka/pdf-lib.min.js"></script>
+<script src="bersama.js"></script>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  "pustaka/pdfjs/pdf.worker.min.js";
+
+const el = (id) => document.getElementById(id);
+
+const LEBAR_PETAK = 118;           // lebar terbesar gambar halaman, dalam piksel
+const TINGGI_PETAK = 168;          // tinggi terbesar gambar halaman, dalam piksel
+const SERENTAK = 2;                // banyaknya halaman yang digambar bersamaan
+const AMBANG_SERET = 5;            // gerak sekecil ini masih dianggap klik, bukan seretan
+const TEPI_GULIR = 90;             // jarak ke tepi layar yang memicu gulir sendiri
+const WARNA = ["#2F5D8C", "#8C5A2F", "#3A7D44", "#7A2F5D", "#6B6B2F",
+               "#2F7D8C", "#8C2F2F", "#4A3A8C", "#2F8C6B", "#8C6B2F"];
+const IKON_BESAR = "<svg width='15' height='15' viewBox='0 0 16 16' fill='none' " +
+  "stroke='currentColor' stroke-width='1.8' stroke-linecap='round' aria-hidden='true'>" +
+  "<circle cx='6.8' cy='6.8' r='4.6'/><path d='M10.4 10.4 14.4 14.4'/></svg>";
+
+/* berkas menyimpan sumbernya menurut urutan gabung, petak menyimpan susunan
+   halaman yang akan disimpan. Satu petak menunjuk satu halaman pada salah
+   satu berkas, jadi halaman dari berkas mana pun bebas berpindah tempat. */
+let berkas = [];
+let petak = [];
+let terbuang = [];                 // tumpukan halaman yang dibuang, untuk dikembalikan
+let nomorBerkas = 0, nomorPetak = 0;
+
+const petakEl = new Map();         // kunci petak -> elemen, supaya gambarnya tidak digambar ulang
+const dataPetak = new Map();       // kunci petak -> data petaknya
+const cariBerkas = (id) => berkas.find((b) => b.id === id);
+const halamanBerkas = (id) => petak.filter((p) => p.berkasId === id);
+const siarkan = (teks) => { el("siar").textContent = teks; };
+const derajat = (a) => ((a % 360) + 360) % 360;
+
+let sibuk = false;                 // sedang menyimpan, jadi tulisan tombol simpan jangan diganti dulu
+let namaDisentuh = false;          // nama hasil sudah diketik sendiri, jadi jangan ditimpa usulan
+
+// Satu berkas berarti pekerjaannya menyusun, lebih dari satu berarti menggabung.
+function namaUsulan() {
+  if (berkas.length !== 1) return "gabungan.pdf";
+  return Bersama.tanpaAkhiran(berkas[0].nama) + (el("pakaiNomor").checked ? "-bernomor.pdf" : "-tersusun.pdf");
+}
+el("namaHasil").addEventListener("input", () => { namaDisentuh = true; });
+
+/* ================= 1. Menerima berkas ================= */
+function berkasTerkunci(err) {
+  return (PDFLib.EncryptedPDFError && err instanceof PDFLib.EncryptedPDFError) ||
+    /encrypt/i.test(String(err && err.message));
+}
+
+Bersama.pasangJatuhan(el("jatuhan"), el("berkas"), async (daftar) => {
+  const pdf = Bersama.pdfSaja(daftar);
+  const ditolak = daftar.length - pdf.length;
+  const rusak = [], terkunci = [];
+  let tambahan = 0;
+
+  if (pdf.length) Bersama.pesan("kabar", "Sedang membaca " + pdf.length + " berkas, mohon tunggu sebentar.", "");
+  Bersama.pesan("kabarSimpan", "", "");
+
+  for (const f of pdf) {
+    try {
+      const buf = await f.arrayBuffer();
+      // pdf-lib dipakai membaca di sini supaya berkas yang nanti gagal
+      // digabung sudah ketahuan sekarang, bukan saat tombol gabung ditekan.
+      const dok = await PDFLib.PDFDocument.load(buf);
+      const b = { id: ++nomorBerkas, nama: f.name, bytes: buf,
+                  jumlah: dok.getPageCount(), besar: f.size,
+                  warna: WARNA[(nomorBerkas - 1) % WARNA.length], dokJs: null };
+      berkas.push(b);
+      for (let i = 0; i < b.jumlah; i++) {
+        const p = { kunci: "p" + (++nomorPetak), berkasId: b.id, indeks: i, putar: 0 };
+        dataPetak.set(p.kunci, p);
+        petak.push(p);
+      }
+      tambahan += b.jumlah;
+    } catch (err) {
+      (berkasTerkunci(err) ? terkunci : rusak).push(f.name);
+      console.error(err);
+    }
+  }
+
+  const sebut = (nama) => nama.map(Bersama.lolos).join(", ");
+  const pesan = [];
+  if (tambahan) pesan.push(tambahan + " halaman ditambahkan ke papan.");
+  if (ditolak) pesan.push(ditolak + " berkas dilewati sebab bukan PDF.");
+  if (terkunci.length) {
+    pesan.push("Berkas berikut dilindungi kata sandi atau pembatasan izin sehingga tidak bisa digabung, yaitu " +
+      sebut(terkunci) + ". Buka dulu proteksinya, misalnya dengan mencetaknya ulang menjadi PDF, lalu masukkan lagi.");
+  }
+  if (rusak.length) {
+    pesan.push("Berkas berikut tidak bisa dibaca dan kemungkinan rusak, yaitu " + sebut(rusak) + ".");
+  }
+  Bersama.pesan("kabar", pesan.join(" "), (ditolak || terkunci.length || rusak.length) ? "gagal" : "");
+  gambarSemua();
+});
+
+// Berkas yang dijatuhkan di luar kotak unggah jangan sampai dibuka peramban,
+// sebab halamannya akan berganti dan seluruh susunan di papan ikut hilang.
+["dragover", "drop"].forEach((n) => window.addEventListener(n, (e) => e.preventDefault()));
+
+/* ========== 2. Menggambar daftar berkas dan papan ========== */
+function gambarSemua() {
+  selaraskanBerkas();
+  gambarDaftarBerkas();
+  gambarPapan();
+  perbaruiRingkas();
+  // Dengan satu berkas tidak ada urutan berkas yang perlu diatur, jadi
+  // langkah itu disembunyikan dan nomor langkah sesudahnya ikut maju.
+  const ada = berkas.length > 0, banyak = berkas.length > 1;
+  el("bagianBerkas").classList.toggle("sembunyi", !banyak);
+  ["bagianPapan", "bagianNomor", "bagianSimpan"].forEach((id) => el(id).classList.toggle("sembunyi", !ada));
+  el("nomorPapan").textContent = "Langkah " + (banyak ? 3 : 2);
+  el("nomorNomor").textContent = "Langkah " + (banyak ? 4 : 3);
+  el("nomorSimpan").textContent = "Langkah " + (banyak ? 5 : 4);
+  segarkanNomor();
+}
+
+/* Urutan berkas pada daftar selalu disamakan dengan urutan kemunculannya di
+   papan, supaya daftar itu tetap benar sesudah halamannya diseret sendiri.
+   Berkas yang seluruh halamannya sedang dibuang tetap di tempatnya. */
+function selaraskanBerkas() {
+  const muncul = [];
+  petak.forEach((p) => { if (!muncul.includes(p.berkasId)) muncul.push(p.berkasId); });
+  const menurutId = new Map(berkas.map((b) => [b.id, b]));
+  let k = 0;
+  berkas = berkas.map((b) => muncul.includes(b.id) ? menurutId.get(muncul[k++]) : b);
+}
+
+function tombolKecil(teks, judul, kelas) {
+  const t = document.createElement("button");
+  t.type = "button";
+  t.className = "tb-kecil" + (kelas ? " " + kelas : "");
+  t.textContent = teks;
+  t.title = judul;
+  t.setAttribute("aria-label", judul);
+  return t;
+}
+
+function gambarDaftarBerkas() {
+  const wadah = el("daftarBerkas");
+  wadah.innerHTML = "";
+  berkas.forEach((b, i) => {
+    const sisa = halamanBerkas(b.id).length;
+    const dibuang = terbuang.filter((t) => t.petak.berkasId === b.id).length;
+
+    const li = document.createElement("li");
+    li.className = "baris-berkas" + (sisa ? "" : " kosong");
+    li.dataset.id = b.id;
+    li.style.setProperty("--asal", b.warna);
+
+    const urut = document.createElement("span");
+    urut.className = "urut-berkas";
+    urut.textContent = i + 1;
+
+    const isi = document.createElement("span");
+    isi.className = "isi-berkas";
+    const nama = document.createElement("span");
+    nama.className = "nama-berkas"; nama.textContent = b.nama; nama.title = b.nama;
+    const rinci = document.createElement("span");
+    rinci.className = "rinci-berkas";
+    rinci.textContent = (sisa ? sisa + " dari " + b.jumlah + " halaman dipakai"
+                              : "Semua halamannya sedang dibuang") + ", " + Bersama.ukuran(b.besar);
+    isi.append(nama, rinci);
+
+    const alat = document.createElement("span");
+    alat.className = "alat-berkas";
+
+    const naik = tombolKecil("\u2191", "Naikkan " + b.nama);
+    naik.dataset.arah = "-1"; naik.disabled = (i === 0);
+    naik.addEventListener("click", () => pindahBerkas(b.id, -1));
+
+    const turun = tombolKecil("\u2193", "Turunkan " + b.nama);
+    turun.dataset.arah = "1"; turun.disabled = (i === berkas.length - 1);
+    turun.addEventListener("click", () => pindahBerkas(b.id, 1));
+
+    alat.append(naik, turun);
+
+    if (dibuang) {
+      const pulih = tombolKecil("Kembalikan " + dibuang + " hlm",
+        "Kembalikan " + dibuang + " halaman terbuang dari " + b.nama, "teks");
+      pulih.addEventListener("click", () => pulihkanBerkas(b.id));
+      alat.append(pulih);
+    }
+
+    const buang = tombolKecil("\u00d7", sisa ? "Buang seluruh halaman " + b.nama
+                                             : "Hapus " + b.nama + " dari daftar", "bahaya");
+    buang.addEventListener("click", () => buangBerkas(b.id));
+    alat.append(buang);
+
+    li.append(urut, isi, alat);
+    wadah.appendChild(li);
+  });
+}
+
+/* Elemen petak disimpan di dalam peta dan dipakai ulang, sebab menggambar
+   ulang seluruh papan setiap kali susunannya berubah akan membuang hasil
+   gambar halaman yang sudah jadi. */
+function gambarPapan() {
+  const papan = el("papan");
+  papan.innerHTML = "";
+  petak.forEach((p, i) => {
+    const k = ambilPetak(p);
+    k.querySelector(".urutPetak").textContent = i + 1;
+    labelPetak(k, p, i);
+    papan.appendChild(k);
+  });
+}
+
+function labelPetak(k, p, i) {
+  k.setAttribute("aria-label", "Halaman urutan ke-" + (i + 1) + " dari " + petak.length +
+    ", berasal dari " + cariBerkas(p.berkasId).nama + " halaman " + (p.indeks + 1) +
+    (p.putar ? ", diputar " + p.putar + " derajat" : "") +
+    ". Pindahkan dengan tombol panah, R untuk memutar, Enter untuk memperbesar, Delete untuk membuang.");
+}
+
+// Benar kalau halaman di papan masih berurutan seperti aslinya di tiap berkas.
+function urutanSemula() {
+  const urutBerkas = new Map(berkas.map((b, i) => [b.id, i]));
+  return petak.every((p, i) => {
+    if (i === 0) return true;
+    const q = petak[i - 1];
+    return q.berkasId === p.berkasId ? q.indeks < p.indeks
+                                     : urutBerkas.get(q.berkasId) < urutBerkas.get(p.berkasId);
+  });
+}
+
+function urutkanSemula() {
+  const urutBerkas = new Map(berkas.map((b, i) => [b.id, i]));
+  petak.sort((a, b) => (urutBerkas.get(a.berkasId) - urutBerkas.get(b.berkasId)) ||
+                       (a.indeks - b.indeks));
+}
+
+function perbaruiRingkas() {
+  const jumlahBerkas = new Set(petak.map((p) => p.berkasId)).size;
+  let t = !petak.length ? "Belum ada halaman yang tersisa di papan."
+        : jumlahBerkas > 1 ? petak.length + " halaman dari " + jumlahBerkas + " berkas akan digabung."
+        : petak.length + " halaman akan disimpan.";
+  const diputar = petak.filter((p) => p.putar).length;
+  if (diputar) t += " " + diputar + " halaman diputar.";
+  if (terbuang.length) t += " " + terbuang.length + " halaman sedang dibuang.";
+  el("ringkas").textContent = t;
+  const semula = urutanSemula();
+  el("pulihkan").disabled = !terbuang.length;
+  el("semula").disabled = semula;
+  el("pulihSemua").disabled = semula && !terbuang.length &&
+    ![...dataPetak.values()].some((p) => p.putar);
+  if (!sibuk) {
+    el("gabung").disabled = !petak.length;
+    el("gabung").textContent = el("bentukHasil").value === "satuan" ? "Pecah lalu simpan"
+      : (jumlahBerkas > 1 ? "Gabung lalu simpan" : "Simpan dokumen");
+  }
+}
+
+function ambilPetak(p) {
+  if (petakEl.has(p.kunci)) return petakEl.get(p.kunci);
+  const b = cariBerkas(p.berkasId);
+
+  const li = document.createElement("li");
+  li.className = "lembar";
+  li.tabIndex = 0;
+  li.dataset.kunci = p.kunci;
+  li.style.setProperty("--asal", b.warna);
+
+  const palang = document.createElement("div");
+  palang.className = "palang";
+
+  const pegangan = document.createElement("span");
+  pegangan.className = "alat pegangan";
+  pegangan.textContent = "\u2261";
+  pegangan.title = "Tahan lalu seret dari sini";
+  pegangan.setAttribute("aria-hidden", "true");
+
+  const urut = document.createElement("span");
+  urut.className = "urutPetak";
+  palang.append(pegangan, urut);
+
+  if (bisaPratinjau) {
+    const besar = document.createElement("button");
+    besar.type = "button";
+    besar.className = "alat besar";
+    besar.innerHTML = IKON_BESAR;
+    besar.title = "Lihat halaman ini dalam ukuran besar";
+    besar.setAttribute("aria-label", "Lihat halaman ini dalam ukuran besar");
+    besar.addEventListener("click", (e) => { e.stopPropagation(); bukaPratinjau(p); });
+    palang.append(besar);
+    li.addEventListener("dblclick", (e) => { if (!e.target.closest("button")) bukaPratinjau(p); });
+  }
+
+  const buang = document.createElement("button");
+  buang.type = "button";
+  buang.className = "alat buang";
+  buang.textContent = "\u00d7";
+  buang.title = "Buang halaman ini";
+  buang.setAttribute("aria-label", "Buang halaman ini");
+  buang.addEventListener("click", (e) => { e.stopPropagation(); buangPetak(p); });
+  palang.append(buang);
+
+  const bingkai = document.createElement("div");
+  bingkai.className = "bingkai";
+  bingkai.innerHTML = "<span class='tunggu'>menggambar...</span>";
+
+  const kaki = document.createElement("span");
+  kaki.className = "kaki";
+  kaki.innerHTML = "<b></b>";
+  kaki.querySelector("b").textContent = b.nama;
+  kaki.querySelector("b").title = b.nama;
+  kaki.append(document.createTextNode("halaman " + (p.indeks + 1)));
+  const cap = document.createElement("span");
+  cap.className = "cap-nomor";
+  kaki.append(cap);
+
+  const putarBaris = document.createElement("div");
+  putarBaris.className = "putar-baris";
+  [["\u21BA", "Putar halaman ini berlawanan arah jarum jam", -90],
+   ["\u21BB", "Putar halaman ini searah jarum jam", 90]].forEach(([teks, judul, arah]) => {
+    const t = document.createElement("button");
+    t.type = "button";
+    t.className = "alat putar";
+    t.textContent = teks;
+    t.title = judul;
+    t.setAttribute("aria-label", judul);
+    t.addEventListener("click", (e) => { e.stopPropagation(); putarPetak(p, arah); });
+    putarBaris.append(t);
+  });
+
+  li.append(palang, bingkai, putarBaris, kaki);
+  petakEl.set(p.kunci, li);
+
+  pasangSeret(li, p);
+  pasangTombol(li, p);
+  pengintai.observe(li);
+  return li;
+}
+
+/* ========== 3. Menggambar halaman sewaktu petaknya masuk layar ==========
+   Halaman baru digambar ketika petaknya mendekati layar, sebab menggambar
+   ratusan halaman sekaligus akan membuat perambannya tersendat. */
+const pengintai = new IntersectionObserver((masuk) => {
+  masuk.forEach((m) => {
+    if (!m.isIntersecting) return;
+    const p = dataPetak.get(m.target.dataset.kunci);
+    if (p) jadwalkan(p, m.target.querySelector(".bingkai"));
+  });
+}, { rootMargin: "400px 0px" });
+
+const antrean = [];
+let sedang = 0;
+
+function jadwalkan(p, bingkai) {
+  if (!bingkai || bingkai.dataset.tahap) return;
+  bingkai.dataset.tahap = "antre";
+  antrean.push({ p, bingkai });
+  jalankanAntrean();
+}
+
+function jalankanAntrean() {
+  while (sedang < SERENTAK && antrean.length) {
+    const tugas = antrean.shift();
+    sedang++;
+    gambarHalaman(tugas.p, tugas.bingkai).catch((e) => console.error(e))
+      .finally(() => { sedang--; jalankanAntrean(); });
+  }
+}
+
+function dokumenJs(b) {
+  // Salinan bytes selalu dibuat baru, sebab pdf.js dapat mengambil alih
+  // penyangganya sehingga berkas aslinya tidak bisa dipakai lagi.
+  if (!b.dokJs) b.dokJs = pdfjsLib.getDocument({ data: b.bytes.slice(0), isEvalSupported: false }).promise;
+  return b.dokJs;
+}
+
+// Menggambar satu halaman ke kanvas baru dengan ukuran tampil paling besar
+// lebarMaks kali tinggiMaks piksel, tajam pada layar berkerapatan tinggi.
+async function kanvasHalaman(b, indeks, lebarMaks, tinggiMaks, putar) {
+  const dok = await dokumenJs(b);
+  const hal = await dok.getPage(indeks + 1);
+  // Putaran dari pengguna ditambahkan ke putaran bawaan halaman, bukan menimpanya.
+  const arah = derajat(hal.rotate + (putar || 0));
+  const asli = hal.getViewport({ scale: 1, rotation: arah });
+  const rasio = Math.min(lebarMaks / asli.width, tinggiMaks / asli.height);
+  const kerapatan = Math.min(window.devicePixelRatio || 1, 2);
+  const vp = hal.getViewport({ scale: rasio * kerapatan, rotation: arah });
+
+  const kanvas = document.createElement("canvas");
+  kanvas.dataset.lebarTitik = asli.width;   // lebar halaman yang tampak, dalam titik
+  kanvas.width = Math.max(1, Math.ceil(vp.width));
+  kanvas.height = Math.max(1, Math.ceil(vp.height));
+  kanvas.style.width = Math.round(vp.width / kerapatan) + "px";
+  kanvas.style.height = Math.round(vp.height / kerapatan) + "px";
+  const ktx = kanvas.getContext("2d");
+  ktx.fillStyle = "#ffffff";
+  ktx.fillRect(0, 0, kanvas.width, kanvas.height);
+  await hal.render({ canvasContext: ktx, viewport: vp }).promise;
+  return kanvas;
+}
+
+async function gambarHalaman(p, bingkai) {
+  const b = cariBerkas(p.berkasId);
+  if (!b) return;                  // berkasnya sudah dihapus selagi mengantre
+  const putar = p.putar;
+  try {
+    const kanvas = await kanvasHalaman(b, p.indeks, LEBAR_PETAK, TINGGI_PETAK, putar);
+    // Halaman sudah diputar lagi selagi digambar, jadi gambar ini basi dan
+    // gambar penggantinya sudah menunggu di antrean.
+    if (p.putar !== putar) return;
+    bingkai.innerHTML = "";
+    bingkai.append(kanvas);
+    bingkai.dataset.tahap = "jadi";
+  } catch (err) {
+    bingkai.innerHTML = "<span class='tunggu'>gambar gagal</span>";
+    bingkai.dataset.tahap = "gagal";
+    throw err;
+  }
+}
+
+/* ---------- Memutar halaman ----------
+   Gambar lama dibiarkan tampil sampai gambar barunya jadi, supaya petaknya
+   tidak berkedip. Papan tidak digambar ulang, sebab itu melepas fokus dari
+   tombol yang baru ditekan. */
+function putarPetak(p, arah) {
+  p.putar = derajat(p.putar + arah);
+  segarkanGambar(p);
+  const i = petak.indexOf(p), k = petakEl.get(p.kunci);
+  if (i >= 0 && k) labelPetak(k, p, i);
+  perbaruiRingkas();
+  siarkan("Halaman " + (i + 1) + " diputar, sekarang " + p.putar + " derajat dari aslinya.");
+}
+
+function segarkanGambar(p) {
+  const k = petakEl.get(p.kunci);
+  const bingkai = k && k.querySelector(".bingkai");
+  // Petak yang belum pernah digambar akan digambar dengan putaran terbarunya
+  // ketika masuk layar, jadi tidak perlu diantrekan di sini.
+  if (!bingkai || !bingkai.dataset.tahap) return;
+  antrean.push({ p, bingkai });
+  jalankanAntrean();
+}
+
+/* ========== 4. Menyeret petak ==========
+   Petak yang sedang diseret dilepas dari alur lalu dilayangkan mengikuti
+   penunjuk, sementara tempatnya dijaga oleh kotak bergaris putus-putus.
+   Cara ini dipakai supaya gambar halamannya tidak perlu digambar ulang. */
+let seret = null;
+
+function pasangSeret(li, p) {
+  li.addEventListener("pointerdown", (e) => {
+    if (seret) return;
+    if (e.button !== 0 && e.pointerType === "mouse") return;
+    if (e.target.closest("button")) return;
+    // Tetikus boleh menyeret dari mana saja, jari hanya dari pegangannya,
+    // supaya gerak jari yang lain tetap menggulir halaman seperti biasa.
+    if (e.pointerType !== "mouse" && !e.target.closest(".pegangan")) return;
+    seret = { li, p, mulaiX: e.clientX, mulaiY: e.clientY, x: e.clientX, y: e.clientY,
+              aktif: false, dx: 0, dy: 0, sisip: null, pointerId: e.pointerId };
+    li.setPointerCapture(e.pointerId);
+  });
+
+  li.addEventListener("pointermove", (e) => {
+    if (!seret || seret.li !== li || e.pointerId !== seret.pointerId) return;
+    if (!seret.aktif) {
+      if (Math.abs(e.clientX - seret.mulaiX) < AMBANG_SERET &&
+          Math.abs(e.clientY - seret.mulaiY) < AMBANG_SERET) return;
+      mulaiSeret(e);
+    }
+    e.preventDefault();
+    seret.x = e.clientX; seret.y = e.clientY;
+    li.style.left = (seret.x - seret.dx) + "px";
+    li.style.top = (seret.y - seret.dy) + "px";
+    cariSasaran(seret.x, seret.y);
+  });
+
+  // lostpointercapture ikut ditangani supaya petak tidak tertinggal melayang
+  // kalau seretannya terputus, misalnya karena jendela berpindah.
+  ["pointerup", "pointercancel", "lostpointercapture"].forEach((n) => li.addEventListener(n, (e) => {
+    if (!seret || seret.li !== li || e.pointerId !== seret.pointerId) return;
+    const s = seret;
+    seret = null;
+    if (s.aktif) selesaiSeret(s);
+  }));
+}
+
+function mulaiSeret(e) {
+  const li = seret.li, kotak = li.getBoundingClientRect();
+  seret.aktif = true;
+  seret.dx = e.clientX - kotak.left;
+  seret.dy = e.clientY - kotak.top;
+
+  const sisip = document.createElement("li");
+  sisip.className = "lembar sisip";
+  sisip.style.height = kotak.height + "px";
+  sisip.setAttribute("aria-hidden", "true");
+  li.parentNode.insertBefore(sisip, li);
+  seret.sisip = sisip;
+
+  li.style.width = kotak.width + "px";
+  li.style.height = kotak.height + "px";
+  li.style.left = kotak.left + "px";
+  li.style.top = kotak.top + "px";
+  li.classList.add("melayang");
+  requestAnimationFrame(putarGulir);
+}
+
+function cariSasaran(x, y) {
+  const papan = el("papan");
+  const bawah = document.elementFromPoint(x, y);
+  const sasaran = bawah && bawah.closest(".lembar");
+  if (sasaran) {
+    if (sasaran === seret.sisip || sasaran === seret.li || sasaran.parentNode !== papan) return;
+    const kotak = sasaran.getBoundingClientRect();
+    // Sisi mana yang lebih dekat menentukan petaknya diselipkan sebelum atau sesudah.
+    const sesudah = (x > kotak.left + kotak.width / 2);
+    papan.insertBefore(seret.sisip, sesudah ? sasaran.nextSibling : sasaran);
+    return;
+  }
+  // Penunjuk berada di ruang kosong sesudah petak terakhir, jadi taruh di ujung.
+  const anak = [...papan.children].filter((k) => k !== seret.li && k !== seret.sisip);
+  const akhir = anak[anak.length - 1];
+  if (!akhir) return;
+  const kotak = akhir.getBoundingClientRect();
+  if (y > kotak.bottom || (y >= kotak.top && x > kotak.right)) papan.appendChild(seret.sisip);
+}
+
+// Gulir sendiri dijalankan tiap bingkai gambar, bukan tiap gerak penunjuk,
+// supaya layar terus bergulir selama penunjuk ditahan diam di tepi.
+function putarGulir() {
+  if (!seret || !seret.aktif) return;
+  const y = seret.y;
+  let langkah = 0;
+  if (y < TEPI_GULIR) langkah = -Math.ceil((TEPI_GULIR - y) / 6);
+  else if (y > window.innerHeight - TEPI_GULIR) {
+    langkah = Math.ceil((y - (window.innerHeight - TEPI_GULIR)) / 6);
+  }
+  if (langkah) {
+    window.scrollBy(0, langkah);
+    cariSasaran(seret.x, seret.y);
+  }
+  requestAnimationFrame(putarGulir);
+}
+
+function selesaiSeret(s) {
+  const li = s.li;
+  li.classList.remove("melayang");
+  // Hanya empat sifat itu yang tadi dipasang, sifat lain seperti warna
+  // berkas asal harus tetap tinggal.
+  ["width", "height", "left", "top"].forEach((n) => li.style.removeProperty(n));
+  s.sisip.parentNode.insertBefore(li, s.sisip);
+  s.sisip.remove();
+  serapUrutan();
+  li.focus();
+}
+
+// Susunan di dalam ingatan disamakan dengan susunan yang tampak di layar.
+function serapUrutan() {
+  const urut = [...el("papan").children]
+    .map((k) => dataPetak.get(k.dataset.kunci))
+    .filter(Boolean);
+  if (urut.length === petak.length) petak = urut;
+  gambarSemua();
+}
+
+/* ========== 5. Tombol papan ketik ========== */
+function kolomPapan() {
+  const anak = [...el("papan").children];
+  if (anak.length < 2) return 1;
+  const atas = anak[0].offsetTop;
+  let n = 0;
+  for (const k of anak) { if (k.offsetTop !== atas) break; n++; }
+  return Math.max(1, n);
+}
+
+function pasangTombol(li, p) {
+  li.addEventListener("keydown", (e) => {
+    // Tombol di dalam petak punya kerjanya sendiri, dan gabungan dengan Alt
+    // atau Ctrl dibiarkan menjadi milik peramban.
+    if (e.target !== li || e.altKey || e.ctrlKey || e.metaKey) return;
+    const i = petak.indexOf(p);
+    if (i < 0) return;
+    if (e.key === "r" || e.key === "R") {
+      e.preventDefault(); putarPetak(p, e.shiftKey ? -90 : 90); return;
+    }
+    if (e.key === "Delete" || e.key === "Backspace") {
+      e.preventDefault(); buangPetak(p); return;
+    }
+    if (e.key === "Enter" && bisaPratinjau) {
+      e.preventDefault(); bukaPratinjau(p); return;
+    }
+    const kolom = kolomPapan();
+    const tujuan = { ArrowLeft: i - 1, ArrowRight: i + 1, ArrowUp: i - kolom,
+                     ArrowDown: i + kolom, Home: 0, End: petak.length - 1 }[e.key];
+    if (tujuan === undefined) return;
+    e.preventDefault();
+    const j = Math.max(0, Math.min(petak.length - 1, tujuan));
+    if (j === i) return;
+    petak.splice(i, 1);
+    petak.splice(j, 0, p);
+    gambarSemua();
+    petakEl.get(p.kunci).focus();
+  });
+}
+
+/* ========== 6. Menaik-turunkan berkas ========== */
+// Benar kalau ada berkas yang halamannya terpisah oleh halaman berkas lain.
+function halamanMenyelip() {
+  const selesai = new Set();
+  let kini = null;
+  for (const p of petak) {
+    if (p.berkasId === kini) continue;
+    if (selesai.has(p.berkasId)) return true;
+    if (kini !== null) selesai.add(kini);
+    kini = p.berkasId;
+  }
+  return false;
+}
+
+// Halaman dikumpulkan per berkas menurut urutan daftar, sedangkan urutan
+// halaman di dalam tiap berkas dibiarkan seperti yang sedang tampak di papan.
+function kumpulkanPerBerkas() {
+  petak = berkas.flatMap((b) => halamanBerkas(b.id));
+}
+
+function pindahBerkas(id, arah) {
+  const i = berkas.findIndex((b) => b.id === id), j = i + arah;
+  if (i < 0 || j < 0 || j >= berkas.length) return;
+  const a = berkas[i], c = berkas[j];
+  // Bertukar tempat dengan berkas yang halamannya habis dibuang tidak
+  // mengubah papan, jadi halaman tidak perlu dikumpulkan ulang.
+  const perluKumpul = halamanBerkas(a.id).length > 0 && halamanBerkas(c.id).length > 0;
+  if (perluKumpul && halamanMenyelip() &&
+      !confirm("Saat ini halaman dari berkas yang berbeda saling menyelip. Kalau berkas " +
+        "dinaik-turunkan, halaman tiap berkas dikumpulkan kembali menjadi satu rangkaian " +
+        "sehingga selipan itu hilang, sedangkan urutan halaman di dalam tiap berkas tetap. Lanjutkan?")) return;
+  berkas[i] = c; berkas[j] = a;
+  if (perluKumpul) kumpulkanPerBerkas();
+  gambarSemua();
+
+  const baris = el("daftarBerkas").querySelector("li[data-id='" + id + "']");
+  if (baris) {
+    const tombol = baris.querySelector("button[data-arah='" + arah + "']:not(:disabled)") ||
+                   baris.querySelector("button[data-arah]:not(:disabled)");
+    if (tombol) tombol.focus();
+  }
+  siarkan(a.nama + " sekarang berada di urutan ke-" + (berkas.indexOf(a) + 1) + " dari " + berkas.length + ".");
+}
+
+/* ========== 7. Membuang dan mengembalikan ========== */
+function buangPetak(p, tanpaFokus) {
+  const i = petak.indexOf(p);
+  if (i < 0) return;
+  // Tetangganya dicatat supaya halaman ini bisa kembali ke tempat yang sama
+  // walaupun susunan papan sempat berubah sesudah ia dibuang.
+  terbuang.push({ petak: p, berikut: petak[i + 1] ? petak[i + 1].kunci : null,
+                  sebelum: petak[i - 1] ? petak[i - 1].kunci : null });
+  petak.splice(i, 1);
+  gambarSemua();
+  if (tanpaFokus) return;
+  const berikut = petak[Math.min(i, petak.length - 1)];
+  if (berikut) petakEl.get(berikut.kunci).focus();
+}
+
+// Tempat yang wajar bagi sebuah halaman kalau tetangga lamanya sudah tidak
+// ada, yaitu di samping halaman lain dari berkas yang sama, atau kalau
+// berkasnya sedang tidak punya halaman di papan, pada giliran berkas itu.
+function tempatMenurutBerkas(p) {
+  let sebelum = -1, sesudah = -1;
+  petak.forEach((q, i) => {
+    if (q.berkasId !== p.berkasId) return;
+    if (q.indeks < p.indeks) {
+      if (sebelum < 0 || q.indeks > petak[sebelum].indeks) sebelum = i;
+    } else if (sesudah < 0 || q.indeks < petak[sesudah].indeks) sesudah = i;
+  });
+  if (sebelum >= 0) return sebelum + 1;
+  if (sesudah >= 0) return sesudah;
+  const urut = berkas.findIndex((b) => b.id === p.berkasId);
+  for (let k = urut + 1; k < berkas.length; k++) {
+    const i = petak.findIndex((q) => q.berkasId === berkas[k].id);
+    if (i >= 0) return i;
+  }
+  return petak.length;
+}
+
+function buangBerkas(id) {
+  const b = cariBerkas(id);
+  if (!b) return;
+  if (halamanBerkas(id).length) {
+    // Tahap pertama hanya membuang halamannya, dan itu masih bisa dibatalkan
+    // lewat tombol Kembalikan pada baris berkas yang sama.
+    for (let i = petak.length - 1; i >= 0; i--) {
+      if (petak[i].berkasId !== id) continue;
+      terbuang.push({ petak: petak[i], berikut: petak[i + 1] ? petak[i + 1].kunci : null,
+                      sebelum: petak[i - 1] ? petak[i - 1].kunci : null });
+      petak.splice(i, 1);
+    }
+    gambarSemua();
+    siarkan("Seluruh halaman " + b.nama + " dibuang dan masih bisa dikembalikan.");
+    const pulih = el("daftarBerkas").querySelector("li[data-id='" + id + "'] .tb-kecil.teks");
+    if (pulih) pulih.focus();
+    return;
+  }
+  if (!confirm("Hapus " + b.nama + " dari daftar? Halamannya tidak dapat dikembalikan lagi " +
+      "kecuali berkasnya dimasukkan ulang.")) return;
+  terbuang = terbuang.filter((t) => t.petak.berkasId !== id);
+  for (const [kunci, p] of [...dataPetak]) {
+    if (p.berkasId !== id) continue;
+    const k = petakEl.get(kunci);
+    if (k) { pengintai.unobserve(k); petakEl.delete(kunci); }
+    dataPetak.delete(kunci);
+  }
+  if (b.dokJs) b.dokJs.then((d) => d.destroy()).catch(() => {});
+  berkas = berkas.filter((x) => x.id !== id);
+  gambarSemua();
+  siarkan(b.nama + " dihapus dari daftar.");
+}
+
+function pulihkanBerkas(id) {
+  const milik = terbuang.filter((t) => t.petak.berkasId === id)
+    .map((t) => t.petak).sort((a, b) => a.indeks - b.indeks);
+  if (!milik.length) return;
+  terbuang = terbuang.filter((t) => t.petak.berkasId !== id);
+  milik.forEach((p) => petak.splice(tempatMenurutBerkas(p), 0, p));
+  gambarSemua();
+  petakEl.get(milik[0].kunci).focus();
+}
+
+el("pulihkan").addEventListener("click", () => {
+  const t = terbuang.pop();
+  if (!t) return;
+  const letak = (kunci) => kunci ? petak.findIndex((q) => q.kunci === kunci) : -1;
+  let di = letak(t.berikut);
+  if (di < 0) { const s = letak(t.sebelum); if (s >= 0) di = s + 1; }
+  if (di < 0) di = tempatMenurutBerkas(t.petak);
+  petak.splice(di, 0, t.petak);
+  gambarSemua();
+  petakEl.get(t.petak.kunci).focus();
+});
+
+// Halaman kembali ke urutan aslinya di dalam tiap berkas, sedangkan urutan
+// berkasnya mengikuti daftar pada langkah 2 dan halaman terbuang tetap terbuang.
+el("semula").addEventListener("click", () => {
+  urutkanSemula();
+  gambarSemua();
+});
+
+// Sama dengan "Pulihkan semua" pada perkakas Susun Halaman yang lama, yaitu
+// halaman terbuang dikembalikan, putaran diluruskan, dan urutan dikembalikan.
+el("pulihSemua").addEventListener("click", () => {
+  if (!confirm("Pulihkan semua? Halaman yang dibuang dikembalikan, putaran diluruskan, " +
+      "dan urutan halaman kembali seperti semula.")) return;
+  terbuang.forEach((t) => petak.push(t.petak));
+  terbuang = [];
+  urutkanSemula();
+  petak.forEach((p) => { if (p.putar) { p.putar = 0; segarkanGambar(p); } });
+  gambarSemua();
+  siarkan("Semua halaman dipulihkan.");
+});
+
+el("kosongkan").addEventListener("click", () => {
+  if (berkas.length && !confirm("Kosongkan seluruh daftar? Semua berkas dan susunan " +
+      "halamannya dihapus dari halaman ini.")) return;
+  berkas.forEach((b) => { if (b.dokJs) b.dokJs.then((d) => d.destroy()).catch(() => {}); });
+  petakEl.forEach((k) => pengintai.unobserve(k));
+  berkas = []; petak = []; terbuang = [];
+  petakEl.clear(); dataPetak.clear();
+  antrean.length = 0;
+  namaDisentuh = false;
+  Bersama.pesan("kabar", "", "");
+  Bersama.pesan("kabarSimpan", "", "");
+  gambarSemua();
+  el("jatuhan").focus();
+});
+
+/* ========== 8. Pratinjau besar ========== */
+const dlg = el("pratinjau");
+const bisaPratinjau = typeof dlg.showModal === "function";
+const lihat = { kunci: null, tiket: 0 };
+
+function bukaPratinjau(p) {
+  lihat.kunci = p.kunci;
+  if (!dlg.open) dlg.showModal();
+  gambarPratinjau();
+}
+
+async function gambarPratinjau() {
+  const i = petak.findIndex((q) => q.kunci === lihat.kunci);
+  if (i < 0) { dlg.close(); return; }
+  const p = petak[i], b = cariBerkas(p.berkasId);
+  const tiket = ++lihat.tiket;       // hasil gambar yang sudah basi diabaikan
+  const badan = el("pratinjauBadan");
+
+  el("pratinjauJudul").textContent = "Urutan ke-" + (i + 1) + " dari " + petak.length +
+    ", " + b.nama + " halaman " + (p.indeks + 1);
+  const nomorIni = tulisanNomor(aturanNomor(), i, petak.length);
+  if (nomorIni) el("pratinjauJudul").textContent += ", diberi nomor \u201C" + nomorIni + "\u201D";
+  el("pratinjauSebelum").disabled = (i === 0);
+  el("pratinjauSesudah").disabled = (i === petak.length - 1);
+  badan.textContent = "Sedang menggambar halaman...";
+
+  try {
+    const lebar = Math.max(200, Math.min(window.innerWidth * 0.96, 940) - 32);
+    const kanvas = await kanvasHalaman(b, p.indeks, lebar, 20000, p.putar);
+    if (tiket !== lihat.tiket) return;
+    lukisNomor(kanvas, i);
+    kanvas.style.height = "auto";
+    badan.textContent = "";
+    badan.append(kanvas);
+    badan.scrollTop = 0;
+  } catch (err) {
+    if (tiket !== lihat.tiket) return;
+    badan.textContent = "Halaman ini tidak bisa digambar.";
+    console.error(err);
+  }
+}
+
+function geserPratinjau(arah) {
+  const i = petak.findIndex((q) => q.kunci === lihat.kunci);
+  const tujuan = petak[i + arah];
+  if (i < 0 || !tujuan) return;
+  lihat.kunci = tujuan.kunci;
+  gambarPratinjau();
+}
+
+el("pratinjauSebelum").addEventListener("click", () => geserPratinjau(-1));
+el("pratinjauSesudah").addEventListener("click", () => geserPratinjau(1));
+el("pratinjauTutup").addEventListener("click", () => dlg.close());
+el("pratinjauBuang").addEventListener("click", () => {
+  const i = petak.findIndex((q) => q.kunci === lihat.kunci);
+  if (i < 0) return;
+  buangPetak(petak[i], true);
+  const berikut = petak[Math.min(i, petak.length - 1)];
+  if (!berikut) { dlg.close(); return; }
+  lihat.kunci = berikut.kunci;
+  gambarPratinjau();
+});
+function putarPratinjau(arah) {
+  const p = petak.find((q) => q.kunci === lihat.kunci);
+  if (!p) return;
+  putarPetak(p, arah);
+  gambarPratinjau();
+}
+el("pratinjauPutarKiri").addEventListener("click", () => putarPratinjau(-90));
+el("pratinjauPutarKanan").addEventListener("click", () => putarPratinjau(90));
+
+dlg.addEventListener("keydown", (e) => {
+  if (e.altKey || e.ctrlKey || e.metaKey) return;
+  if (e.key === "r" || e.key === "R") { e.preventDefault(); putarPratinjau(e.shiftKey ? -90 : 90); }
+  if (e.key === "ArrowLeft") { e.preventDefault(); geserPratinjau(-1); }
+  if (e.key === "ArrowRight") { e.preventDefault(); geserPratinjau(1); }
+});
+// Klik pada latar gelap di luar kotak ikut menutup pratinjau.
+dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
+dlg.addEventListener("close", () => {
+  lihat.tiket++;
+  el("pratinjauBadan").textContent = "";
+  const k = petakEl.get(lihat.kunci);
+  if (k && k.isConnected) k.focus();
+});
+
+/* ========== 9. Nomor halaman ==========
+   Nomor mengikuti urutan di papan, bukan nomor halaman pada berkas asalnya.
+   Letaknya dihitung pada bidang halaman yang tampak, yaitu sesudah putaran
+   bawaan dan putaran dari pengguna, supaya nomor pada halaman yang diputar
+   tetap jatuh di tepi bawah atau atas yang terlihat oleh pembaca. */
+const TEPI_NOMOR = 28;             // jarak nomor dari tepi kertas, dalam titik
+
+// Mengembalikan null kalau penomoran tidak dipakai.
+function aturanNomor() {
+  if (!el("pakaiNomor").checked) return null;
+  const angka = (id, bawaan) => {
+    const n = parseInt(el(id).value, 10);
+    return Number.isFinite(n) ? n : bawaan;
+  };
+  return { posisi: el("posisi").value, bentuk: el("bentuk").value,
+           mulaiHal: Math.max(1, angka("mulaiHal", 1)),
+           mulaiNomor: Math.max(0, angka("mulaiNomor", 1)),
+           besar: Math.min(24, Math.max(6, angka("besar", 10))) };
+}
+
+// Tulisan nomor bagi halaman pada urutan ke-(i + 1), atau null kalau
+// halaman itu tidak bernomor.
+function tulisanNomor(a, i, total) {
+  if (!a || i + 1 < a.mulaiHal) return null;
+  const nomor = a.mulaiNomor + (i + 1 - a.mulaiHal);
+  if (a.bentuk === "dari") return nomor + " dari " + (a.mulaiNomor + total - a.mulaiHal);
+  if (a.bentuk === "strip") return "- " + nomor + " -";
+  if (a.bentuk === "halaman") return "Halaman " + nomor;
+  return String(nomor);
+}
+
+// Titik awal tulisan pada bidang halaman yang tampak, diukur dari sudut kiri bawah.
+function letakNomor(a, lebar, tinggi, lebarTulisan) {
+  let x = (lebar - lebarTulisan) / 2;
+  if (a.posisi.endsWith("kanan")) x = lebar - TEPI_NOMOR - lebarTulisan;
+  if (a.posisi.endsWith("kiri")) x = TEPI_NOMOR;
+  const y = a.posisi.startsWith("atas") ? tinggi - TEPI_NOMOR - a.besar : TEPI_NOMOR;
+  return { x, y };
+}
+
+function bubuhNomor(h, tulisan, a, font) {
+  const k = h.getCropBox();
+  const arah = derajat(Math.round(h.getRotation().angle / 90) * 90);
+  const rebah = (arah === 90 || arah === 270);
+  const t = letakNomor(a, rebah ? k.height : k.width, rebah ? k.width : k.height,
+                       font.widthOfTextAtSize(tulisan, a.besar));
+  // Titik pada bidang tampak dipetakan balik ke sumbu halaman yang belum diputar.
+  let x = k.x + t.x, y = k.y + t.y;
+  if (arah === 90)  { x = k.x + k.width - t.y; y = k.y + t.x; }
+  if (arah === 180) { x = k.x + k.width - t.x; y = k.y + k.height - t.y; }
+  if (arah === 270) { x = k.x + t.y;           y = k.y + k.height - t.x; }
+  h.drawText(tulisan, { x, y, size: a.besar, font, color: PDFLib.rgb(0.1, 0.1, 0.1),
+                        rotate: PDFLib.degrees(arah) });
+}
+
+// Menuliskan nomor di atas gambar pratinjau besar dengan letak dan ukuran
+// yang sama seperti pada berkas hasil, supaya bisa diperiksa sebelum disimpan.
+function lukisNomor(kanvas, i) {
+  const a = aturanNomor(), tulisan = tulisanNomor(a, i, petak.length);
+  const lebar = parseFloat(kanvas.dataset.lebarTitik);
+  if (!tulisan || !lebar) return;
+  const skala = kanvas.width / lebar, tinggi = kanvas.height / skala;
+  const ktx = kanvas.getContext("2d");
+  ktx.save();
+  ktx.scale(skala, skala);
+  ktx.font = a.besar + "px Helvetica, Arial, sans-serif";
+  ktx.fillStyle = "rgb(26,26,26)";
+  ktx.textBaseline = "alphabetic";
+  const t = letakNomor(a, lebar, tinggi, ktx.measureText(tulisan).width);
+  ktx.fillText(tulisan, t.x, tinggi - t.y);
+  ktx.restore();
+}
+
+function segarkanNomor() {
+  const a = aturanNomor(), total = petak.length;
+  el("aturNomor").classList.toggle("sembunyi", !a);
+  el("mulaiHal").max = Math.max(1, total);
+  petak.forEach((p, i) => {
+    const k = petakEl.get(p.kunci), cap = k && k.querySelector(".cap-nomor");
+    if (!cap) return;
+    const tulisan = tulisanNomor(a, i, total);
+    cap.textContent = !a ? "" : tulisan ? "nomor " + tulisan : "tanpa nomor";
+    cap.classList.toggle("tanpa", !tulisan);
+  });
+  if (!a || !total) Bersama.pesan("kabarNomor", "", "");
+  else if (a.mulaiHal > total) {
+    Bersama.pesan("kabarNomor", "Urutan awal melebihi jumlah halaman di papan, yaitu " + total +
+      ". Kecilkan angkanya supaya ada halaman yang bernomor.", "gagal");
+  } else {
+    const bernomor = total - a.mulaiHal + 1, akhir = a.mulaiNomor + bernomor - 1;
+    Bersama.pesan("kabarNomor", bernomor + " dari " + total + " halaman akan bernomor, " +
+      (bernomor > 1 ? "dari angka " + a.mulaiNomor + " sampai " + akhir : "dengan angka " + a.mulaiNomor) + "." +
+      (a.mulaiHal > 1 ? " " + (a.mulaiHal - 1) + " halaman pertama dibiarkan tanpa nomor." : ""), "");
+  }
+  if (!namaDisentuh) el("namaHasil").value = namaUsulan();
+}
+
+["pakaiNomor", "posisi", "bentuk", "mulaiHal", "mulaiNomor", "besar"].forEach((id) => {
+  el(id).addEventListener("input", segarkanNomor);
+  el(id).addEventListener("change", segarkanNomor);
+});
+
+/* ========== 10. Menggabung lalu menyimpan ==========
+   Seluruh halaman yang dipakai dari satu berkas disalin dalam satu kali
+   copyPages, baru kemudian ditaruh menurut urutan papan. Menyalinnya sepotong
+   demi sepotong membuat fon dan gambar yang sama ikut tersalin berulang kali,
+   sehingga berkas hasilnya membengkak ketika halaman antarberkas saling menyelip. */
+el("bentukHasil").addEventListener("change", perbaruiRingkas);
+el("gabung").addEventListener("click", async () => {
+  if (!petak.length) {
+    Bersama.pesan("kabarSimpan", "Papan masih kosong, tidak ada halaman yang bisa disimpan.", "gagal");
+    return;
+  }
+  const aturan = aturanNomor();
+  if (aturan && aturan.mulaiHal > petak.length) {
+    Bersama.pesan("kabarSimpan", "Nomor halaman diminta mulai dari urutan ke-" + aturan.mulaiHal +
+      ", padahal di papan hanya ada " + petak.length + " halaman. Perbaiki dulu pada langkah nomor halaman.", "gagal");
+    return;
+  }
+  const tombol = el("gabung");
+  sibuk = true;
+  tombol.disabled = true; tombol.textContent = "Menyimpan...";
+  Bersama.pesan("kabarSimpan", "", "");
+  // Jeda sekejap supaya tulisan tombol sempat berganti sebelum kerja berat dimulai.
+  await new Promise((r) => setTimeout(r, 30));
+  try {
+    const hasil = await PDFLib.PDFDocument.create();
+    const salinan = new Map();       // kunci petak -> halaman hasil salinan
+
+    for (const b of berkas) {
+      const milik = halamanBerkas(b.id);
+      if (!milik.length) continue;
+      const sumber = await PDFLib.PDFDocument.load(b.bytes);
+      const hal = await hasil.copyPages(sumber, milik.map((p) => p.indeks));
+      milik.forEach((p, k) => salinan.set(p.kunci, hal[k]));
+    }
+    const fontNomor = aturan ? await hasil.embedFont(PDFLib.StandardFonts.Helvetica) : null;
+    let bernomor = 0;
+    petak.forEach((p, i) => {
+      const h = salinan.get(p.kunci);
+      // Putaran ditambahkan ke putaran bawaan halaman, bukan menimpanya.
+      if (p.putar) h.setRotation(PDFLib.degrees(derajat(h.getRotation().angle + p.putar)));
+      hasil.addPage(h);
+      const tulisan = tulisanNomor(aturan, i, petak.length);
+      if (tulisan) { bubuhNomor(h, tulisan, aturan, fontNomor); bernomor++; }
+    });
+
+    // Halaman yang diambil dihitung dari urutan papan; kosong berarti semuanya.
+    const teksAmbil = el("ambilHal").value.trim();
+    const ambil = teksAmbil ? Bersama.bacaRentang(teksAmbil, petak.length) : petak.map((_, i) => i + 1);
+    if (!ambil.length) {
+      Bersama.pesan("kabarSimpan", "Nomor halaman yang diambil tidak ada yang sah. Di papan ada " +
+        petak.length + " halaman.", "gagal");
+      throw null;
+    }
+    let nama = el("namaHasil").value.trim() || namaUsulan();
+    if (!/\.pdf$/i.test(nama)) nama += ".pdf";
+
+    if (el("bentukHasil").value === "satuan") {
+      const dasar = Bersama.tanpaAkhiran(nama);
+      for (const n of ambil) {
+        const baru = await PDFLib.PDFDocument.create();
+        const [h] = await baru.copyPages(hasil, [n - 1]);
+        baru.addPage(h);
+        Bersama.unduh(await baru.save(), dasar + "-hlm" + String(n).padStart(2, "0") + ".pdf");
+        await new Promise((r) => setTimeout(r, 320));   // supaya unduhan beruntun tidak dibatalkan peramban
+      }
+      Bersama.pesan("kabarSimpan", ambil.length + " berkas tersimpan di folder unduhan, satu berkas untuk tiap halaman" +
+        (teksAmbil ? " yang diambil" : "") + "." + (bernomor ? " Nomor halaman ikut dibubuhkan." : ""), "beres");
+    } else {
+      let akhir = hasil;
+      if (teksAmbil) {
+        akhir = await PDFLib.PDFDocument.create();
+        (await akhir.copyPages(hasil, ambil.map((n) => n - 1))).forEach((h) => akhir.addPage(h));
+      }
+      const banyak = new Set(petak.map((p) => p.berkasId)).size > 1;
+      const bytes = await akhir.save();
+      Bersama.unduh(bytes, nama);
+      Bersama.pesan("kabarSimpan", (banyak ? "Berhasil digabung menjadi " : "Dokumen tersimpan dengan ") +
+        akhir.getPageCount() + " halaman berukuran " + Bersama.ukuran(bytes.length) +
+        (banyak ? " dan tersimpan di folder unduhan" : " di folder unduhan") +
+        (terbuang.length ? ", dengan " + terbuang.length + " halaman yang kamu buang tidak diikutkan" : "") +
+        "." + (bernomor ? " " + bernomor + " halaman diberi nomor." : ""), "beres");
+    }
+  } catch (err) {
+    // err bernilai null bila pesan kesalahannya sudah ditampilkan di atas.
+    if (err !== null) {
+      Bersama.pesan("kabarSimpan", "Penyimpanan gagal. Coba buang berkas yang mencurigakan lalu ulangi.", "gagal");
+      console.error(err);
+    }
+  }
+  sibuk = false;
+  perbaruiRingkas();
+});
+</script>
+</body>
+</html>

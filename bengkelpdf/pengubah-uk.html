@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' blob: data: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ubah Ukuran Kertas — Bengkel PDF</title>
+    <script src="tema.js"></script>
+<link rel="stylesheet" href="gaya.css">
+
+    <script src="pustaka/pdf-lib.min.js"></script>
+
+    <style>
+        .hasil-area {
+            margin-top: 24px;
+        }
+
+        .hasil-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: var(--putih);
+            border: 1px solid var(--garis);
+            border-left: 4px solid var(--hijau);
+            border-radius: var(--radius-md);
+            padding: 14px 18px;
+            margin-bottom: 10px;
+            box-shadow: var(--bayangan-sm);
+        }
+
+        .hasil-item.gagal {
+            border-left-color: var(--bahaya);
+        }
+
+        .hasil-item .ikon-sukses {
+            color: var(--hijau);
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .hasil-item.gagal .ikon-sukses {
+            color: var(--bahaya);
+        }
+
+        .hasil-item .hasil-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .hasil-item .hasil-info strong {
+            display: block;
+            font-size: 15px;
+            color: var(--tinta);
+            overflow-wrap: anywhere;
+        }
+
+        .hasil-item .hasil-info small {
+            font-size: 13px;
+            color: var(--tinta-lembut);
+        }
+
+        .progress-bar-wrap {
+            width: 100%;
+            height: 8px;
+            background: var(--garis);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 12px;
+            display: none;
+        }
+
+        .progress-bar-wrap.tampil {
+            display: block;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--biru), var(--emas));
+            border-radius: 4px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+
+
+
+        .info-kotak {
+            background: var(--emas-muda);
+            border: 1px solid rgba(196, 138, 0, 0.18);
+            border-left: 4px solid var(--emas-tua);
+            border-radius: var(--radius-md);
+            padding: 14px 18px;
+            color: var(--emas-teks);
+            font-size: 14px;
+            line-height: 1.55;
+            margin-top: 18px;
+        }
+    </style>
+</head>
+<body>
+    <header class="kop">
+        <div class="kop-isi">
+            <p class="kop-label"><a href="./">Bengkel PDF</a> / 07</p>
+            <h1>Ubah Ukuran Kertas</h1>
+            <p>
+                Mengubah ukuran halaman PDF menjadi <em>A4, A3, A5, Letter, Legal, Folio, F4, Tabloid, B5</em>,
+                atau ukuran kustom. Seluruh pengolahan berjalan di peramban, tidak ada berkas yang diunggah ke server mana pun.
+            </p>
+        </div>
+    </header>
+
+    <div class="bungkus">
+        <section>
+            <p class="nomor">Langkah 1</p>
+            <h2>Pilih berkas PDF</h2>
+
+            <div class="jatuhan" id="areaJatuhan" tabindex="0" role="button" aria-label="Seret atau klik untuk memilih berkas PDF">
+                <strong>Seret satu atau beberapa berkas PDF ke sini</strong>
+                <span>atau klik untuk memilih, bisa dipilih berkali-kali</span>
+            </div>
+            <input type="file" id="inputBerkas" accept=".pdf" multiple hidden>
+            <p class="keterangan-berkas" id="ketBerkas"></p>
+        </section>
+
+        <section>
+            <p class="nomor">Langkah 2</p>
+            <h2>Atur ukuran kertas tujuan</h2>
+
+            <div class="isian-baris">
+                <div class="isian">
+                    <label for="pilihUkuran">Ukuran kertas tujuan</label>
+                    <select id="pilihUkuran"></select>
+                </div>
+
+                <div class="isian">
+                    <label for="pilihOrientasi">Orientasi</label>
+                    <select id="pilihOrientasi">
+                        <option value="auto" selected>Otomatis mengikuti halaman sumber</option>
+                        <option value="potret">Potret</option>
+                        <option value="lanskap">Lanskap</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="isian-baris">
+                <div class="isian">
+                    <label for="pilihMode">Mode penyesuaian isi</label>
+                    <select id="pilihMode">
+                        <option value="fit" selected>Paskan ke halaman (tanpa potong, tanpa distorsi)</option>
+                        <option value="fill">Penuhi halaman (potong bila perlu)</option>
+                        <option value="stretch">Regangkan mengikuti halaman (dapat distorsi)</option>
+                        <option value="center">Pertahankan ukuran asli, letakkan di tengah</option>
+                    </select>
+                </div>
+
+                <div class="isian">
+                    <label for="inputMargin">Margin tambahan (mm)</label>
+                    <input type="number" id="inputMargin" min="0" step="1" value="0">
+                </div>
+            </div>
+
+            <div id="customWrap" class="isian-baris sembunyi">
+                <div class="isian">
+                    <label for="customWidth">Lebar kustom</label>
+                    <input type="number" id="customWidth" min="1" step="0.1" value="210">
+                </div>
+
+                <div class="isian">
+                    <label for="customHeight">Tinggi kustom</label>
+                    <input type="number" id="customHeight" min="1" step="0.1" value="297">
+                </div>
+
+                <div class="isian">
+                    <label for="customUnit">Satuan</label>
+                    <select id="customUnit">
+                        <option value="mm" selected>mm</option>
+                        <option value="cm">cm</option>
+                        <option value="in">inci</option>
+                        <option value="pt">pt</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="isian-baris">
+                <div class="isian">
+                    <label for="inputRentang">Rentang halaman</label>
+                    <input type="text" id="inputRentang" placeholder="Kosongkan untuk semua. Contoh: 1-3, 5, 8-10">
+                </div>
+            </div>
+
+            <p class="petunjuk" id="infoUkuran"></p>
+
+            <div class="info-kotak">
+                <strong>Referensi ukuran:</strong><br>
+                A4 = 210 × 297 mm • A3 = 297 × 420 mm • A5 = 148 × 210 mm • Letter = 215,9 × 279,4 mm •
+                Legal = 215,9 × 355,6 mm • Folio = 215,9 × 330,2 mm • F4 = 210 × 330 mm •
+                Tabloid = 279,4 × 431,8 mm • B5 = 176 × 250 mm.
+            </div>
+        </section>
+
+        <section>
+            <p class="nomor">Langkah 3</p>
+            <h2>Ubah ukuran</h2>
+
+            <div class="baris-tombol">
+                <button class="tombol" id="btnKonversi" disabled>Ubah ukuran PDF</button>
+                <button class="tombol sekunder" id="btnKosongkan" disabled>Kosongkan daftar</button>
+            </div>
+
+            <div class="progress-bar-wrap" id="progressWrap">
+                <div class="progress-bar-fill" id="progressFill"></div>
+            </div>
+
+            <div class="kabar" id="kabar"></div>
+
+            <p class="petunjuk">
+                Hasil konversi selalu ditampilkan sebagai tautan unduhan di bawah, jadi kalau unduhan otomatis
+                diblokir peramban, berkasnya masih bisa diambil dengan menekan tombol Unduh.
+            </p>
+        </section>
+
+        <section>
+            <p class="nomor">Langkah 4</p>
+            <h2>Ambil hasilnya</h2>
+            <div class="hasil-area" id="hasilArea">
+                <p class="petunjuk" id="petunjukHasil">
+                    Belum ada hasil. Pilih berkas PDF lalu tekan tombol ubah ukuran.
+                </p>
+            </div>
+        </section>
+
+        <footer>
+    <span>Seluruh pengolahan berjalan di peramban. Tidak ada berkas yang diunggah ke server mana pun.</span>
+    <span>KPKNL Balikpapan · Berintegritas dalam Tugas, Prima dalam Pelayanan.</span>
+    <span class="kredit">Built with Claude ft. GPT <svg class="kredit-hati" viewBox="0 0 24 24" width="14" height="14" role="img" aria-label="cinta"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 5 6.4 5c2 0 3.6 1.1 4.6 2.6l1 1.4 1-1.4C14 6.1 15.6 5 17.6 5 21 5 23.1 8.4 21.6 11.8 19.5 16.4 12 21 12 21z"/></svg></span>
+  </footer>
+    </div>
+
+    <script src="bersama.js"></script>
+
+    <script>
+    (function () {
+        "use strict";
+
+        if (!window.PDFLib) {
+            document.addEventListener("DOMContentLoaded", function () {
+                if (window.Bersama) {
+                    Bersama.pesan("kabar", "Pustaka pdf-lib gagal dimuat. Periksa koneksi atau muat ulang halaman.", "gagal");
+                }
+            });
+            return;
+        }
+
+        const { PDFDocument, rgb } = window.PDFLib;
+
+        const areaJatuhan = document.getElementById("areaJatuhan");
+        const inputBerkas = document.getElementById("inputBerkas");
+        const ketBerkas = document.getElementById("ketBerkas");
+        const btnKonversi = document.getElementById("btnKonversi");
+        const btnKosongkan = document.getElementById("btnKosongkan");
+        const progressWrap = document.getElementById("progressWrap");
+        const progressFill = document.getElementById("progressFill");
+        const hasilArea = document.getElementById("hasilArea");
+        const infoUkuran = document.getElementById("infoUkuran");
+
+        const pilihUkuran = document.getElementById("pilihUkuran");
+        const pilihOrientasi = document.getElementById("pilihOrientasi");
+        const pilihMode = document.getElementById("pilihMode");
+        const inputMargin = document.getElementById("inputMargin");
+        const inputRentang = document.getElementById("inputRentang");
+
+        const customWrap = document.getElementById("customWrap");
+        const customWidth = document.getElementById("customWidth");
+        const customHeight = document.getElementById("customHeight");
+        const customUnit = document.getElementById("customUnit");
+
+        let daftarBerkas = [];
+
+        const UKURAN = {
+            a4: { label: "A4 (210 × 297 mm)", mm: [210, 297] },
+            a3: { label: "A3 (297 × 420 mm)", mm: [297, 420] },
+            a5: { label: "A5 (148 × 210 mm)", mm: [148, 210] },
+            a2: { label: "A2 (420 × 594 mm)", mm: [420, 594] },
+            a1: { label: "A1 (594 × 841 mm)", mm: [594, 841] },
+            a0: { label: "A0 (841 × 1189 mm)", mm: [841, 1189] },
+            letter: { label: "Letter (215,9 × 279,4 mm)", mm: [215.9, 279.4] },
+            legal: { label: "Legal (215,9 × 355,6 mm)", mm: [215.9, 355.6] },
+            folio: { label: "Folio (215,9 × 330,2 mm / 8,5 × 13 inci)", mm: [215.9, 330.2] },
+            f4: { label: "F4 (210 × 330 mm)", mm: [210, 330] },
+            executive: { label: "Executive (184,2 × 266,7 mm)", mm: [184.2, 266.7] },
+            tabloid: { label: "Tabloid (279,4 × 431,8 mm)", mm: [279.4, 431.8] },
+            b5: { label: "B5 (176 × 250 mm)", mm: [176, 250] },
+            b4: { label: "B4 (250 × 353 mm)", mm: [250, 353] },
+            custom: { label: "Ukuran kustom", mm: null }
+        };
+
+        const URUTAN_UKURAN = [
+            "a4", "a3", "a5", "a2", "a1", "a0",
+            "letter", "legal", "folio", "f4",
+            "executive", "tabloid", "b5", "b4", "custom"
+        ];
+
+        function isiDropdownUkuran() {
+            pilihUkuran.innerHTML = "";
+
+            URUTAN_UKURAN.forEach(function (key) {
+                const opt = document.createElement("option");
+                opt.value = key;
+                opt.textContent = UKURAN[key].label;
+
+                if (key === "a4") opt.selected = true;
+
+                pilihUkuran.appendChild(opt);
+            });
+        }
+
+        function mmKePt(mm) {
+            return mm * 72 / 25.4;
+        }
+
+        function ptKeMm(pt) {
+            return pt * 25.4 / 72;
+        }
+
+        function satuanKePt(nilai, satuan) {
+            const n = parseFloat(nilai);
+            if (isNaN(n)) return 0;
+
+            if (satuan === "mm") return mmKePt(n);
+            if (satuan === "cm") return mmKePt(n * 10);
+            if (satuan === "in") return n * 72;
+            if (satuan === "pt") return n;
+
+            return 0;
+        }
+
+        function ambilUkuranDasarPt() {
+            const key = pilihUkuran.value;
+
+            if (key === "custom") {
+                const unit = customUnit.value;
+                const width = satuanKePt(customWidth.value, unit);
+                const height = satuanKePt(customHeight.value, unit);
+
+                return { width: width, height: height };
+            }
+
+            const mm = UKURAN[key].mm;
+            return {
+                width: mmKePt(mm[0]),
+                height: mmKePt(mm[1])
+            };
+        }
+
+        function ambilTargetUntukHalaman(srcSize) {
+            let { width, height } = ambilUkuranDasarPt();
+            const orientasi = pilihOrientasi.value;
+            const key = pilihUkuran.value;
+
+            // Untuk ukuran kustom, mode otomatis dianggap mengikuti input pengguna.
+            if (key === "custom" && orientasi === "auto") {
+                return { width: width, height: height };
+            }
+
+            if (orientasi === "potret") {
+                if (width > height) {
+                    const t = width;
+                    width = height;
+                    height = t;
+                }
+            } else if (orientasi === "lanskap") {
+                if (width < height) {
+                    const t = width;
+                    width = height;
+                    height = t;
+                }
+            } else {
+                // Otomatis mengikuti orientasi halaman sumber
+                const srcLandscape = srcSize.width > srcSize.height;
+                const targetLandscape = width > height;
+
+                if (srcLandscape !== targetLandscape) {
+                    const t = width;
+                    width = height;
+                    height = t;
+                }
+            }
+
+            return { width: width, height: height };
+        }
+
+        function ambilMarginPt() {
+            const mm = Math.max(0, parseFloat(inputMargin.value) || 0);
+            return mmKePt(mm);
+        }
+
+        function perbaruiInfoUkuran() {
+            const base = ambilUkuranDasarPt();
+
+            if (!(base.width > 0) || !(base.height > 0)) {
+                infoUkuran.textContent = "Ukuran kustom belum valid. Isi lebar dan tinggi lebih besar dari nol.";
+                return;
+            }
+
+            const wMm = ptKeMm(base.width).toFixed(1).replace(".", ",");
+            const hMm = ptKeMm(base.height).toFixed(1).replace(".", ",");
+
+            let teks = "Ukuran dasar: " + wMm + " × " + hMm + " mm (" +
+                Math.round(base.width) + " × " + Math.round(base.height) + " pt). ";
+
+            const orientasi = pilihOrientasi.value;
+
+            if (orientasi === "auto") {
+                teks += "Orientasi otomatis mengikuti tiap halaman sumber.";
+            } else if (orientasi === "potret") {
+                teks += "Orientasi dipaksa potret.";
+            } else if (orientasi === "lanskap") {
+                teks += "Orientasi dipaksa lanskap.";
+            }
+
+            infoUkuran.textContent = teks;
+        }
+
+        function perbaruiUI() {
+            const n = daftarBerkas.length;
+            const total = daftarBerkas.reduce(function (s, f) { return s + f.size; }, 0);
+
+            ketBerkas.textContent = n
+                ? n + " berkas dipilih — " + Bersama.ukuran(total)
+                : "";
+
+            btnKonversi.disabled = n === 0;
+            btnKosongkan.disabled = n === 0;
+        }
+
+        Bersama.pasangJatuhan(areaJatuhan, inputBerkas, function (files) {
+            const valid = Bersama.pdfSaja(files);
+
+            if (!valid.length) {
+                Bersama.pesan("kabar", "Tidak ada berkas PDF yang valid ditemukan.", "gagal");
+                return;
+            }
+
+            valid.forEach(function (f) {
+                daftarBerkas.push(f);
+            });
+
+            perbaruiUI();
+            Bersama.pesan("kabar", "");
+        });
+
+        btnKosongkan.addEventListener("click", function () {
+            daftarBerkas = [];
+            perbaruiUI();
+            hasilArea.innerHTML = '<p class="petunjuk" id="petunjukHasil">Belum ada hasil. Pilih berkas PDF lalu tekan tombol ubah ukuran.</p>';
+            Bersama.pesan("kabar", "");
+        });
+
+        pilihUkuran.addEventListener("change", function () {
+            customWrap.classList.toggle("sembunyi", pilihUkuran.value !== "custom");
+            perbaruiInfoUkuran();
+        });
+
+        pilihOrientasi.addEventListener("change", perbaruiInfoUkuran);
+        customWidth.addEventListener("input", perbaruiInfoUkuran);
+        customHeight.addEventListener("input", perbaruiInfoUkuran);
+        customUnit.addEventListener("change", perbaruiInfoUkuran);
+
+        btnKonversi.addEventListener("click", async function () {
+            if (!daftarBerkas.length) return;
+
+            const base = ambilUkuranDasarPt();
+            if (!(base.width > 0) || !(base.height > 0)) {
+                Bersama.pesan("kabar", "Ukuran kustom belum valid. Isi lebar dan tinggi lebih besar dari nol.", "gagal");
+                return;
+            }
+
+            btnKonversi.disabled = true;
+            btnKosongkan.disabled = true;
+            progressWrap.classList.add("tampil");
+            progressFill.style.width = "0%";
+            hasilArea.innerHTML = "";
+
+            const total = daftarBerkas.length;
+            let sukses = 0;
+
+            for (let i = 0; i < total; i++) {
+                const file = daftarBerkas[i];
+
+                Bersama.pesan(
+                    "kabar",
+                    "Memproses " + Bersama.lolos(file.name) + " (" + (i + 1) + "/" + total + ")…"
+                );
+
+                try {
+                    const hasil = await prosesBerkas(file);
+                    tambahHasil(hasil.nama,hasil.bytes);
+                    sukses++;
+                } catch (err) {
+                    console.error(err);
+                    tambahGagal(file.name, err && err.message ? err.message : String(err));
+                }
+
+                progressFill.style.width = Math.round(((i + 1) / total) * 100) + "%";
+            }
+
+            setTimeout(function () {
+                progressWrap.classList.remove("tampil");
+            }, 1200);
+
+            if (sukses === total) {
+                Bersama.pesan("kabar", "Semua berkas berhasil diproses.", "beres");
+            } else if (sukses > 0) {
+                Bersama.pesan("kabar", "Sebagian berkas berhasil diproses. Periksa daftar gagal di bawah.", "gagal");
+            } else {
+                Bersama.pesan("kabar", "Tidak ada berkas yang berhasil diproses.", "gagal");
+            }
+
+            btnKonversi.disabled = false;
+            btnKosongkan.disabled = false;
+        });
+
+        async function prosesBerkas(file) {
+            const bytes = await file.arrayBuffer();
+
+            let srcDoc;
+            try {
+                srcDoc = await PDFDocument.load(bytes, { ignoreEncryption: true });
+            } catch (e) {
+                throw new Error("PDF tidak dapat dibaca. Berkas mungkin rusak atau dilindungi kata sandi.");
+            }
+
+            const pages = srcDoc.getPages();
+            const totalHalaman = pages.length;
+
+            if (!totalHalaman) {
+                throw new Error("PDF tidak memiliki halaman.");
+            }
+
+            let nomorHalaman = [];
+            const rentang = inputRentang.value.trim();
+
+            if (rentang) {
+                nomorHalaman = Bersama.bacaRentang(rentang, totalHalaman);
+
+                if (!nomorHalaman.length) {
+                    throw new Error("Rentang halaman tidak valid.");
+                }
+            } else {
+                nomorHalaman = Array.from({ length: totalHalaman }, function (_, i) {
+                    return i + 1;
+                });
+            }
+
+            const selectedPages = nomorHalaman.map(function (n) {
+                return pages[n - 1];
+            });
+
+            const outDoc = await PDFDocument.create();
+            outDoc.setProducer("Bengkel PDF - Ubah Ukuran Kertas");
+
+            const embedded = await outDoc.embedPages(selectedPages);
+
+            const mode = pilihMode.value;
+            const marginPt = ambilMarginPt();
+
+            for (let i = 0; i < selectedPages.length; i++) {
+                const srcPage = selectedPages[i];
+                const srcSize = srcPage.getSize();
+
+                if (!(srcSize.width > 0) || !(srcSize.height > 0)) {
+                    throw new Error("Ada halaman dengan ukuran tidak valid.");
+                }
+
+                const target = ambilTargetUntukHalaman(srcSize);
+
+                if (!(target.width > 0) || !(target.height > 0)) {
+                    throw new Error("Ukuran tujuan tidak valid.");
+                }
+
+                if (marginPt * 2 >= target.width || marginPt * 2 >= target.height) {
+                    throw new Error("Margin terlalu besar untuk ukuran kertas tujuan.");
+                }
+
+                const newPage = outDoc.addPage([target.width, target.height]);
+
+                const contentW = target.width - marginPt * 2;
+                const contentH = target.height - marginPt * 2;
+
+                let xScale = 1;
+                let yScale = 1;
+                let x = marginPt;
+                let y = marginPt;
+
+                if (mode === "fit") {
+                    const scale = Math.min(contentW / srcSize.width, contentH / srcSize.height);
+                    xScale = scale;
+                    yScale = scale;
+
+                    x = marginPt + (contentW - srcSize.width * scale) / 2;
+                    y = marginPt + (contentH - srcSize.height * scale) / 2;
+                } else if (mode === "fill") {
+                    const scale = Math.max(contentW / srcSize.width, contentH / srcSize.height);
+                    xScale = scale;
+                    yScale = scale;
+
+                    x = marginPt + (contentW - srcSize.width * scale) / 2;
+                    y = marginPt + (contentH - srcSize.height * scale) / 2;
+                } else if (mode === "stretch") {
+                    xScale = contentW / srcSize.width;
+                    yScale = contentH / srcSize.height;
+
+                    x = marginPt;
+                    y = marginPt;
+                } else if (mode === "center") {
+                    xScale = 1;
+                    yScale = 1;
+
+                    x = marginPt + (contentW - srcSize.width) / 2;
+                    y = marginPt + (contentH - srcSize.height) / 2;
+                }
+
+                newPage.drawPage(embedded[i], {
+                    x: x,
+                    y: y,
+                    xScale: xScale,
+                    yScale: yScale
+                });
+
+                if (marginPt > 0) {
+                    tutupMargin(newPage, target.width, target.height, marginPt);
+                }
+            }
+
+            const outBytes = await outDoc.save();
+
+            const keyUkuran = pilihUkuran.value;
+            const labelUkuran = keyUkuran === "custom"
+                ? "kustom"
+                : keyUkuran.toUpperCase();
+
+            const namaOut = Bersama.tanpaAkhiran(file.name) + "-" + labelUkuran + ".pdf";
+
+            return {
+                bytes: outBytes,
+                nama: namaOut
+            };
+        }
+
+        function tutupMargin(page, width, height, margin) {
+            const putih = rgb(1, 1, 1);
+
+            // Atas
+            page.drawRectangle({
+                x: 0,
+                y: height - margin,
+                width: width,
+                height: margin,
+                color: putih
+            });
+
+            // Bawah
+            page.drawRectangle({
+                x: 0,
+                y: 0,
+                width: width,
+                height: margin,
+                color: putih
+            });
+
+            // Kiri
+            page.drawRectangle({
+                x: 0,
+                y: 0,
+                width: margin,
+                height: height,
+                color: putih
+            });
+
+            // Kanan
+            page.drawRectangle({
+                x: width - margin,
+                y: 0,
+                width: margin,
+                height: height,
+                color: putih
+            });
+        }
+
+        function tambahHasil(nama, bytes) {
+            const blob = new Blob([bytes], { type: "application/pdf" });
+            const url = URL.createObjectURL(blob);
+
+            const div = document.createElement("div");
+            div.className = "hasil-item";
+
+            const icon = document.createElement("span");
+            icon.className = "ikon-sukses";
+            icon.textContent = "✓";
+
+            const info = document.createElement("div");
+            info.className = "hasil-info";
+
+            const strong = document.createElement("strong");
+            strong.textContent = nama;
+
+            const small = document.createElement("small");
+            small.textContent = Bersama.ukuran(blob.size);
+
+            info.appendChild(strong);
+            info.appendChild(small);
+
+            const a = document.createElement("a");
+            a.className = "tombol kecil";
+            a.href = url;
+            a.download = nama;
+            a.textContent = "Unduh";
+
+            div.appendChild(icon);
+            div.appendChild(info);
+            div.appendChild(a);
+
+            hasilArea.appendChild(div);
+
+            setTimeout(function () {
+                URL.revokeObjectURL(url);
+            }, 10 * 60 * 1000);
+        }
+
+        function tambahGagal(nama, pesan) {
+            const div = document.createElement("div");
+            div.className = "hasil-item gagal";
+
+            const icon = document.createElement("span");
+            icon.className = "ikon-sukses";
+            icon.textContent = "✗";
+
+            const info = document.createElement("div");
+            info.className = "hasil-info";
+
+            const strong = document.createElement("strong");
+            strong.textContent = nama;
+
+            const small = document.createElement("small");
+            small.textContent = "Gagal: " + pesan;
+            small.style.color = "var(--bahaya)";
+
+            info.appendChild(strong);
+            info.appendChild(small);
+
+            div.appendChild(icon);
+            div.appendChild(info);
+
+            hasilArea.appendChild(div);
+        }
+
+        isiDropdownUkuran();
+        perbaruiInfoUkuran();
+        perbaruiUI();
+
+    })();
+    </script>
+</body>
+</html>

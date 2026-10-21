@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' blob: data: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Watermark — Bengkel PDF</title>
+<script src="tema.js"></script>
+<link rel="stylesheet" href="gaya.css">
+<style>
+  /* ============================================================
+     Tata letak: pratinjau lebar di kiri, panel pengaturan
+     di kanan yang ikut menempel saat digulir. Panel turun ke bawah
+     pratinjau di layar sempit.
+     ============================================================ */
+  .ruang-kerja{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:24px;
+    align-items:start;margin-top:24px;}
+  .ruang-kerja > section{margin:0;padding:24px 26px 26px;background:var(--putih);
+    border:1px solid var(--garis);border-radius:var(--radius-sm);box-shadow:var(--bayangan-sm);}
+  .ruang-kerja > section.sembunyi{display:none;}
+  .rk-panel{position:sticky;top:96px;}
+  .rk-panel h2,.rk-pratinjau h2{font-size:20px;margin-bottom:16px;}
+  .rk-panel .isian{margin-bottom:16px;}
+  .rk-panel .tombol{width:100%;}
+  .rk-panel .petunjuk{font-size:14px;margin:4px 0 16px;}
+
+  /* ---------- Pratinjau ---------- */
+  .pratinjau-wm{display:flex;align-items:center;justify-content:center;min-height:420px;
+    padding:20px;background:var(--biru-muda,#ebf3fc);border:1px solid var(--garis,#e2e8f0);
+    border-radius:var(--radius-sm,6px);font-size:14px;line-height:1.5;text-align:center;
+    color:var(--tinta-lembut,#475569);}
+  .pratinjau-wm canvas{display:block;max-width:100%;height:auto;background:var(--kertas,#fff);
+    box-shadow:0 2px 8px rgba(0,30,61,.25);transition:opacity .15s;}
+  .pratinjau-wm.memuat canvas{opacity:.55;}
+  .pratinjau-nav{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
+    gap:10px 14px;margin:14px 0 0;}
+  .pratinjau-nav span{min-width:150px;font-size:14px;font-weight:600;text-align:center;
+    color:var(--biru-tua,#002f5f);}
+
+  /* Layar sedang dan ponsel: panel pengaturan turun ke bawah pratinjau. */
+  @media (max-width: 900px){
+    .ruang-kerja{grid-template-columns:1fr;}
+    .rk-panel{position:static;}
+    .pratinjau-wm{min-height:260px;}
+  }
+  @media (max-width: 640px){
+    .ruang-kerja{gap:16px;margin-top:16px;}
+    .ruang-kerja > section{padding:20px 18px 22px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="kop">
+  <div class="kop-isi lebar">
+    <p class="kop-label"><a href="./">Bengkel PDF</a> / 03</p>
+    <h1>Watermark</h1>
+    <p>Menuliskan kata seperti SALINAN atau KONSEP secara menyerong di tengah tiap halaman, dengan warna samar sehingga <em>tidak menutupi isi naskah</em>.</p>
+  </div>
+</header>
+
+<div class="bungkus lebar">
+
+  <section>
+    <p class="nomor">Langkah 1</p>
+    <h2>Pilih dokumen</h2>
+    <div class="jatuhan" id="jatuhan" tabindex="0" role="button" aria-label="Pilih berkas PDF">
+      <strong>Seret berkas PDF ke sini</strong>
+      <span>atau klik untuk memilih dari komputer</span>
+    </div>
+    <input type="file" id="berkas" accept="application/pdf" class="sembunyi">
+    <div id="kabar" class="kabar"></div>
+  </section>
+
+  <div class="ruang-kerja">
+    <section id="bagianPratinjau" class="rk-pratinjau sembunyi" aria-labelledby="judulPratinjau">
+      <p class="nomor">Hasil</p>
+      <h2 id="judulPratinjau">Pratinjau</h2>
+      <div class="pratinjau-wm" id="pratinjau"></div>
+      <div class="pratinjau-nav">
+        <button type="button" class="tombol sekunder kecil" id="sebelum">Sebelumnya</button>
+        <span id="letakHal" aria-live="polite"></span>
+        <button type="button" class="tombol sekunder kecil" id="sesudah">Berikutnya</button>
+      </div>
+      <p class="petunjuk">Pratinjau berganti sendiri setiap kali pengaturan diubah dan dibuat dengan cara yang sama seperti berkas hasilnya. Watermark dibubuhkan pada semua halaman; tombol di atas hanya untuk menengok halaman lain.</p>
+    </section>
+
+    <section id="bagianAtur" class="rk-panel sembunyi" aria-labelledby="judulAtur">
+      <p class="nomor">Langkah 2</p>
+      <h2 id="judulAtur">Atur lalu simpan</h2>
+
+      <div class="isian">
+        <label for="tulisan">Kata yang dituliskan</label>
+        <input type="text" id="tulisan" value="SALINAN" maxlength="30">
+      </div>
+      <div class="isian">
+        <label for="kepekatan">Kepekatan</label>
+        <select id="kepekatan">
+          <option value="0.08">Sangat samar</option>
+          <option value="0.14" selected>Samar</option>
+          <option value="0.22">Sedang</option>
+          <option value="0.32">Tegas</option>
+        </select>
+      </div>
+      <div class="isian">
+        <label for="sudut">Kemiringan</label>
+        <select id="sudut">
+          <option value="45" selected>Menyerong naik</option>
+          <option value="315">Menyerong turun</option>
+          <option value="0">Mendatar</option>
+        </select>
+      </div>
+      <div class="isian">
+        <label for="warna">Warna</label>
+        <select id="warna">
+          <option value="abu" selected>Abu-abu</option>
+          <option value="merah">Merah</option>
+          <option value="biru">Biru</option>
+        </select>
+      </div>
+
+      <p class="petunjuk">Untuk naskah dinas, kepekatan samar biasanya sudah cukup supaya isi tetap terbaca.</p>
+      <div id="kabarSimpan" class="kabar" role="status"></div>
+      <div class="baris-tombol" style="margin-top:12px;">
+        <button class="tombol" id="proses">Bubuhkan lalu simpan</button>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    <span>Seluruh pengolahan berjalan di peramban. Tidak ada berkas yang diunggah ke server mana pun.</span>
+    <span>KPKNL Balikpapan · Berintegritas dalam Tugas, Prima dalam Pelayanan.</span>
+    <span class="kredit">Built with Claude ft. GPT <svg class="kredit-hati" viewBox="0 0 24 24" width="14" height="14" role="img" aria-label="cinta"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 5 6.4 5c2 0 3.6 1.1 4.6 2.6l1 1.4 1-1.4C14 6.1 15.6 5 17.6 5 21 5 23.1 8.4 21.6 11.8 19.5 16.4 12 21 12 21z"/></svg></span>
+  </footer>
+</div>
+
+<script src="pustaka/pdfjs/pdf.min.js"></script>
+<script src="pustaka/pdf-lib.min.js"></script>
+<script src="bersama.js"></script>
+<script>
+// pdf.js hanya dipakai untuk pratinjau, jadi kalau pustakanya gagal dimuat
+// pembubuhan dan penyimpanan tetap berjalan seperti biasa.
+const adaPdfJs = (typeof pdfjsLib !== "undefined");
+if (adaPdfJs) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "pustaka/pdfjs/pdf.worker.min.js";
+}
+
+const el = (id) => document.getElementById(id);
+let bytes = null, jumlah = 0, namaAsli = "dokumen.pdf";
+let sumber = null;                 // dokumen yang sudah dibaca, sumber halaman pratinjau
+let halPratinjau = 0;              // halaman yang sedang ditengok, dihitung dari nol
+let tiket = 0, tunda = null;       // hasil pratinjau yang sudah basi diabaikan
+const WARNA = { abu: [0.45,0.45,0.45], merah: [0.70,0.13,0.10], biru: [0.08,0.24,0.45] };
+const LEBAR_PRATINJAU = 680, TINGGI_PRATINJAU = 720;   // ukuran tampil terbesar, dalam piksel
+const HURUF_ASING = "Kata itu memuat huruf atau tanda yang tidak tersedia pada huruf bawaan PDF, " +
+  "misalnya emoji atau aksara selain Latin. Ganti dengan huruf Latin biasa.";
+
+Bersama.pasangJatuhan(el("jatuhan"), el("berkas"), async (daftar) => {
+  const pdf = Bersama.pdfSaja(daftar);
+  if (!pdf.length) {
+    Bersama.pesan("kabar", "Berkas itu bukan PDF. Pilih berkas berakhiran .pdf.", "gagal");
+    return;
+  }
+  try {
+    const baru = await pdf[0].arrayBuffer();
+    const dok = await PDFLib.PDFDocument.load(baru.slice(0));
+    bytes = baru; sumber = dok;
+    jumlah = dok.getPageCount();
+    namaAsli = pdf[0].name;
+    halPratinjau = 0;
+    Bersama.pesan("kabar", Bersama.lolos(namaAsli) + " berhasil dibaca, " + jumlah + " halaman.", "");
+    Bersama.pesan("kabarSimpan", "", "");
+    el("pratinjau").textContent = "";
+    ["bagianAtur", "bagianPratinjau"].forEach((id) => el(id).classList.remove("sembunyi"));
+    el("bagianPratinjau").scrollIntoView({ behavior: "smooth", block: "start" });
+    gambarPratinjau();
+  } catch (err) {
+    Bersama.pesan("kabar", "Berkas tidak bisa dibaca, kemungkinan rusak atau berkata sandi.", "gagal");
+    console.error(err);
+  }
+});
+
+function aturan() {
+  return { tulisan: el("tulisan").value.trim(),
+           alfa: parseFloat(el("kepekatan").value),
+           sudut: parseInt(el("sudut").value, 10),
+           rgb: WARNA[el("warna").value] };
+}
+
+// Benar kalau seluruh huruf pada tulisan tersedia di huruf bawaan PDF.
+function bisaDitulis(font, tulisan) {
+  try { font.encodeText(tulisan); return true; } catch (err) { return false; }
+}
+
+/* Membubuhkan watermark pada satu halaman. Fungsi ini dipakai oleh pratinjau
+   maupun penyimpanan, supaya keduanya mustahil berbeda.
+   Letak dan kemiringan dihitung pada bidang halaman yang tampak, yaitu
+   CropBox sesudah putaran bawaan halaman, lalu dipetakan balik ke sumbu
+   halaman yang belum diputar. Tanpa itu watermark pada halaman rebah akan
+   menyerong ke arah yang salah dan bergeser dari tengah. */
+function bubuhkan(h, font, a) {
+  const k = h.getCropBox();
+  const arah = ((Math.round(h.getRotation().angle / 90) * 90) % 360 + 360) % 360;
+  const rebah = (arah === 90 || arah === 270);
+  const lebarHal = rebah ? k.height : k.width, tinggiHal = rebah ? k.width : k.height;
+
+  // Ukuran huruf dihitung dari lebar halaman supaya kertas apa pun tetap seimbang.
+  let besar = (lebarHal * 0.85) / (a.tulisan.length * 0.62);
+  besar = Math.max(18, Math.min(besar, tinggiHal * 0.35));
+  const rad = a.sudut * Math.PI / 180;
+  const kos = Math.abs(Math.cos(rad)), sin = Math.abs(Math.sin(rad));
+  // Tinggi dihitung tanpa ekor huruf supaya huruf kapitalnya tepat di tengah.
+  let lebar = font.widthOfTextAtSize(a.tulisan, besar);
+  let tinggi = font.heightAtSize(besar, { descender: false });
+  // Tulisan yang sesudah diserongkan nyaris melewati tepi kertas dikecilkan,
+  // misalnya kata berhuruf lebar atau watermark pada kertas rebah.
+  const muat = Math.min(1, 0.92 * lebarHal / (lebar * kos + tinggi * sin),
+                           0.92 * tinggiHal / (lebar * sin + tinggi * kos));
+  if (muat < 1) {
+    besar *= muat;
+    lebar = font.widthOfTextAtSize(a.tulisan, besar);
+    tinggi = font.heightAtSize(besar, { descender: false });
+  }
+  // Titik mula digeser setengah panjang tulisan mengikuti arah putarnya,
+  // supaya tulisan tetap berada di tengah halaman setelah diserongkan.
+  const vx = lebarHal / 2 - (lebar / 2) * Math.cos(rad) + (tinggi / 2) * Math.sin(rad);
+  const vy = tinggiHal / 2 - (lebar / 2) * Math.sin(rad) - (tinggi / 2) * Math.cos(rad);
+
+  let x = k.x + vx, y = k.y + vy;
+  if (arah === 90)  { x = k.x + k.width - vy; y = k.y + vx; }
+  if (arah === 180) { x = k.x + k.width - vx; y = k.y + k.height - vy; }
+  if (arah === 270) { x = k.x + vy;           y = k.y + k.height - vx; }
+  h.drawText(a.tulisan, {
+    x, y, size: besar, font, opacity: a.alfa,
+    color: PDFLib.rgb(a.rgb[0], a.rgb[1], a.rgb[2]),
+    rotate: PDFLib.degrees(a.sudut + arah)
+  });
+}
+
+/* ================= Pratinjau =================
+   Halaman yang ditengok disalin ke dokumen kecil berisi satu halaman, diberi
+   watermark dengan fungsi yang sama seperti saat menyimpan, lalu digambar
+   oleh pdf.js. Cara ini lebih lambat sedikit daripada menggambar tulisan
+   langsung di kanvas, tetapi hasilnya pasti sama dengan berkas yang tersimpan. */
+function tulisPratinjau(teks) {
+  const wadah = el("pratinjau");
+  wadah.classList.remove("memuat");
+  wadah.textContent = teks;
+}
+
+async function gambarPratinjau() {
+  if (!sumber) return;
+  const t = ++tiket, wadah = el("pratinjau"), a = aturan();
+  el("letakHal").textContent = "Halaman " + (halPratinjau + 1) + " dari " + jumlah;
+  el("sebelum").disabled = (halPratinjau === 0);
+  el("sesudah").disabled = (halPratinjau >= jumlah - 1);
+  if (!adaPdfJs) {
+    tulisPratinjau("Pratinjau tidak bisa ditampilkan sebab pustaka penggambarnya gagal dimuat. " +
+      "Watermark tetap bisa dibubuhkan dan disimpan.");
+    return;
+  }
+  wadah.classList.add("memuat");
+  if (!wadah.querySelector("canvas")) wadah.textContent = "Sedang menggambar pratinjau...";
+
+  let js = null;
+  try {
+    const dok = await PDFLib.PDFDocument.create();
+    const [h] = await dok.copyPages(sumber, [halPratinjau]);
+    dok.addPage(h);
+    let catatan = "";
+    if (a.tulisan) {
+      const font = await dok.embedFont(PDFLib.StandardFonts.HelveticaBold);
+      if (bisaDitulis(font, a.tulisan)) bubuhkan(h, font, a);
+      else catatan = HURUF_ASING;
+    }
+    const data = await dok.save();
+    if (t !== tiket) return;
+
+    js = await pdfjsLib.getDocument({ data, isEvalSupported: false }).promise;
+    const hal = await js.getPage(1);
+    const asli = hal.getViewport({ scale: 1 });
+    const lebarMaks = Math.max(160, Math.min(LEBAR_PRATINJAU, wadah.clientWidth - 34));
+    const rasio = Math.min(lebarMaks / asli.width, TINGGI_PRATINJAU / asli.height);
+    const kerapatan = Math.min(window.devicePixelRatio || 1, 2);
+    const vp = hal.getViewport({ scale: rasio * kerapatan });
+
+    const kanvas = document.createElement("canvas");
+    kanvas.width = Math.max(1, Math.ceil(vp.width));
+    kanvas.height = Math.max(1, Math.ceil(vp.height));
+    kanvas.style.width = Math.round(vp.width / kerapatan) + "px";
+    kanvas.setAttribute("role", "img");
+    kanvas.setAttribute("aria-label", "Pratinjau halaman " + (halPratinjau + 1) +
+      (a.tulisan && !catatan ? " dengan watermark " + a.tulisan : " tanpa watermark"));
+    const ktx = kanvas.getContext("2d");
+    ktx.fillStyle = "#ffffff";
+    ktx.fillRect(0, 0, kanvas.width, kanvas.height);
+    await hal.render({ canvasContext: ktx, viewport: vp }).promise;
+    if (t !== tiket) return;
+
+    wadah.textContent = "";
+    wadah.append(kanvas);
+    wadah.classList.remove("memuat");
+    kanvas.dataset.halaman = halPratinjau + 1;
+    Bersama.pesan("kabarSimpan", catatan || (a.tulisan ? "" : "Kata watermarknya masih kosong, " +
+      "jadi pratinjau menampilkan halaman apa adanya."), catatan ? "gagal" : "");
+  } catch (err) {
+    if (t !== tiket) return;
+    tulisPratinjau("Halaman ini tidak bisa digambar, tetapi watermark tetap bisa dibubuhkan dan disimpan.");
+    console.error(err);
+  } finally {
+    if (js) js.destroy().catch(() => {});
+  }
+}
+
+// Ketikan ditunggu sebentar supaya pratinjau tidak digambar ulang pada tiap huruf.
+el("tulisan").addEventListener("input", () => {
+  clearTimeout(tunda);
+  tunda = setTimeout(gambarPratinjau, 220);
+});
+["kepekatan", "sudut", "warna"].forEach((id) => el(id).addEventListener("change", gambarPratinjau));
+el("sebelum").addEventListener("click", () => {
+  if (halPratinjau > 0) { halPratinjau--; gambarPratinjau(); }
+});
+el("sesudah").addEventListener("click", () => {
+  if (halPratinjau < jumlah - 1) { halPratinjau++; gambarPratinjau(); }
+});
+// Lebar pratinjau disesuaikan lagi kalau jendela berubah ukuran cukup banyak.
+let lebarLama = window.innerWidth;
+window.addEventListener("resize", () => {
+  if (Math.abs(window.innerWidth - lebarLama) < 40) return;
+  lebarLama = window.innerWidth;
+  clearTimeout(tunda);
+  tunda = setTimeout(gambarPratinjau, 220);
+});
+
+/* ================= Membubuhkan lalu menyimpan ================= */
+el("proses").addEventListener("click", async () => {
+  const a = aturan();
+  if (!a.tulisan) {
+    Bersama.pesan("kabarSimpan", "Kata watermarknya masih kosong.", "gagal");
+    return;
+  }
+  const tombol = el("proses");
+  tombol.disabled = true; tombol.textContent = "Memproses...";
+  try {
+    const dok = await PDFLib.PDFDocument.load(bytes.slice(0));
+    const font = await dok.embedFont(PDFLib.StandardFonts.HelveticaBold);
+    if (!bisaDitulis(font, a.tulisan)) {
+      Bersama.pesan("kabarSimpan", HURUF_ASING, "gagal");
+    } else {
+      dok.getPages().forEach((h) => bubuhkan(h, font, a));
+      Bersama.unduh(await dok.save(), Bersama.tanpaAkhiran(namaAsli) + "-bertanda-air.pdf");
+      Bersama.pesan("kabarSimpan", "Watermark dibubuhkan pada " + jumlah +
+        " halaman dan berkasnya tersimpan di folder unduhan.", "beres");
+    }
+  } catch (err) {
+    Bersama.pesan("kabarSimpan", "Pembubuhan gagal. Muat ulang halaman lalu pilih berkasnya sekali lagi.", "gagal");
+    console.error(err);
+  }
+  tombol.disabled = false; tombol.textContent = "Bubuhkan lalu simpan";
+});
+</script>
+</body>
+</html>

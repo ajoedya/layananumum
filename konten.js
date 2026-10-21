@@ -39,7 +39,7 @@ window.KONTEN_BAWAAN = {
       "isi": "Terdapat penyesuaian kembali pagu belanja birokrasi pada akhir Triwulan IV TA 2026, rincian perubahan akan disampaikan pada kesempatan pertama." },
     { "tampil": true, "label": "[Perubahan Alamat Layanan]",
       "judul": "Terdapat Perubahan Alamat Dashboard Anggaran dan Bengkel PDF.",
-      "isi": "Alamat situs Dashboard Anggaran (**ajoedya.github.io/jagakas**) & Alamat situs Bengkel PDF (**ajoedya.github.io/bengkelpdf**)." }
+      "isi": "Alamat situs Dashboard Anggaran (**ajoedya.github.io/layananumum/jagakas**) & Alamat situs Bengkel PDF (**ajoedya.github.io/layananumum/bengkelpdf**)." }
   ],
   "kelompok": [
     { "id": "perjadin", "nama": "Perjalanan dinas", "judulBagian": "Perjalanan dinas", "arsip": false, "tampil": true },
@@ -60,7 +60,7 @@ window.KONTEN_BAWAAN = {
       "kunci": "perjadin perjalanan dinas suket kehadiran presensi sktjm surat pernyataan tidak menginap data dukung" },
     { "tampil": true, "kelompok": "keuangan", "judul": "Sisa Dana",
       "uraian": "Cek dana yang masih tersedia sebelum mengusulkan kegiatan.",
-      "alamat": "https://ajoedya.github.io/jagakas/", "kunci": "keuangan saldo sisa dana pagu anggaran realisasi" },
+      "alamat": "jagakas/", "kunci": "keuangan saldo sisa dana pagu anggaran realisasi" },
     { "tampil": true, "kelompok": "keuangan", "judul": "Pemutakhiran Rekening",
       "uraian": "Perbarui rekening penerima pembayaran perjalanan dinas atau honor.",
       "alamat": "https://forms.office.com/r/1nnq1CSKEC", "kunci": "keuangan rekening bank honor pembayaran update perbarui pemutakhiran" },
@@ -70,7 +70,7 @@ window.KONTEN_BAWAAN = {
       "kunci": "keuangan caput capaian output keluaran pic seksi" },
     { "tampil": true, "kelompok": "perkakas", "judul": "Bengkel PDF",
       "uraian": "Edit teks, gabung, pecah, dan beri tanda air langsung di peramban tanpa mengunggah berkas.",
-      "alamat": "https://ajoedya.github.io/bengkelpdf/", "kunci": "bengkel perkakas pdf edit teks gabung pecah watermark tanda air kompres word naskah" },
+      "alamat": "bengkelpdf/", "kunci": "bengkel perkakas pdf edit teks gabung pecah watermark tanda air kompres word naskah" },
     { "tampil": true, "kelompok": "arsip", "judul": "Monitoring E-Perjadin v1",
       "uraian": "Pemantauan SPD untuk perjalanan dinas sebelum **27 Juli 2026**.",
       "alamat": "https://sites.google.com/view/gerbanginternal/halaman-muka/monitoring-spd", "kunci": "arsip perjadin perjalanan dinas spd monitoring lama versi 1" },

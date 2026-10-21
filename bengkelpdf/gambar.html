@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' blob: data: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PDF dan Gambar — Bengkel PDF</title>
+<script src="tema.js"></script>
+<link rel="stylesheet" href="gaya.css">
+</head>
+<body>
+
+<header class="kop">
+  <div class="kop-isi lebar">
+    <p class="kop-label"><a href="./">Bengkel PDF</a> / 04</p>
+    <h1>PDF dan Gambar</h1>
+    <p>Mengubah tiap halaman PDF menjadi berkas gambar, atau menyusun beberapa gambar menjadi satu PDF. Perlu diingat, PDF hasil gambar <em>tidak punya teks yang bisa dicari</em>.</p>
+  </div>
+</header>
+
+<div class="bungkus lebar">
+
+  <section>
+    <p class="nomor">Pilihan A</p>
+    <h2>PDF menjadi gambar</h2>
+    <div class="jatuhan" id="jatuhanPdf" tabindex="0" role="button" aria-label="Pilih berkas PDF">
+      <strong>Seret berkas PDF ke sini</strong>
+      <span>tiap halaman akan digambar menjadi berkas JPG</span>
+    </div>
+    <input type="file" id="berkasPdf" accept="application/pdf" class="sembunyi">
+    <div id="kabarPdf" class="kabar"></div>
+
+    <div id="aturPdf" class="sembunyi">
+      <div class="isian-baris">
+        <div class="isian">
+          <label for="mutu">Ketajaman</label>
+          <select id="mutu">
+            <option value="1">Biasa, lebar 1x</option>
+            <option value="2" selected>Tajam, lebar 2x</option>
+            <option value="3">Sangat tajam, lebar 3x</option>
+          </select>
+        </div>
+      </div>
+      <div class="rak" id="rakGambar"></div>
+      <div class="baris-tombol">
+        <button class="tombol" id="unduhSemua">Unduh semua gambar</button>
+      </div>
+      <p class="petunjuk">Peramban akan mengunduh banyak berkas sekaligus, jadi kalau muncul permintaan izin untuk beberapa unduhan, pilih Izinkan. Tiap gambar juga bisa diunduh satu per satu lewat tombol di bawahnya.</p>
+    </div>
+  </section>
+
+  <section>
+    <p class="nomor">Pilihan B</p>
+    <h2>Gambar menjadi PDF</h2>
+    <div class="jatuhan" id="jatuhanGbr" tabindex="0" role="button" aria-label="Pilih berkas gambar">
+      <strong>Seret beberapa gambar JPG atau PNG ke sini</strong>
+      <span>tiap gambar menjadi satu halaman, urutannya mengikuti urutan pemilihan</span>
+    </div>
+    <input type="file" id="berkasGbr" accept="image/jpeg,image/png" multiple class="sembunyi">
+    <div id="kabarGbr" class="kabar"></div>
+
+    <div id="aturGbr" class="sembunyi">
+      <ul class="daftar" id="daftarGbr"></ul>
+      <div class="baris-tombol">
+        <button class="tombol" id="susunPdf">Susun menjadi PDF</button>
+        <button class="tombol sekunder" id="kosongkanGbr">Kosongkan daftar</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Seluruh pengolahan berjalan di peramban. Tidak ada berkas yang diunggah ke server mana pun.</span>
+    <span>KPKNL Balikpapan · Berintegritas dalam Tugas, Prima dalam Pelayanan.</span>
+    <span class="kredit">Built with Claude ft. GPT <svg class="kredit-hati" viewBox="0 0 24 24" width="14" height="14" role="img" aria-label="cinta"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 5 6.4 5c2 0 3.6 1.1 4.6 2.6l1 1.4 1-1.4C14 6.1 15.6 5 17.6 5 21 5 23.1 8.4 21.6 11.8 19.5 16.4 12 21 12 21z"/></svg></span>
+  </footer>
+</div>
+
+<script src="pustaka/pdfjs/pdf.min.js"></script>
+<script src="pustaka/pdf-lib.min.js"></script>
+<script src="bersama.js"></script>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  "pustaka/pdfjs/pdf.worker.min.js";
+
+const el = (id) => document.getElementById(id);
+const jeda = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/* ============ A. PDF menjadi gambar ============ */
+let dokGambar = null, namaPdf = "dokumen.pdf", hasilGambar = [];
+
+Bersama.pasangJatuhan(el("jatuhanPdf"), el("berkasPdf"), async (daftar) => {
+  const pdf = Bersama.pdfSaja(daftar);
+  if (!pdf.length) {
+    Bersama.pesan("kabarPdf", "Berkas itu bukan PDF. Pilih berkas berakhiran .pdf.", "gagal");
+    return;
+  }
+  try {
+    const hasil = await Bersama.bacaPdf(pdf[0]);
+    dokGambar = hasil.dok; namaPdf = hasil.nama;
+    el("aturPdf").classList.remove("sembunyi");
+    await gambarUlang();
+  } catch (err) {
+    Bersama.pesan("kabarPdf", "Berkas tidak bisa dibaca, kemungkinan rusak atau berkata sandi.", "gagal");
+    console.error(err);
+  }
+});
+
+el("mutu").addEventListener("change", () => { if (dokGambar) gambarUlang(); });
+
+async function gambarUlang() {
+  Bersama.pesan("kabarPdf", "Menggambar halaman, mohon tunggu ...", "");
+  const lipat = parseInt(el("mutu").value, 10);
+  const rak = el("rakGambar");
+  rak.innerHTML = ""; hasilGambar = [];
+  const dasar = Bersama.tanpaAkhiran(namaPdf);
+
+  for (let i = 1; i <= dokGambar.numPages; i++) {
+    const h = await dokGambar.getPage(i);
+    const lebarAsli = h.getViewport({ scale: 1 }).width;
+    const kanvas = await Bersama.halamanKeKanvas(dokGambar, i, lebarAsli * lipat);
+    const nama = dasar + "-hlm" + String(i).padStart(2, "0") + ".jpg";
+    const data = kanvas.toDataURL("image/jpeg", 0.92);
+    hasilGambar.push({ nama, data });
+
+    const kecil = await Bersama.halamanKeKanvas(dokGambar, i, 150);
+    const ubin = document.createElement("div");
+    ubin.className = "ubin";
+    ubin.appendChild(kecil);
+    const nomor = document.createElement("div");
+    nomor.className = "ubin-nomor"; nomor.textContent = "Halaman " + i;
+    ubin.appendChild(nomor);
+    const alat = document.createElement("div");
+    alat.className = "ubin-alat";
+    const b = document.createElement("button");
+    b.textContent = "Unduh"; b.title = "Unduh gambar halaman " + i;
+    b.addEventListener("click", () => unduhData(data, nama));
+    alat.appendChild(b);
+    ubin.appendChild(alat);
+    rak.appendChild(ubin);
+  }
+  Bersama.pesan("kabarPdf", dokGambar.numPages + " halaman siap diunduh sebagai gambar JPG.", "");
+}
+
+function unduhData(dataUrl, nama) {
+  const a = document.createElement("a");
+  a.href = dataUrl; a.download = nama;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+el("unduhSemua").addEventListener("click", async () => {
+  const tombol = el("unduhSemua");
+  tombol.disabled = true; tombol.textContent = "Mengunduh...";
+  for (const g of hasilGambar) {
+    unduhData(g.data, g.nama);
+    await jeda(320);   // jeda supaya peramban tidak membatalkan unduhan beruntun
+  }
+  Bersama.pesan("kabarPdf", hasilGambar.length + " gambar tersimpan di folder unduhan.", "beres");
+  tombol.disabled = false; tombol.textContent = "Unduh semua gambar";
+});
+
+/* ============ B. Gambar menjadi PDF ============ */
+let antreanGbr = [];
+
+Bersama.pasangJatuhan(el("jatuhanGbr"), el("berkasGbr"), async (daftar) => {
+  const gbr = Bersama.gambarSaja(daftar);
+  const ditolak = daftar.length - gbr.length;
+  for (const f of gbr) {
+    antreanGbr.push({ nama: f.name, bytes: await f.arrayBuffer(), jenis: f.type, besar: f.size });
+  }
+  Bersama.pesan("kabarGbr", ditolak
+    ? ditolak + " berkas dilewati sebab hanya JPG dan PNG yang didukung."
+    : antreanGbr.length + " gambar siap disusun menjadi PDF.", ditolak ? "gagal" : "");
+  gambarDaftarGbr();
+});
+
+function gambarDaftarGbr() {
+  const wadah = el("daftarGbr");
+  wadah.innerHTML = "";
+  antreanGbr.forEach((g, i) => {
+    const li = document.createElement("li");
+    const urut = document.createElement("span");
+    urut.className = "urut"; urut.textContent = (i + 1) + ".";
+    const nama = document.createElement("span");
+    nama.className = "nama"; nama.textContent = g.nama; nama.title = g.nama;
+    const rinci = document.createElement("span");
+    rinci.className = "rinci"; rinci.textContent = Bersama.ukuran(g.besar);
+    li.append(urut, nama, rinci);
+    li.appendChild(tblGbr("Naik", i === 0, () => tukarGbr(i, i - 1)));
+    li.appendChild(tblGbr("Turun", i === antreanGbr.length - 1, () => tukarGbr(i, i + 1)));
+    li.appendChild(tblGbr("Buang", false, () => { antreanGbr.splice(i, 1); gambarDaftarGbr(); }));
+    wadah.appendChild(li);
+  });
+  el("aturGbr").classList.toggle("sembunyi", !antreanGbr.length);
+}
+
+function tblGbr(teks, mati, saat) {
+  const b = document.createElement("button");
+  b.className = "tombol sekunder kecil";
+  b.textContent = teks; b.disabled = mati;
+  b.addEventListener("click", saat);
+  return b;
+}
+function tukarGbr(a, b) {
+  if (b < 0 || b >= antreanGbr.length) return;
+  const s = antreanGbr[a]; antreanGbr[a] = antreanGbr[b]; antreanGbr[b] = s;
+  gambarDaftarGbr();
+}
+
+el("kosongkanGbr").addEventListener("click", () => {
+  antreanGbr = []; gambarDaftarGbr();
+  Bersama.pesan("kabarGbr", "", "");
+});
+
+el("susunPdf").addEventListener("click", async () => {
+  if (!antreanGbr.length) return;
+  const tombol = el("susunPdf");
+  tombol.disabled = true; tombol.textContent = "Menyusun...";
+  try {
+    const dok = await PDFLib.PDFDocument.create();
+    for (const g of antreanGbr) {
+      const gambar = g.jenis === "image/png"
+        ? await dok.embedPng(g.bytes.slice(0))
+        : await dok.embedJpg(g.bytes.slice(0));
+      // Ukuran halaman mengikuti ukuran gambarnya, jadi tidak ada bagian yang terpotong.
+      const hal = dok.addPage([gambar.width, gambar.height]);
+      hal.drawImage(gambar, { x: 0, y: 0, width: gambar.width, height: gambar.height });
+    }
+    Bersama.unduh(await dok.save(), "gambar-menjadi.pdf");
+    Bersama.pesan("kabarGbr", antreanGbr.length +
+      " gambar tersusun menjadi PDF dan tersimpan di folder unduhan.", "beres");
+  } catch (err) {
+    Bersama.pesan("kabarGbr", "Penyusunan gagal. Ada gambar yang tidak terbaca, coba buang lalu ulangi.", "gagal");
+    console.error(err);
+  }
+  tombol.disabled = false; tombol.textContent = "Susun menjadi PDF";
+});
+</script>
+</body>
+</html>

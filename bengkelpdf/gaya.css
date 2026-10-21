@@ -1,0 +1,1208 @@
+/* ============================================================
+   Gaya Bersama Bengkel PDF
+   Bahasa desain mengikuti beranda (editorial.css). Seluruh huruf memakai
+   Public Sans, judul dibedakan lewat ketebalan dan ukuran.
+   Semua alat memakai berkas ini, jadi ubah warna atau ukuran huruf
+   lewat variabel di :root, bukan langsung di tiap halaman.
+   ============================================================ */
+
+/* Satu-satunya tempat font dimuat. Halaman alat tidak perlu memasang
+   tautan Google Fonts sendiri. */
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+
+:root {
+  /* Huruf */
+  --huruf-judul: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --huruf-isi: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Palet, disamakan dengan beranda */
+  --biru-tua: #08274d;
+  --biru: #1d4e86;
+  --biru-hover: #16446e;
+  --biru-muda: #eef2f6;
+  --emas: #b8893a;          /* garis, sorotan, dan bingkai fokus */
+  --emas-tua: #a77a2a;      /* garis tepi kabar dan penanda aktif */
+  --emas-teks: #84601d;     /* teks emas berukuran kecil, kontras 5,5:1 */
+  --emas-muda: #f7f4ed;
+  --emas-garis: #d7c7aa;
+  --putih: #ffffff;
+  --latar: #fdfbf7;
+
+  /* Teks dan garis. Kontras --tinta-lembut di atas latar 5,7:1. */
+  --tinta: #13294a;
+  --tinta-lembut: #55657c;
+  --garis: #e6e2d9;
+  --garis-fokus: #cfd6dd;
+
+  /* Status */
+  --bahaya: #b42318;
+  --bahaya-muda: #fdf1ef;
+  --hijau: #1b6b35;
+  --hijau-muda: #eef7f0;
+
+  /* Bentuk */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --bayangan-sm: 0 1px 4px rgba(12, 46, 79, 0.04);
+  --bayangan-md: 0 3px 12px rgba(16, 43, 80, 0.07);
+  --bayangan-lg: 0 10px 25px rgba(16, 43, 80, 0.10);
+  --transisi: background-color .16s ease, border-color .16s ease, color .16s ease, box-shadow .16s ease;
+
+  /* Warna pendukung. Semuanya ikut berganti saat tema diganti, lihat bagian
+     "Tema" di bawah. Jangan menulis kode warna langsung di aturan lain. */
+  --latar-bening: rgba(253, 251, 247, 0);   /* --latar dengan alfa 0, untuk gradasi */
+  --rgb-latar: 253, 251, 247;              /* --latar sebagai angka R,G,B */
+  --menu-latar: #fffefa;
+  --menu-garis: #e8e4db;
+  --tombol-polos: #fffdfa;
+  --hover-hangat: #f9f5ed;
+  --kop-kiri: #f9f6ef;
+  --kop-kanan: #f8eddb;
+  --jatuhan-latar: #fbfaf6;
+  --jatuhan-garis: #abb9c9;
+  --teks-contoh: #6f7f94;       /* placeholder isian, kontras 4,0:1 */
+  --fokus-lembut: #cad9e8;
+  --mati-latar: #efede7;
+  --mati-garis: #e2ded4;
+  --kartu-garis: #e7e7e5;
+  --kartu-garis-hover: #c6a36a;
+  --kartu-latar-hover: #fffdf8;
+
+  /* Isian berwarna penuh (tombol utama, penanda aktif) dan teks di atasnya.
+     Dipisah dari --biru-tua karena di mode gelap judul menjadi terang,
+     sedangkan tombol tetap butuh latar pekat dengan teks kontras. */
+  --aksen-latar: var(--biru-tua);
+  --aksen-hover: var(--biru-hover);
+  --aksen-teks: #ffffff;
+  --bahaya-teks: #8f1d14;
+  /* Label kecil berlatar keemasan, misalnya "Baru" di kartu beranda. */
+  --lencana-latar: #f2e9d7;
+  --lencana-teks: #765412;
+  /* Latar setengah bening di atas banner (kotak privasi beranda). */
+  --kaca: rgba(255, 255, 255, .72);
+  /* Kertas pratinjau PDF selalu putih di kedua mode, supaya isi dokumen
+     terlihat apa adanya. */
+  --kertas: #ffffff;
+  /* Ujung gradasi nomor kartu beranda dan kepekatannya. */
+  --nomor-ujung: var(--biru-tua);
+  --nomor-opasitas: .55;
+  /* Kepekatan pita anyaman. */
+  --anyaman-opasitas: .2;
+
+  /* Khusus beranda (dipakai editorial.css) */
+  --garis-editorial: #e9e5dd;
+  --cari-garis: #ced5da;
+  --cari-tombol: #062d58;
+  --cari-fokus: #c5a15b;
+  --tautan-kartu: #073565;
+  --emas-terang: #d4a34d;
+  --kosong-latar: #f8f4eb;
+  --kosong-garis: #aa8444;
+  --penutup-1: #f7f4ed;
+  --penutup-2: #faf8f3;
+  --penutup-3: #f7f3e9;
+  --kaki-garis: #eee9e0;
+  --bayang-teks: #102943;
+  /* Tiga angka R,G,B untuk warna yang dipakai dengan alfa: rgba(var(--rgb-x), .5) */
+  --rgb-gelap: 4, 33, 58;          /* bayangan dan lapisan gelap di atas foto */
+  --rgb-bayangan-kartu: 12, 46, 79;
+  --rgb-semburat: 240, 218, 185;   /* semburat hangat di belakang banner */
+  --rgb-semburat-2: 226, 214, 194;
+
+  /* Banner: satu gambar dipakai di beranda dan di kop halaman alat. */
+  --banner: url("banner-pelabuhan.jpg");
+  /* Titik fokus banner pada latar kolom kiri beranda (bentuknya tegak, jadi
+     hanya sebagian foto yang tampak). */
+  --banner-latar-posisi: 72% 100%;
+  --banner-kop-posisi: right 46%;
+  --banner-pita-posisi: center 52%;
+  /* Kepekatan lapisan gelap di bawah keterangan banner beranda. */
+  --banner-lapis-tengah: .18;
+  --banner-lapis-bawah: .5;
+}
+
+/* ============================================================
+   Tema
+   Tiap tema hanya mengganti nilai variabel warna dan gambar banner; tata
+   letak dan aturan lain tidak disentuh. Tema bawaan (Pelabuhan Senja) memakai
+   nilai di :root di atas. Tema dipilih lewat atribut data-tema pada <html>,
+   yang dipasang tema.js sebelum halaman digambar.
+   Menambah tema baru: salin satu blok di bawah, ganti nilainya, lalu
+   daftarkan di tema.js.
+   ============================================================ */
+/* Hutan Hujan: hijau hutan dan keemasan cahaya pagi */
+:root[data-tema="hutan"] {
+  --biru-tua: #123a2b;
+  --biru: #1e6a4a;
+  --biru-hover: #17563b;
+  --biru-muda: #edf4ef;
+  --emas: #b48a30;
+  --emas-tua: #a17720;
+  --emas-teks: #775812;
+  --emas-muda: #f5f5ea;
+  --emas-garis: #d9cfa7;
+  --latar: #fbfcf7;
+  --latar-bening: rgba(251, 252, 247, 0);
+  --rgb-latar: 251, 252, 247;
+  --tinta: #173527;
+  --tinta-lembut: #526a5c;
+  --garis: #e3e7db;
+  --garis-fokus: #cddbd0;
+  --menu-latar: #fdfefa;
+  --menu-garis: #e4e8dc;
+  --tombol-polos: #fcfdf8;
+  --hover-hangat: #f4f6ea;
+  --kop-kiri: #f5f7ee;
+  --kop-kanan: #edf2da;
+  --jatuhan-latar: #f9fbf5;
+  --jatuhan-garis: #a9c0b0;
+  --teks-contoh: #6b8274;
+  --fokus-lembut: #cbe0d2;
+  --mati-latar: #eeefe8;
+  --mati-garis: #e0e3d8;
+  --kartu-garis: #e4e8e2;
+  --kartu-garis-hover: #c2ab66;
+  --kartu-latar-hover: #fdfef8;
+  --garis-editorial: #e4e8dc;
+  --cari-garis: #ccd8cf;
+  --cari-tombol: #123a2b;
+  --cari-fokus: #c5a85b;
+  --tautan-kartu: #175239;
+  --emas-terang: #dcb85a;
+  --kosong-latar: #f4f6ea;
+  --kosong-garis: #a58a3e;
+  --penutup-1: #f3f6ec;
+  --penutup-2: #f8faf4;
+  --penutup-3: #f1f4e4;
+  --kaki-garis: #e8ecdf;
+  --bayang-teks: #0c2a1e;
+  --rgb-gelap: 12, 40, 26;
+  --rgb-bayangan-kartu: 18, 58, 43;
+  --rgb-semburat: 226, 234, 194;
+  --rgb-semburat-2: 214, 224, 190;
+  --banner: url("banner-hutan.jpg");
+  --banner-latar-posisi: 12% 100%;
+  --banner-kop-posisi: right 30%;
+  --banner-pita-posisi: center 25%;
+  --banner-lapis-tengah: .3;
+  --banner-lapis-bawah: .68;
+}
+/* Mangrove: hijau toska perairan dan keemasan senja */
+:root[data-tema="mangrove"] {
+  --biru-tua: #0b3d46;
+  --biru: #13707d;
+  --biru-hover: #0e5a65;
+  --biru-muda: #eaf4f5;
+  --emas: #c18b2f;
+  --emas-tua: #ad7721;
+  --emas-teks: #825a12;
+  --emas-muda: #f8f5ea;
+  --emas-garis: #e0d0a9;
+  --latar: #fbfcfa;
+  --latar-bening: rgba(251, 252, 250, 0);
+  --rgb-latar: 251, 252, 250;
+  --tinta: #10373f;
+  --tinta-lembut: #4e6a70;
+  --garis: #dfe7e3;
+  --garis-fokus: #c8dbdd;
+  --menu-latar: #fdfefd;
+  --menu-garis: #e1e8e4;
+  --tombol-polos: #fcfdfb;
+  --hover-hangat: #f6f5e9;
+  --kop-kiri: #f2f8f6;
+  --kop-kanan: #f9ecd3;
+  --jatuhan-latar: #f8fbfa;
+  --jatuhan-garis: #a3c2c6;
+  --teks-contoh: #66838a;
+  --fokus-lembut: #c5e1e5;
+  --mati-latar: #edefec;
+  --mati-garis: #dfe3df;
+  --kartu-garis: #e2e8e6;
+  --kartu-garis-hover: #cfa864;
+  --kartu-latar-hover: #fffdf7;
+  --garis-editorial: #e2e8e3;
+  --cari-garis: #c9d9db;
+  --cari-tombol: #0b3d46;
+  --cari-fokus: #cfa457;
+  --tautan-kartu: #0d5560;
+  --emas-terang: #e2ac52;
+  --kosong-latar: #f6f5e9;
+  --kosong-garis: #ad8a40;
+  --penutup-1: #f1f7f5;
+  --penutup-2: #f8fbf9;
+  --penutup-3: #f8f1df;
+  --kaki-garis: #e5ebe7;
+  --bayang-teks: #062a31;
+  --rgb-gelap: 6, 44, 52;
+  --rgb-bayangan-kartu: 11, 61, 70;
+  --rgb-semburat: 248, 220, 170;
+  --rgb-semburat-2: 232, 222, 190;
+  --banner: url("banner-mangrove.jpg");
+  --banner-latar-posisi: 34% 100%;
+  --banner-kop-posisi: right 40%;
+  --banner-pita-posisi: center 55%;
+  --banner-lapis-tengah: .36;
+  --banner-lapis-bawah: .74;
+}
+/* Tongkang Batu Bara: biru laut siang dan karat tongkang */
+:root[data-tema="tongkang"] {
+  --biru-tua: #132a42;
+  --biru: #2a5c8a;
+  --biru-hover: #214a70;
+  --biru-muda: #eef3f7;
+  --emas: #b47b34;
+  --emas-tua: #a06a26;
+  --emas-teks: #7a5119;
+  --emas-muda: #f6f2ec;
+  --emas-garis: #dccbb0;
+  --latar: #fbfcfd;
+  --latar-bening: rgba(251, 252, 253, 0);
+  --rgb-latar: 251, 252, 253;
+  --tinta: #152b44;
+  --tinta-lembut: #536479;
+  --garis: #e3e7ec;
+  --garis-fokus: #cbd7e3;
+  --menu-latar: #ffffff;
+  --menu-garis: #e3e7ec;
+  --tombol-polos: #ffffff;
+  --hover-hangat: #f6f2ec;
+  --kop-kiri: #eef3f7;
+  --kop-kanan: #f6f2ec;
+  --jatuhan-latar: #fbfcfd;
+  --jatuhan-garis: #cbd7e3;
+  --teks-contoh: #536479;
+  --fokus-lembut: #cbd7e3;
+  --mati-latar: #eef3f7;
+  --mati-garis: #e3e7ec;
+  --kartu-garis: #e3e7ec;
+  --kartu-garis-hover: #b47b34;
+  --kartu-latar-hover: #ffffff;
+  --garis-editorial: #e3e7ec;
+  --cari-garis: #cbd7e3;
+  --cari-tombol: #132a42;
+  --cari-fokus: #b47b34;
+  --tautan-kartu: #132a42;
+  --emas-terang: #d89a4c;
+  --kosong-latar: #f6f2ec;
+  --kosong-garis: #a06a26;
+  --penutup-1: #eef3f7;
+  --penutup-2: #fbfcfd;
+  --penutup-3: #f6f2ec;
+  --kaki-garis: #e3e7ec;
+  --bayang-teks: #0e2238;
+  --rgb-gelap: 8, 28, 48;
+  --rgb-bayangan-kartu: 8, 28, 48;
+  --rgb-semburat: 222, 233, 243;
+  --rgb-semburat-2: 214, 224, 234;
+  --banner: url("banner-tongkang.jpg");
+  --banner-latar-posisi: 15% 0%;
+  --banner-latar-ukuran: auto 140%;   /* diperbesar supaya tongkang turun ke bagian foto yang jelas */
+  --banner-kop-posisi: right 55%;
+  --banner-pita-posisi: center 55%;
+  --banner-lapis-tengah: .2;
+  --banner-lapis-bawah: .5;
+}
+/* Tepian Kota: biru samudra dan pasir pantai */
+:root[data-tema="tepian"] {
+  --biru-tua: #07345a;
+  --biru: #11649f;
+  --biru-hover: #0d5287;
+  --biru-muda: #ecf4fa;
+  --emas: #b98a37;
+  --emas-tua: #a77a2a;
+  --emas-teks: #7f5e1a;
+  --emas-muda: #f7f4ec;
+  --emas-garis: #dccdab;
+  --latar: #fafcfd;
+  --latar-bening: rgba(250, 252, 253, 0);
+  --rgb-latar: 250, 252, 253;
+  --tinta: #0f2c4a;
+  --tinta-lembut: #4f6479;
+  --garis: #e1e8ee;
+  --garis-fokus: #c8dbea;
+  --menu-latar: #ffffff;
+  --menu-garis: #e1e8ee;
+  --tombol-polos: #ffffff;
+  --hover-hangat: #f7f4ec;
+  --kop-kiri: #ecf4fa;
+  --kop-kanan: #f7f4ec;
+  --jatuhan-latar: #fafcfd;
+  --jatuhan-garis: #c8dbea;
+  --teks-contoh: #4f6479;
+  --fokus-lembut: #c8dbea;
+  --mati-latar: #ecf4fa;
+  --mati-garis: #e1e8ee;
+  --kartu-garis: #e1e8ee;
+  --kartu-garis-hover: #b98a37;
+  --kartu-latar-hover: #ffffff;
+  --garis-editorial: #e1e8ee;
+  --cari-garis: #c8dbea;
+  --cari-tombol: #07345a;
+  --cari-fokus: #b98a37;
+  --tautan-kartu: #07345a;
+  --emas-terang: #d9ab52;
+  --kosong-latar: #f7f4ec;
+  --kosong-garis: #a77a2a;
+  --penutup-1: #ecf4fa;
+  --penutup-2: #fafcfd;
+  --penutup-3: #f7f4ec;
+  --kaki-garis: #e1e8ee;
+  --bayang-teks: #062642;
+  --rgb-gelap: 4, 36, 64;
+  --rgb-bayangan-kartu: 4, 36, 64;
+  --rgb-semburat: 222, 233, 243;
+  --rgb-semburat-2: 214, 224, 234;
+  --banner: url("banner-tepian.jpg");
+  --banner-latar-posisi: 22% 100%;
+  --banner-kop-posisi: right 50%;
+  --banner-pita-posisi: center 55%;
+  --banner-lapis-tengah: .2;
+  --banner-lapis-bawah: .5;
+}
+/* Kilang: baja kelabu dan kuning tangga kilang */
+:root[data-tema="kilang"] {
+  --biru-tua: #1b2e42;
+  --biru: #365a7c;
+  --biru-hover: #2c4a66;
+  --biru-muda: #eff2f5;
+  --emas: #b88a2e;
+  --emas-tua: #a47822;
+  --emas-teks: #7c5c12;
+  --emas-muda: #f7f4ea;
+  --emas-garis: #dccda4;
+  --latar: #fbfbfc;
+  --latar-bening: rgba(251, 251, 252, 0);
+  --rgb-latar: 251, 251, 252;
+  --tinta: #1b2c3f;
+  --tinta-lembut: #55636f;
+  --garis: #e4e6e9;
+  --garis-fokus: #cfd6de;
+  --menu-latar: #ffffff;
+  --menu-garis: #e4e6e9;
+  --tombol-polos: #ffffff;
+  --hover-hangat: #f7f4ea;
+  --kop-kiri: #eff2f5;
+  --kop-kanan: #f7f4ea;
+  --jatuhan-latar: #fbfbfc;
+  --jatuhan-garis: #cfd6de;
+  --teks-contoh: #55636f;
+  --fokus-lembut: #cfd6de;
+  --mati-latar: #eff2f5;
+  --mati-garis: #e4e6e9;
+  --kartu-garis: #e4e6e9;
+  --kartu-garis-hover: #b88a2e;
+  --kartu-latar-hover: #ffffff;
+  --garis-editorial: #e4e6e9;
+  --cari-garis: #cfd6de;
+  --cari-tombol: #1b2e42;
+  --cari-fokus: #b88a2e;
+  --tautan-kartu: #1b2e42;
+  --emas-terang: #dbb04f;
+  --kosong-latar: #f7f4ea;
+  --kosong-garis: #a47822;
+  --penutup-1: #eff2f5;
+  --penutup-2: #fbfbfc;
+  --penutup-3: #f7f4ea;
+  --kaki-garis: #e4e6e9;
+  --bayang-teks: #14222f;
+  --rgb-gelap: 14, 30, 46;
+  --rgb-bayangan-kartu: 14, 30, 46;
+  --rgb-semburat: 222, 233, 243;
+  --rgb-semburat-2: 214, 224, 234;
+  --banner: url("banner-kilang.jpg");
+  --banner-latar-posisi: 30% 100%;
+  --banner-kop-posisi: right 45%;
+  --banner-pita-posisi: center 45%;
+  --banner-lapis-tengah: .2;
+  --banner-lapis-bawah: .5;
+}
+
+/* ============================================================
+   Mode gelap
+   Dipasang tema.js lewat data-mode="gelap" pada <html>, mengikuti tema
+   perangkat atau pilihan pengguna lewat tombol di menu atas. Blok ini
+   diletakkan sesudah semua tema supaya menimpa warnanya; banner dan titik
+   fokusnya tetap milik tema masing-masing.
+   Kontras: --tinta di atas --latar sekitar 14:1, --tinta-lembut sekitar 8:1,
+   --teks-contoh di atas isian sekitar 5:1, semuanya di atas ambang WCAG AA.
+   ============================================================ */
+:root[data-mode="gelap"] {
+  --biru-tua: #e8ecf2;        /* di mode gelap dipakai untuk judul dan teks tebal */
+  --biru: #8fb4e6;
+  --biru-hover: #b3cdf0;
+  --biru-muda: #18263a;
+  --emas: #c9a86a;
+  --emas-tua: #d2af6b;
+  --emas-teks: #dfc28a;
+  --emas-muda: #262520;
+  --emas-garis: #5b4c33;
+  --putih: #152030;           /* permukaan kartu dan panel */
+  --latar: #0e1622;
+  --latar-bening: rgba(14, 22, 34, 0);
+  --rgb-latar: 14, 22, 34;
+
+  --tinta: #dce2ea;
+  --tinta-lembut: #a9b4c4;
+  --garis: #26344a;
+  --garis-fokus: #3a4b63;
+
+  --bahaya: #f08a80;
+  --bahaya-muda: #3a1f1d;
+  --bahaya-teks: #f6b8b0;
+  --hijau: #85cf9b;
+  --hijau-muda: #15302a;
+
+  --bayangan-sm: 0 1px 4px rgba(0, 0, 0, .25);
+  --bayangan-md: 0 3px 12px rgba(0, 0, 0, .32);
+  --bayangan-lg: 0 10px 25px rgba(0, 0, 0, .42);
+
+  --menu-latar: #111b29;
+  --menu-garis: #233147;
+  --tombol-polos: #152030;
+  --hover-hangat: #1d2a3c;
+  --kop-kiri: #111b29;
+  --kop-kanan: #1f2230;
+  --jatuhan-latar: #121d2c;
+  --jatuhan-garis: #4a5d78;
+  --teks-contoh: #8a97ab;
+  --fokus-lembut: #2d4a72;
+  --mati-latar: #1b2533;
+  --mati-garis: #2a3647;
+  --kartu-garis: #26344a;
+  --kartu-garis-hover: #c9a86a;
+  --kartu-latar-hover: #192638;
+
+  --aksen-latar: #8fb4e6;
+  --aksen-hover: #b3cdf0;
+  --aksen-teks: #0e1622;
+  --lencana-latar: #2f2818;
+  --lencana-teks: #e6ca90;
+  --kaca: rgba(14, 22, 34, .74);
+  --nomor-ujung: #3c5f95;
+  --nomor-opasitas: .4;
+  --anyaman-opasitas: .14;
+
+  --garis-editorial: #26344a;
+  --cari-garis: #3a4b63;
+  --cari-tombol: #8fb4e6;
+  --cari-fokus: #c9a86a;
+  --tautan-kartu: #9fc0ec;
+  --emas-terang: #d9b068;
+  --kosong-latar: #1b2230;
+  --kosong-garis: #a8894e;
+  --penutup-1: #142031;
+  --penutup-2: #111b29;
+  --penutup-3: #1f2230;
+  --kaki-garis: #233147;
+  --bayang-teks: #000000;
+  --rgb-gelap: 4, 9, 16;
+  --rgb-bayangan-kartu: 0, 0, 0;
+  --rgb-semburat: 70, 56, 40;
+  --rgb-semburat-2: 48, 44, 40;
+  color-scheme: dark;
+}
+/* Tiap tema menjaga rona khasnya di mode gelap: latar, permukaan, dan aksen. */
+:root[data-mode="gelap"][data-tema="hutan"] {
+  --jatuhan-latar: #11211a; --jatuhan-garis: #4a6b5c; --mati-latar: #1a2a23; --mati-garis: #2a3d34; --fokus-lembut: #2a5743;
+  --latar: #0e1a15; --latar-bening: rgba(14, 26, 21, 0); --rgb-latar: 14, 26, 21;
+  --putih: #14251e; --tombol-polos: #14251e; --menu-latar: #10201a; --kop-kiri: #10201a;
+  --kop-kanan: #1d2418; --hover-hangat: #1b2f26; --kartu-latar-hover: #183028;
+  --biru: #8fd1ae; --biru-hover: #b4e3c9; --biru-muda: #16291f;
+  --aksen-latar: #8fd1ae; --aksen-hover: #b4e3c9; --aksen-teks: #0e1a15;
+  --cari-tombol: #8fd1ae; --tautan-kartu: #a3dcbd; --nomor-ujung: #2f6b4f;
+  --garis: #243a30; --garis-editorial: #243a30; --kartu-garis: #243a30; --menu-garis: #213429;
+  --garis-fokus: #365246; --cari-garis: #365246;
+  --penutup-1: #12221b; --penutup-2: #10201a; --penutup-3: #1d2418; --rgb-gelap: 3, 12, 8;
+}
+:root[data-mode="gelap"][data-tema="mangrove"] {
+  --jatuhan-latar: #0f2125; --jatuhan-garis: #46696f; --mati-latar: #182b2f; --mati-garis: #283d41; --fokus-lembut: #235760;
+  --latar: #0c191c; --latar-bening: rgba(12, 25, 28, 0); --rgb-latar: 12, 25, 28;
+  --putih: #122529; --tombol-polos: #122529; --menu-latar: #0f1f23; --kop-kiri: #0f1f23;
+  --kop-kanan: #252218; --hover-hangat: #192f33; --kartu-latar-hover: #172d31;
+  --biru: #7fcdd6; --biru-hover: #a8dee4; --biru-muda: #142a2e;
+  --aksen-latar: #7fcdd6; --aksen-hover: #a8dee4; --aksen-teks: #0c191c;
+  --cari-tombol: #7fcdd6; --tautan-kartu: #98d8df; --nomor-ujung: #23636d;
+  --garis: #223a3e; --garis-editorial: #223a3e; --kartu-garis: #223a3e; --menu-garis: #1f3438;
+  --garis-fokus: #345156; --cari-garis: #345156;
+  --penutup-1: #10222b; --penutup-2: #0f1f23; --penutup-3: #252218; --rgb-gelap: 2, 11, 13;
+}
+:root[data-mode="gelap"][data-tema="tongkang"] {
+  --kop-kanan: #252019; --penutup-3: #252019;
+  --emas: #cf9a5a; --emas-tua: #d6a466; --emas-teks: #e0b886; --kartu-garis-hover: #cf9a5a;
+}
+:root[data-mode="gelap"][data-tema="tepian"] {
+  --latar: #0c1724; --latar-bening: rgba(12, 23, 36, 0); --rgb-latar: 12, 23, 36;
+  --biru: #84bdea; --biru-hover: #acd3f2; --aksen-latar: #84bdea; --aksen-hover: #acd3f2;
+  --aksen-teks: #0c1724; --cari-tombol: #84bdea; --tautan-kartu: #9acaef;
+}
+:root[data-mode="gelap"][data-tema="kilang"] {
+  --jatuhan-latar: #151c25; --jatuhan-garis: #55657a; --mati-latar: #1d252f; --mati-garis: #2c3540; --fokus-lembut: #3a5068;
+  --latar: #11161d; --latar-bening: rgba(17, 22, 29, 0); --rgb-latar: 17, 22, 29;
+  --putih: #18202a; --tombol-polos: #18202a; --menu-latar: #141a22; --kop-kiri: #141a22;
+  --hover-hangat: #212a35; --kartu-latar-hover: #1e2732; --biru-muda: #1b232e;
+  --biru: #9fb6cf; --biru-hover: #c0d0e1; --aksen-latar: #9fb6cf; --aksen-hover: #c0d0e1;
+  --aksen-teks: #11161d; --cari-tombol: #9fb6cf; --tautan-kartu: #b0c4da; --nomor-ujung: #3e566f;
+  --garis: #29323d; --garis-editorial: #29323d; --kartu-garis: #29323d; --menu-garis: #262e38;
+  --penutup-1: #161d26; --penutup-2: #141a22; --rgb-gelap: 6, 9, 13;
+}
+
+/* Banner malam: di mode gelap, tema berlatar kota memakai foto malam hari
+   (ukuran penuh 2172 x 724, JPG kualitas tinggi). Hutan Hujan dan Mangrove
+   tetap memakai banner siangnya. */
+/* Pelabuhan Senja adalah tema bawaan tanpa atribut data-tema. */
+:root[data-mode="gelap"]:not([data-tema]) {
+  --banner: url("banner-pelabuhan-malam.jpg");
+  --banner-latar-posisi: 24% 100%;
+  --banner-kop-posisi: right 60%;
+  --banner-pita-posisi: center 62%;
+}
+:root[data-mode="gelap"][data-tema="tepian"] {
+  --banner: url("banner-tepian-malam.jpg");
+  --banner-latar-posisi: 57% 100%;
+  --banner-kop-posisi: right 45%;
+  --banner-pita-posisi: center 50%;
+}
+:root[data-mode="gelap"][data-tema="kilang"] {
+  --banner: url("banner-kilang-malam.jpg");
+  --banner-latar-posisi: 22% 100%;
+  --banner-kop-posisi: right 55%;
+  --banner-pita-posisi: center 55%;
+}
+:root[data-mode="gelap"][data-tema="tongkang"] {
+  --banner: url("banner-tongkang-malam.jpg");
+  --banner-latar-posisi: 80% 100%;
+  --banner-latar-ukuran: cover;
+  --banner-kop-posisi: right 60%;
+  --banner-pita-posisi: center 60%;
+}
+
+@media (min-width: 1041px) {
+  /* Panel beranda bentuknya tegak; foto malam yang lebar diperkecil dan
+     ditaruh di bawah, supaya objeknya tidak tertutup kabut di bagian atas.
+     Langit malamnya menyatu dengan warna latar. */
+  :root[data-mode="gelap"]:not([data-tema]) { --banner-latar-ukuran: auto 68%; --banner-latar-posisi: 30% 100%; }
+  :root[data-mode="gelap"][data-tema="tepian"] { --banner-latar-ukuran: auto 70%; --banner-latar-posisi: 57% 100%; }
+  :root[data-mode="gelap"][data-tema="kilang"] { --banner-latar-ukuran: auto 70%; --banner-latar-posisi: 18% 100%; }
+  :root[data-mode="gelap"][data-tema="tongkang"] { --banner-latar-ukuran: auto 70%; --banner-latar-posisi: 86% 100%; }
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; padding: 0; }
+
+body {
+  background: var(--latar);
+  color: var(--tinta);
+  font-family: var(--huruf-isi);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a { color: var(--biru); }
+a:hover { color: var(--biru-hover); }
+
+.bungkus {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 8px 24px 48px;
+}
+.bungkus.lebar { max-width: 1160px; }
+
+.sembunyi { display: none; }
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.lewati-konten {
+  position: fixed;
+  left: 10px;
+  top: -100px;
+  padding: 12px 16px;
+  z-index: 1000;
+  background: var(--putih);
+  color: var(--biru-tua);
+  font-weight: 600;
+}
+.lewati-konten:focus { top: 8px; }
+
+/* ---------- Menu atas, sama di beranda dan semua alat ---------- */
+.menu {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  isolation: isolate;
+  overflow: visible;
+  background: var(--menu-latar);
+  border-bottom: 1px solid var(--menu-garis);
+}
+/* Kepala navigasi tetap bersih. Motif vertikal dipakai di pinggir halaman,
+   bukan di atas teks/merek agar identitas tetap mudah dibaca. */
+.menu-isi {
+  max-width: 1550px;
+  margin: 0 auto;
+  min-height: 79px;
+  padding: 10px clamp(18px, 6.2vw, 94px);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: transparent !important;
+}
+.menu-nama {
+  margin-right: auto;
+  color: var(--biru-tua);
+  font: 800 21px/1.1 var(--huruf-judul);
+  letter-spacing: -.02em;
+  text-decoration: none;
+}
+.menu-nama:hover { color: var(--biru-tua); }
+.menu-nama small {
+  display: block;
+  margin-top: 4px;
+  color: var(--tinta-lembut);
+  font: 600 11px/1.4 var(--huruf-isi);
+  letter-spacing: .18em;
+}
+.menu-beranda {
+  color: var(--biru-tua);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 10px 7px;
+  margin-right: 10px;
+  border-bottom: 2px solid transparent;
+}
+.menu-beranda:hover { color: var(--biru-tua); border-bottom-color: var(--emas-garis); }
+.menu-beranda[aria-current="page"] { border-bottom-color: var(--emas-tua); }
+.menu-nama:focus-visible,
+.menu-beranda:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: 3px; }
+
+.menu-dropdown-wrapper { position: relative; display: inline-block; }
+.menu-dropdown-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 21px;
+  background: var(--tombol-polos);
+  border: 1px solid var(--emas-garis);
+  border-radius: 5px;
+  color: var(--biru-tua);
+  font: 600 15px/1.2 var(--huruf-isi);
+  cursor: pointer;
+  transition: var(--transisi);
+}
+.menu-dropdown-btn:hover,
+.menu-dropdown-btn[aria-expanded="true"] { background: var(--hover-hangat); border-color: var(--emas-tua); }
+.menu-dropdown-btn:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: 3px; }
+.menu-dropdown-btn .panah { font-size: 11px; transition: transform .2s ease; }
+.menu-dropdown-wrapper.terbuka .menu-dropdown-btn .panah { transform: rotate(180deg); }
+
+.menu-dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  min-width: 260px;
+  max-height: min(70vh, 540px);
+  overflow-y: auto;
+  background: var(--putih);
+  border: 1px solid var(--garis);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--bayangan-lg);
+  z-index: 1000;
+}
+.menu-dropdown-wrapper.terbuka .menu-dropdown-content { display: block; }
+.menu-dropdown-content a {
+  display: block;
+  padding: 12px 18px;
+  color: var(--tinta) !important;
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+  border-bottom: 1px solid var(--garis);
+  border-left: 3px solid transparent;
+  transition: var(--transisi);
+}
+.menu-dropdown-content a:last-child { border-bottom: 0; }
+.menu-dropdown-content a:hover { background: var(--hover-hangat); }
+.menu-dropdown-content a.aktif {
+  background: var(--emas-muda);
+  border-left-color: var(--emas-tua);
+  font-weight: 700;
+}
+.menu-dropdown-content a:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: -3px; }
+
+/* Tombol mode terang/gelap: bulat kecil, ikon saja. */
+.menu-mode {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  margin-left: 4px;
+  color: var(--biru-tua);
+  background: var(--tombol-polos);
+  border: 1px solid var(--emas-garis);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: var(--transisi);
+}
+.menu-mode:hover { background: var(--hover-hangat); border-color: var(--emas-tua); }
+.menu-mode:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: 3px; }
+.menu-mode svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.menu-mode .ikon-matahari { display: none; }
+:root[data-mode="gelap"] .menu-mode .ikon-bulan { display: none; }
+:root[data-mode="gelap"] .menu-mode .ikon-matahari { display: block; }
+
+/* ---------- Kop halaman alat ----------
+   Kop terang seperti bagian pembuka beranda, dengan label nomor perkakas
+   berwarna emas, judul tebal, dan ornamen Kalimantan di kanan.
+   Foto pelabuhan dari banner beranda dipasang di sisi kanan dan dileburkan:
+   ke kiri memudar ke warna kertas supaya teks tetap terbaca, ke bawah memudar
+   ke latar halaman supaya tidak ada garis potong dengan isi alat. */
+.kop {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(to bottom, var(--latar-bening) 45%, var(--latar) 100%),
+    linear-gradient(100deg, var(--kop-kiri) 0%, var(--latar) 40%, var(--kop-kanan) 100%);
+  color: var(--biru-tua);
+}
+.kop::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  /* Tepi kiri foto mengikuti kolom teks (lebar 920px, teks sekitar 650px),
+     jadi foto baru mulai muncul tepat setelah teks berakhir. */
+  left: calc(max(0px, (100% - 920px) / 2) + 600px);
+  background: var(--banner) var(--banner-kop-posisi) / auto 150% no-repeat;
+  -webkit-mask-image:
+    linear-gradient(to right, transparent 0, rgba(0,0,0,.06) 80px, #000 64%),
+    linear-gradient(to bottom, #000 48%, transparent 98%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent 0, rgba(0,0,0,.06) 80px, #000 64%),
+    linear-gradient(to bottom, #000 48%, transparent 98%);
+  mask-composite: intersect;
+  pointer-events: none;
+}
+/* Pita anyaman kembar di tepi kiri dan kanan kop, sekeluarga dengan beranda.
+   Hanya tampil bila tepi halaman cukup lebar sehingga pita tidak menimpa teks,
+   lihat aturan @media tepat di bawah. */
+.kop::before {
+  content: "";
+  display: none;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: clamp(8px, 3vw, 44px);
+  right: clamp(8px, 3vw, 44px);
+  background:
+    url("ornamen-kalimantan-anyaman.svg") left top / 48px 24px repeat-y,
+    url("ornamen-kalimantan-anyaman.svg") right top / 48px 24px repeat-y;
+  opacity: var(--anyaman-opasitas);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 80%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 80%, transparent);
+  pointer-events: none;
+  z-index: 1;
+}
+@media (min-width: 1140px) { .kop::before { display: block; } }
+/* Halaman berisi lebar (1160px) butuh layar lebih lebar supaya pitanya muat. */
+@media (max-width: 1379px) { .kop:has(.kop-isi.lebar)::before { display: none; } }
+.kop-isi {
+  position: relative;
+  z-index: 1;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 44px 24px 38px;
+}
+.kop-isi.lebar { max-width: 1160px; }
+.kop-label {
+  margin: 0 0 14px;
+  color: var(--emas-teks);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+.kop-label a { color: inherit; text-decoration: none; }
+.kop-label a:hover { text-decoration: underline; }
+.kop h1 {
+  margin: 0 0 14px;
+  color: var(--biru-tua);
+  font: 700 clamp(32px, 3.6vw, 44px)/1.12 var(--huruf-judul);
+  letter-spacing: -.025em;
+}
+.kop p {
+  margin: 0;
+  max-width: 62ch;
+  color: var(--tinta-lembut);
+  font-size: 17px;
+  line-height: 1.65;
+}
+.kop em {
+  color: var(--emas-teks);
+  font-style: normal;
+  font-weight: 600;
+}
+
+/* ---------- Bagian langkah ----------
+   Tiap langkah menjadi panel putih bergaris tipis seperti kartu beranda,
+   supaya urutan kerja mudah diikuti. */
+section { padding-top: 0; }
+.bungkus > section,
+.bungkus > form > section {
+  margin-top: 24px;
+  padding: 28px 32px 32px;
+  background: var(--putih);
+  border: 1px solid var(--garis);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--bayangan-sm);
+}
+.bungkus > section.sembunyi,
+.bungkus > form > section.sembunyi { display: none; }
+
+.nomor {
+  margin: 0 0 6px;
+  color: var(--emas-teks);
+  font-family: var(--huruf-isi);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+h2 {
+  margin: 0 0 18px;
+  color: var(--biru-tua);
+  font: 700 24px/1.25 var(--huruf-judul);
+  letter-spacing: -.015em;
+}
+
+h3 {
+  margin: 0 0 10px;
+  color: var(--biru-tua);
+  font: 700 19px/1.3 var(--huruf-judul);
+  letter-spacing: -.01em;
+}
+
+/* ---------- Kotak unggah ---------- */
+.jatuhan {
+  padding: 44px 28px;
+  background: var(--jatuhan-latar);
+  border: 1.5px dashed var(--jatuhan-garis);
+  border-radius: var(--radius-md);
+  text-align: center;
+  cursor: pointer;
+  transition: var(--transisi);
+}
+.jatuhan:hover, .jatuhan.aktif { background: var(--emas-muda); border-color: var(--emas-tua); }
+.jatuhan:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: 3px; }
+.jatuhan strong {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--biru-tua);
+  font: 700 18px/1.35 var(--huruf-judul);
+}
+.jatuhan span { color: var(--tinta-lembut); font-size: 15px; }
+
+/* Kabar yang muncul tepat di bawah kotak unggah diberi jarak. */
+.jatuhan ~ .kabar { margin-top: 14px; }
+
+.keterangan-berkas { margin-top: 14px; font-size: 15px; color: var(--tinta-lembut); }
+
+/* ---------- Isian ---------- */
+label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--tinta);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* 16px mencegah peramban ponsel memperbesar layar saat isian disentuh. */
+input[type=text], input[type=number], input[type=search], select, textarea {
+  width: 100%;
+  padding: 11px 14px;
+  font-family: inherit;
+  font-size: 16px;
+  color: var(--tinta);
+  background: var(--putih);
+  border: 1px solid var(--garis-fokus);
+  border-radius: 5px;
+  transition: var(--transisi);
+}
+input::placeholder, textarea::placeholder { color: var(--teks-contoh); opacity: 1; }
+textarea { min-height: 120px; line-height: 1.6; resize: vertical; }
+input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 3px solid var(--fokus-lembut);
+  outline-offset: 1px;
+  border-color: var(--biru);
+}
+input[type=checkbox], input[type=radio] { accent-color: var(--biru-tua); }
+
+.isian { margin-bottom: 22px; }
+.isian-baris { display: flex; gap: 20px; flex-wrap: wrap; }
+.isian-baris .isian { flex: 1 1 220px; }
+
+/* ---------- Tombol ---------- */
+.tombol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 11px 22px;
+  font: 600 15px/1.25 var(--huruf-isi);
+  color: var(--aksen-teks);
+  background: var(--aksen-latar);
+  border: 1px solid var(--aksen-latar);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: var(--transisi);
+}
+.tombol:hover { background: var(--aksen-hover); border-color: var(--aksen-hover); }
+.tombol.sekunder { color: var(--biru-tua); background: var(--putih); border-color: var(--emas-garis); }
+.tombol.sekunder:hover { background: var(--hover-hangat); border-color: var(--emas-tua); }
+.tombol.kecil { min-height: 38px; padding: 7px 15px; font-size: 14px; }
+.tombol:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: 2px; }
+/* Tombol mati tetap terbaca supaya pengguna tahu tombol itu ada. */
+.tombol:disabled,
+.tombol.sekunder:disabled {
+  color: var(--tinta-lembut);
+  background: var(--mati-latar);
+  border-color: var(--mati-garis);
+  cursor: not-allowed;
+}
+
+.baris-tombol { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 26px; }
+
+/* ---------- Kabar dan catatan ---------- */
+.kabar {
+  margin: 0 0 22px;
+  padding: 14px 20px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--tinta);
+  background: var(--emas-muda);
+  border-left: 3px solid var(--emas-tua);
+  border-radius: var(--radius-sm);
+}
+.kabar.gagal { color: var(--bahaya-teks); background: var(--bahaya-muda); border-left-color: var(--bahaya); }
+.kabar.beres { color: var(--hijau); background: var(--hijau-muda); border-left-color: var(--hijau); }
+.kabar:empty { display: none; }
+.kabar ul { margin: 8px 0 0 20px; padding: 0; }
+.kabar b, .kabar strong { color: var(--biru-tua); }
+.kabar.gagal b, .kabar.gagal strong { color: inherit; }
+/* Catatan tetap di bagian atas alat, misalnya batas kemampuan alat.
+   Judulnya ditebalkan seperti kotak privasi di beranda. */
+.kabar.catatan > b:first-child {
+  display: block;
+  margin-bottom: 2px;
+  font: 700 16px/1.4 var(--huruf-judul);
+}
+
+.petunjuk { margin-top: 14px; color: var(--tinta-lembut); font-size: 15px; line-height: 1.6; }
+
+/* ---------- Komponen lama yang masih dipakai beberapa alat ---------- */
+.janji {
+  margin-top: 28px;
+  padding: 22px 26px;
+  background: var(--emas-muda);
+  border-left: 3px solid var(--emas-tua);
+  border-radius: var(--radius-sm);
+}
+.janji h3 { margin-top: 0; }
+.janji p { margin: 0; color: var(--tinta-lembut); }
+
+.petak {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  margin-top: 16px;
+}
+.kartu {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  color: inherit;
+  text-decoration: none;
+  background: var(--putih);
+  border: 1px solid var(--kartu-garis);
+  border-radius: var(--radius-sm);
+  transition: var(--transisi);
+}
+.kartu:hover { border-color: var(--kartu-garis-hover); background: var(--kartu-latar-hover); }
+.kartu:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: 3px; }
+.kartu strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--biru-tua);
+  font: 700 18px/1.3 var(--huruf-judul);
+}
+.kartu span { font-size: 15px; line-height: 1.55; color: var(--tinta-lembut); }
+
+/* ---------- Panggung kanvas dan rak halaman ---------- */
+.panggung {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  background: var(--kertas);
+  border: 1px solid var(--garis);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--bayangan-md);
+}
+.panggung canvas { display: block; max-width: 100%; height: auto; }
+
+.rak {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  margin-top: 12px;
+}
+.ubin {
+  position: relative;
+  padding: 10px;
+  text-align: center;
+  background: var(--putih);
+  border: 1px solid var(--garis);
+  border-radius: var(--radius-sm);
+  transition: var(--transisi);
+}
+.ubin.terpilih { background: var(--emas-muda); border-color: var(--emas); box-shadow: 0 0 0 2px var(--emas); }
+.ubin.dibuang { opacity: .35; filter: grayscale(1); }
+.ubin canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+  background: var(--kertas);
+  border: 1px solid var(--garis);
+  border-radius: 3px;
+}
+.ubin-nomor { margin-top: 8px; color: var(--biru-tua); font-size: 14px; font-weight: 700; }
+.ubin-alat { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: 8px; }
+.ubin-alat button {
+  min-height: 34px;
+  padding: 6px 10px;
+  font: 600 13px/1.2 var(--huruf-isi);
+  color: var(--biru-tua);
+  background: var(--putih);
+  border: 1px solid var(--garis-fokus);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transisi);
+}
+.ubin-alat button:hover { background: var(--hover-hangat); border-color: var(--emas-tua); }
+.ubin-alat button:focus-visible { outline: 2px solid var(--emas-tua); outline-offset: 1px; }
+
+/* ---------- Daftar berkas ---------- */
+.daftar { list-style: none; margin: 12px 0 0; padding: 0; }
+.daftar li {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 10px;
+  padding: 14px 18px;
+  background: var(--putih);
+  border: 1px solid var(--garis);
+  border-radius: var(--radius-sm);
+  transition: var(--transisi);
+}
+.daftar li:hover { border-color: var(--garis-fokus); }
+.daftar .urut { min-width: 28px; color: var(--emas-teks); font: 700 15px/1 var(--huruf-judul); font-variant-numeric: tabular-nums; }
+.daftar .nama {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 15px;
+  font-weight: 500;
+}
+.daftar .rinci { font-size: 14px; color: var(--tinta-lembut); white-space: nowrap; }
+
+/* ---------- Kaki halaman, sama dengan kaki beranda ---------- */
+footer {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px 24px;
+  margin-top: 56px;
+  padding: 16px 0 8px;
+  border-top: 1px solid var(--garis);
+  color: var(--tinta-lembut);
+  font-size: 14px;
+  line-height: 1.55;
+}
+/* Kredit pembuat di ujung kanan footer; di layar sempit turun ke baris sendiri. */
+.kredit { font-weight: 600; color: var(--biru-tua); white-space: nowrap; }
+.kredit-hati { width: 14px; height: 14px; vertical-align: -2px; fill: #c8423b; }
+
+/* ---------- Layar sedang dan ponsel ----------
+   Teks kop hampir selebar layar, jadi foto tidak dipasang di samping teks.
+   Foto dijadikan pita di atas judul yang memudar ke bawah. */
+@media (max-width: 1040px) {
+  .kop::after {
+    left: 0;
+    bottom: auto;
+    height: 136px;
+    background-position: var(--banner-pita-posisi);
+    background-size: cover;
+    -webkit-mask-image: linear-gradient(to bottom, #000 30%, transparent 96%);
+    mask-image: linear-gradient(to bottom, #000 30%, transparent 96%);
+  }
+  .kop-isi { padding-top: 116px; }
+}
+
+/* ---------- Ponsel ---------- */
+@media (max-width: 700px) {
+  .menu-isi { min-height: 69px; padding: 10px 18px; gap: 8px; }
+  .menu-nama { font-size: 19px; }
+  .menu-nama small { font-size: 10px; letter-spacing: .14em; }
+  .menu-beranda { display: none; }
+  .menu-dropdown-btn { padding: 11px 13px; font-size: 14px; }
+  .menu-dropdown-content { max-width: min(90vw, 320px); }
+  .kop::after { height: 118px; }
+  .kop-isi { padding: 96px 18px 28px; }
+  .kop p { font-size: 16px; }
+  .bungkus { padding: 4px 14px 40px; }
+  .bungkus > section,
+  .bungkus > form > section { margin-top: 16px; padding: 22px 18px 24px; }
+  h2 { font-size: 22px; }
+  .jatuhan { padding: 32px 18px; }
+  .jatuhan strong { font-size: 17px; }
+}
+
+@media (max-width: 700px) {
+  .menu-mode { width: 38px; height: 38px; margin-left: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}

@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' blob: data: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kompres PDF — Bengkel PDF</title>
+<script src="tema.js"></script>
+<link rel="stylesheet" href="gaya.css">
+<style>
+  /* Pilihan tingkat kompresi berupa kartu yang bisa diklik. */
+  .tingkat{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:0 0 22px;
+    border:0;padding:0;}
+  .tingkat legend{margin-bottom:8px;font-size:15px;font-weight:600;color:var(--tinta);padding:0;}
+  .tingkat label{position:relative;display:block;margin:0;padding:14px 16px 14px 44px;cursor:pointer;
+    background:var(--putih);border:1px solid var(--garis-fokus);border-radius:var(--radius-sm);
+    font-weight:700;color:var(--biru-tua);transition:var(--transisi);}
+  .tingkat label:hover{border-color:var(--emas-tua);background:var(--kartu-latar-hover);}
+  .tingkat input{position:absolute;left:16px;top:17px;width:18px;height:18px;margin:0;}
+  .tingkat small{display:block;margin-top:3px;font-size:13.5px;font-weight:400;line-height:1.45;
+    color:var(--tinta-lembut);}
+  .tingkat label:has(input:checked){border-color:var(--emas-tua);background:var(--emas-muda);
+    box-shadow:0 0 0 1px var(--emas-tua) inset;}
+  .tingkat label:has(input:focus-visible){outline:3px solid var(--emas-tua);outline-offset:2px;}
+
+  .centang{display:flex;gap:10px;align-items:flex-start;margin:0 0 14px;font-size:15px;font-weight:600;
+    line-height:1.45;cursor:pointer;}
+  .centang input{flex:none;width:18px;height:18px;margin:2px 0 0;}
+  .centang small{display:block;margin-top:2px;font-size:13.5px;font-weight:400;color:var(--tinta-lembut);}
+  .batas{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 6px;}
+  .batas input{width:120px;}
+  .batas span{font-size:15px;color:var(--tinta-lembut);}
+  /* .batas memakai display:flex, jadi .sembunyi perlu ditegaskan agar kolom batas benar-benar tersembunyi. */
+  .batas.sembunyi{display:none;}
+
+  /* Daftar hasil */
+  .hasil{list-style:none;margin:18px 0 0;padding:0;display:grid;gap:10px;}
+  .hasil li{display:grid;grid-template-columns:1fr auto;gap:6px 16px;align-items:center;padding:14px 18px;
+    background:var(--putih);border:1px solid var(--garis);border-left:3px solid var(--garis-fokus);
+    border-radius:var(--radius-sm);}
+  .hasil li.untung{border-left-color:var(--hijau);}
+  .hasil li.tetap{border-left-color:var(--emas-tua);}
+  .hasil li.gagal{border-left-color:var(--bahaya);}
+  .hasil .nama{font-weight:700;color:var(--biru-tua);overflow-wrap:anywhere;}
+  .hasil .angka{font-size:15px;color:var(--tinta);}
+  .hasil .angka b{color:var(--hijau);}
+  .hasil li.tetap .angka b{color:var(--emas-teks);}
+  .hasil .cara{grid-column:1 / -1;font-size:14px;color:var(--tinta-lembut);line-height:1.5;}
+  .hasil .cara .awas{color:var(--bahaya-teks);font-weight:600;}
+  .hasil .aksi{grid-row:1 / span 2;grid-column:2;}
+  .jalan{font-size:14px;color:var(--tinta-lembut);}
+  @media (max-width:560px){
+    .hasil li{grid-template-columns:1fr;}
+    .hasil .aksi{grid-row:auto;grid-column:1;}
+  }
+</style>
+</head>
+<body>
+
+<header class="kop">
+  <div class="kop-isi">
+    <p class="kop-label"><a href="./">Bengkel PDF</a> / 08</p>
+    <h1>Kompres PDF</h1>
+    <p>Mengecilkan berkas PDF tanpa mengubah teksnya menjadi gambar. Yang diperkecil hanya gambar di dalamnya, sesuai ukuran tampilnya di halaman, lalu struktur berkasnya dirapikan. Teks, tautan, dan isian formulir <em>tetap utuh dan bisa dicari</em>.</p>
+  </div>
+</header>
+
+<div class="bungkus">
+
+  <section>
+    <p class="nomor">Langkah 1</p>
+    <h2>Pilih berkas</h2>
+    <div class="jatuhan" id="jatuhan" tabindex="0" role="button" aria-label="Pilih berkas PDF">
+      <strong>Seret satu atau beberapa berkas PDF ke sini</strong>
+      <span>atau klik untuk memilih, bisa dipilih berkali-kali</span>
+    </div>
+    <input type="file" id="berkas" accept="application/pdf,.pdf" multiple class="sembunyi">
+    <div id="kabar" class="kabar" role="status"></div>
+    <ul class="daftar" id="daftarBerkas"></ul>
+  </section>
+
+  <section id="bagianAtur" class="sembunyi">
+    <p class="nomor">Langkah 2</p>
+    <h2>Atur kompresinya</h2>
+
+    <fieldset class="tingkat">
+      <legend>Tingkat kompresi</legend>
+      <label><input type="radio" name="tingkat" value="ringan">Ringan<small>Gambar tetap tajam untuk dicetak, sekitar 200 DPI</small></label>
+      <label><input type="radio" name="tingkat" value="seimbang" checked>Seimbang<small>Cocok untuk dikirim dan dibaca di layar, sekitar 150 DPI</small></label>
+      <label><input type="radio" name="tingkat" value="kuat">Kuat<small>Berkas jauh lebih kecil, gambar mulai tampak lembut, sekitar 110 DPI</small></label>
+      <label><input type="radio" name="tingkat" value="ekstra">Ekstra<small>Paling kecil, hanya untuk dibaca di layar, sekitar 80 DPI</small></label>
+    </fieldset>
+
+    <label class="centang"><input type="checkbox" id="abu"><span>Ubah gambar menjadi abu-abu<small>Berguna untuk hasil pindaian berwarna yang isinya hitam putih. Teks dan garis tidak ikut berubah.</small></span></label>
+
+    <label class="centang"><input type="checkbox" id="pakaiBatas"><span>Kejar batas ukuran tertentu<small>Bila hasil masih melebihi batas, tingkat kompresi dinaikkan sendiri sampai batas tercapai atau tingkat paling kuat sudah dicoba.</small></span></label>
+    <div class="batas sembunyi" id="aturBatas">
+      <label for="batasMb" class="sr-only">Batas ukuran dalam MB</label>
+      <input type="number" id="batasMb" value="2" min="0.1" step="0.1">
+      <span>MB per berkas</span>
+    </div>
+
+    <label class="centang"><input type="checkbox" id="bolehRata"><span>Bila perlu, ubah halaman menjadi gambar<small>Dipakai hanya bila cara biasa tidak bisa mengecilkan berkas, misalnya PDF terkunci atau batas ukuran belum tercapai. Akibatnya teks tidak bisa dicari atau disalin, serta tautan dan isian formulir hilang.</small></span></label>
+
+    <div class="baris-tombol">
+      <button class="tombol" id="proses" type="button">Kompres sekarang</button>
+      <button class="tombol sekunder" id="kosongkan" type="button">Kosongkan daftar</button>
+    </div>
+    <p class="petunjuk">Hasil yang tidak lebih kecil dari aslinya tidak akan diberikan, dan berkas aslinya tetap disarankan. Tanda tangan elektronik pada berkas asal tidak lagi sah setelah dikompres, sebab isi berkasnya berubah.</p>
+  </section>
+
+  <section id="bagianHasil" class="sembunyi">
+    <p class="nomor">Langkah 3</p>
+    <h2>Unduh hasilnya</h2>
+    <p class="jalan" id="jalan" aria-live="polite"></p>
+    <ul class="hasil" id="daftarHasil"></ul>
+  </section>
+
+  <footer>
+    <span>Seluruh pengolahan berjalan di peramban. Tidak ada berkas yang diunggah ke server mana pun.</span>
+    <span>KPKNL Balikpapan · Berintegritas dalam Tugas, Prima dalam Pelayanan.</span>
+    <span class="kredit">Built with Claude ft. GPT <svg class="kredit-hati" viewBox="0 0 24 24" width="14" height="14" role="img" aria-label="cinta"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 5 6.4 5c2 0 3.6 1.1 4.6 2.6l1 1.4 1-1.4C14 6.1 15.6 5 17.6 5 21 5 23.1 8.4 21.6 11.8 19.5 16.4 12 21 12 21z"/></svg></span>
+  </footer>
+</div>
+
+<script src="pustaka/pdfjs/pdf.min.js"></script>
+<script src="pustaka/pdf-lib.min.js"></script>
+<script src="bersama.js"></script>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  "pustaka/pdfjs/pdf.worker.min.js";
+
+const el = (id) => document.getElementById(id);
+const P = PDFLib;
+const N = (s) => P.PDFName.of(s);
+
+/* ============================================================
+   CARA KERJA
+   1. Struktural (utama). Tiap gambar di dalam PDF diukur berapa besar ia
+      tampil di halaman, lalu diperkecil ke resolusi tingkat yang dipilih
+      dan dikodekan ulang. Gambar dibaca lewat pdf.js, jadi semua jenis
+      gambar PDF (JPEG, JPEG 2000, JBIG2, CCITT, CMYK, berpalet, dan yang
+      bertransparansi) bisa diolah. Setelah itu aliran data yang belum
+      dimampatkan dimampatkan, sampah seperti gambar mini halaman dan data
+      pribadi aplikasi pembuat dibuang, dan objek yatim tidak ikut ditulis.
+   2. Ratakan jadi gambar (cadangan, hanya bila diizinkan). Tiap halaman
+      digambar ulang menjadi JPEG. Dipakai untuk PDF terkunci atau bila batas
+      ukuran belum tercapai.
+   Hasil selalu dibandingkan dengan aslinya dan yang terkecil yang dipakai.
+   ============================================================ */
+const TINGKAT = {
+  ringan:   { dpi: 200, mutu: 0.82, nama: "Ringan" },
+  seimbang: { dpi: 150, mutu: 0.70, nama: "Seimbang" },
+  kuat:     { dpi: 110, mutu: 0.55, nama: "Kuat" },
+  ekstra:   { dpi: 80,  mutu: 0.42, nama: "Ekstra" }
+};
+const URUTAN = ["ringan", "seimbang", "kuat", "ekstra"];
+const SISI_MAKS = 6000;            // sisi gambar terpanjang yang diizinkan, dalam piksel
+const LUAS_MAKS = 16e6;            // batas luas kanvas, aman untuk Safari di iPhone
+const GAMBAR_PER_KELOMPOK = 12;    // banyaknya gambar yang digambar dalam satu dokumen bantu
+const HEMAT_MIN = 0.92;            // gambar baru dipakai bila paling besar 92% dari yang lama
+const UNTUNG_MIN = 0.98;           // hasil diberikan bila paling besar 98% dari berkas asli
+
+let antre = [];                    // berkas yang menunggu
+let sibuk = false;
+
+/* ---------------- 1. Menerima berkas ---------------- */
+Bersama.pasangJatuhan(el("jatuhan"), el("berkas"), (daftar) => {
+  if (sibuk) return;
+  const pdf = Bersama.pdfSaja(daftar);
+  const ditolak = daftar.length - pdf.length;
+  let baru = 0;
+  for (const f of pdf) {
+    if (antre.some((a) => a.name === f.name && a.size === f.size && a.lastModified === f.lastModified)) continue;
+    antre.push(f); baru++;
+  }
+  const pesan = [];
+  if (baru) pesan.push(baru + " berkas ditambahkan.");
+  if (!baru && pdf.length) pesan.push("Berkas itu sudah ada di daftar.");
+  if (ditolak) pesan.push(ditolak + " berkas dilewati sebab bukan PDF.");
+  Bersama.pesan("kabar", pesan.join(" "), ditolak && !baru ? "gagal" : "");
+  gambarDaftar();
+});
+
+function gambarDaftar() {
+  const ul = el("daftarBerkas");
+  ul.innerHTML = "";
+  antre.forEach((f, i) => {
+    const li = document.createElement("li");
+    li.innerHTML = "<span class='urut'></span><span class='nama'></span><span class='rinci'></span>";
+    li.querySelector(".urut").textContent = i + 1;
+    li.querySelector(".nama").textContent = f.name;
+    li.querySelector(".nama").title = f.name;
+    li.querySelector(".rinci").textContent = Bersama.ukuran(f.size);
+    const hapus = document.createElement("button");
+    hapus.type = "button";
+    hapus.className = "tombol sekunder kecil";
+    hapus.textContent = "Hapus";
+    hapus.setAttribute("aria-label", "Hapus " + f.name + " dari daftar");
+    hapus.disabled = sibuk;
+    hapus.addEventListener("click", () => { antre.splice(i, 1); gambarDaftar(); });
+    li.append(hapus);
+    ul.append(li);
+  });
+  el("bagianAtur").classList.toggle("sembunyi", !antre.length);
+  el("proses").disabled = sibuk || !antre.length;
+  el("kosongkan").disabled = sibuk || !antre.length;
+}
+
+el("pakaiBatas").addEventListener("change", () => {
+  el("aturBatas").classList.toggle("sembunyi", !el("pakaiBatas").checked);
+});
+el("kosongkan").addEventListener("click", () => {
+  if (sibuk) return;
+  antre = [];
+  el("daftarHasil").innerHTML = "";
+  el("bagianHasil").classList.add("sembunyi");
+  Bersama.pesan("kabar", "", "");
+  gambarDaftar();
+});
+
+/* ---------------- 2. Membaca isi halaman ----------------
+   Pembaca content stream sederhana yang hanya mengikuti q, Q, cm, dan Do,
+   cukup untuk mengetahui ukuran tampil tiap gambar. Teks dan isi lain
+   dilewati tanpa diartikan. */
+function apaSpasi(c) { return c === 0 || c === 9 || c === 10 || c === 12 || c === 13 || c === 32; }
+function apaPembatas(c) {
+  return c === 40 || c === 41 || c === 60 || c === 62 || c === 91 || c === 93 ||
+         c === 123 || c === 125 || c === 47 || c === 37;
+}
+function namaPdf(b, a, z) {
+  let s = "";
+  for (let i = a; i < z; i++) {
+    if (b[i] === 35 && i + 2 < z) { s += String.fromCharCode(parseInt(String.fromCharCode(b[i + 1], b[i + 2]), 16)); i += 2; }
+    else s += String.fromCharCode(b[i]);
+  }
+  return s;
+}
+
+function bacaKonten(b, saatOperator) {
+  const n = b.length, angka = [];
+  let nama = null, i = 0;
+  while (i < n) {
+    const c = b[i];
+    if (apaSpasi(c)) { i++; continue; }
+    if (c === 37) { while (i < n && b[i] !== 10 && b[i] !== 13) i++; continue; }
+    if (c === 40) {                      // string literal, boleh bersarang
+      let d = 1; i++;
+      while (i < n && d > 0) { const x = b[i]; if (x === 92) { i += 2; continue; } if (x === 40) d++; else if (x === 41) d--; i++; }
+      continue;
+    }
+    if (c === 60) {
+      if (b[i + 1] === 60) { i += 2; continue; }
+      while (i < n && b[i] !== 62) i++;
+      i++; continue;
+    }
+    if (c === 62) { i += (b[i + 1] === 62) ? 2 : 1; continue; }
+    if (c === 91 || c === 93 || c === 123 || c === 125) { i++; continue; }
+    if (c === 47) {
+      let j = i + 1;
+      while (j < n && !apaSpasi(b[j]) && !apaPembatas(b[j])) j++;
+      nama = namaPdf(b, i + 1, j); i = j; continue;
+    }
+    let j = i;
+    while (j < n && !apaSpasi(b[j]) && !apaPembatas(b[j])) j++;
+    if (j === i) { i++; continue; }
+    const awal = b[i];
+    if ((awal >= 48 && awal <= 57) || awal === 43 || awal === 45 || awal === 46) {
+      angka.push(parseFloat(namaPdf(b, i, j)));
+      if (angka.length > 12) angka.shift();
+      i = j; continue;
+    }
+    const op = namaPdf(b, i, j); i = j;
+    if (op === "ID") {                   // gambar sisipan, lompati datanya sampai EI
+      i++;
+      while (i < n - 1) {
+        if (b[i] === 69 && b[i + 1] === 73 && apaSpasi(b[i - 1]) && (i + 2 >= n || apaSpasi(b[i + 2]))) { i += 2; break; }
+        i++;
+      }
+    } else {
+      saatOperator(op, angka, nama);
+    }
+    angka.length = 0; nama = null;
+  }
+}
+
+function kaliMatriks(a, b) {
+  return [a[0] * b[0] + a[1] * b[2], a[0] * b[1] + a[1] * b[3],
+          a[2] * b[0] + a[3] * b[2], a[2] * b[1] + a[3] * b[3],
+          a[4] * b[0] + a[5] * b[2] + b[4], a[4] * b[1] + a[5] * b[3] + b[5]];
+}
+
+function isiAliran(ctx, obj) {
+  const s = ctx.lookup(obj);
+  if (s instanceof P.PDFRawStream) return P.decodePDFRawStream(s).decode();
+  return null;
+}
+
+// Mengembalikan peta "nomor objek gambar" -> ukuran tampil terbesar dalam titik.
+function petaTampil(doc) {
+  const ctx = doc.context, peta = new Map();
+  const dikunjungi = new Set();
+
+  function jalankan(bytes, sumberDaya, ctmAwal, kedalaman) {
+    if (!bytes || kedalaman > 12) return;
+    const xo = sumberDaya ? ctx.lookupMaybe(sumberDaya.get(N("XObject")), P.PDFDict) : undefined;
+    let ctm = ctmAwal.slice(); const tumpuk = [];
+    bacaKonten(bytes, (op, angka, nama) => {
+      if (op === "q") tumpuk.push(ctm.slice());
+      else if (op === "Q") { if (tumpuk.length) ctm = tumpuk.pop(); }
+      else if (op === "cm" && angka.length >= 6) ctm = kaliMatriks(angka.slice(-6), ctm);
+      else if (op === "Do" && nama && xo) {
+        const ref = xo.get(N(nama));
+        const x = ctx.lookup(ref);
+        if (!(x instanceof P.PDFRawStream)) return;
+        const jenis = x.dict.get(N("Subtype"));
+        if (jenis === N("Image") && ref instanceof P.PDFRef) {
+          const w = Math.hypot(ctm[0], ctm[1]), h = Math.hypot(ctm[2], ctm[3]);
+          const lama = peta.get(ref.tag) || { w: 0, h: 0 };
+          peta.set(ref.tag, { w: Math.max(lama.w, w), h: Math.max(lama.h, h) });
+        } else if (jenis === N("Form")) {
+          const kunci = (ref instanceof P.PDFRef ? ref.tag : "") + ctm.map((v) => v.toFixed(2)).join(",");
+          if (dikunjungi.has(kunci)) return;
+          dikunjungi.add(kunci);
+          const m = x.dict.lookupMaybe(N("Matrix"), P.PDFArray);
+          const mat = m ? m.asArray().map((v) => (v.asNumber ? v.asNumber() : 0)) : [1, 0, 0, 1, 0, 0];
+          const res = x.dict.lookupMaybe(N("Resources"), P.PDFDict) || sumberDaya;
+          let isi = null;
+          try { isi = P.decodePDFRawStream(x).decode(); } catch (e) { return; }
+          jalankan(isi, res, kaliMatriks(mat, ctm), kedalaman + 1);
+        }
+      }
+    });
+  }
+
+  for (const hal of doc.getPages()) {
+    const node = hal.node;
+    let res;
+    try { res = node.Resources(); } catch (e) { res = undefined; }
+    const isi = node.Contents();
+    const potongan = [];
+    try {
+      if (isi instanceof P.PDFArray) {
+        for (let i = 0; i < isi.size(); i++) { const b = isiAliran(ctx, isi.get(i)); if (b) potongan.push(b); }
+      } else if (isi) {
+        const b = isiAliran(ctx, node.get(N("Contents"))); if (b) potongan.push(b);
+      }
+    } catch (e) { continue; }
+    let total = 0; potongan.forEach((b) => { total += b.length + 1; });
+    const gabung = new Uint8Array(total); let o = 0;
+    potongan.forEach((b) => { gabung.set(b, o); o += b.length; gabung[o++] = 10; });
+    jalankan(gabung, res, [1, 0, 0, 1, 0, 0], 0);
+  }
+  return peta;
+}
+
+/* ---------------- 3. Mengecilkan gambar ---------------- */
+function namaFilter(dict) {
+  const f = dict.get(N("Filter"));
+  if (f instanceof P.PDFName) return [f.decodeText()];
+  if (f instanceof P.PDFArray) return f.asArray().map((x) => (x instanceof P.PDFName ? x.decodeText() : ""));
+  return [];
+}
+function angkaDari(dict, kunci) {
+  const v = dict.get(N(kunci));
+  return v && v.asNumber ? v.asNumber() : 0;
+}
+
+// Ukuran halaman terbesar, dipakai bila letak gambar tidak ditemukan.
+function halamanTerbesar(doc) {
+  let w = 612, h = 792;
+  doc.getPages().forEach((p) => { const s = p.getSize(); w = Math.max(w, s.width); h = Math.max(h, s.height); });
+  return { w, h };
+}
+
+function kumpulkanGambar(doc, tampil) {
+  const ctx = doc.context, smask = new Set(), daftar = [];
+  for (const [, obj] of ctx.enumerateIndirectObjects()) {
+    if (!(obj instanceof P.PDFRawStream)) continue;
+    const s = obj.dict.get(N("SMask"));
+    if (s instanceof P.PDFRef) smask.add(s.tag);
+  }
+  const cadangan = halamanTerbesar(doc);
+  for (const [ref, obj] of ctx.enumerateIndirectObjects()) {
+    if (!(obj instanceof P.PDFRawStream)) continue;
+    const d = obj.dict;
+    if (d.get(N("Subtype")) !== N("Image") || smask.has(ref.tag)) continue;
+    const im = d.get(N("ImageMask"));
+    if (im && im.asBoolean && im.asBoolean()) continue;      // topeng stensil, sudah amat kecil
+    if (d.get(N("Mask"))) continue;                          // topeng warna, bisa rusak bila dikodekan ulang
+    const w = angkaDari(d, "Width"), h = angkaDari(d, "Height");
+    if (!w || !h) continue;
+    const sm = d.get(N("SMask"));
+    const smObj = sm instanceof P.PDFRef ? ctx.lookup(sm) : null;
+    daftar.push({
+      ref, obj, w, h,
+      bpc: angkaDari(d, "BitsPerComponent") || 8,
+      filter: namaFilter(d),
+      tampil: tampil.get(ref.tag) || null,
+      cadangan,
+      smRef: smObj instanceof P.PDFRawStream ? sm : null,
+      smObj: smObj instanceof P.PDFRawStream ? smObj : null,
+      lama: obj.contents.length + (smObj instanceof P.PDFRawStream ? smObj.contents.length : 0)
+    });
+  }
+  return daftar;
+}
+
+function ukuranSasaran(g, aturan) {
+  const t = g.tampil || g.cadangan;
+  const k = aturan.dpi / 72;
+  let s = Math.min(1, (t.w * k) / g.w, (t.h * k) / g.h);
+  s = Math.min(s, SISI_MAKS / Math.max(g.w, g.h), Math.sqrt(LUAS_MAKS / (g.w * g.h)));
+  if (!isFinite(s) || s <= 0) s = 1;
+  return { tw: Math.max(1, Math.round(g.w * s)), th: Math.max(1, Math.round(g.h * s)), s };
+}
+
+// Gambar bitonal (1 bit, CCITT, JBIG2) dikodekan ulang sebagai 1 bit, bukan JPEG.
+function apaBitonal(g) {
+  return g.bpc === 1 || g.filter.includes("CCITTFaxDecode") || g.filter.includes("JBIG2Decode");
+}
+
+function salinanTanpaTopeng(obj) {
+  const d = obj.dict.clone();
+  ["SMask", "Mask", "Alternates", "OC", "Metadata", "StructParent", "OPI"].forEach((k) => d.delete(N(k)));
+  return P.PDFRawStream.of(d, obj.contents);
+}
+
+// Menggambar banyak gambar sekaligus: tiap gambar menjadi satu halaman pada
+// dokumen bantu, lalu halaman itu digambar pdf.js pada ukuran sasaran.
+async function gambarUlang(doc, tugas) {
+  const bantu = await P.PDFDocument.create();
+  const penyalin = P.PDFObjectCopier.for(doc.context, bantu.context);
+  for (const t of tugas) {
+    const salin = penyalin.copy(t.aliran);
+    const ref = bantu.context.register(salin);
+    const bagi = Math.max(1, Math.ceil(Math.max(t.tw, t.th) / 14000));
+    const pw = t.tw / bagi, ph = t.th / bagi;
+    const hal = bantu.addPage([pw, ph]);
+    const kunci = hal.node.newXObject("Im", ref);
+    hal.pushOperators(P.pushGraphicsState(), P.concatTransformationMatrix(pw, 0, 0, ph, 0, 0),
+                      P.drawObject(kunci), P.popGraphicsState());
+    t.bagi = bagi;
+  }
+  const data = await bantu.save({ useObjectStreams: false });
+  const js = await pdfjsLib.getDocument({ data, isEvalSupported: false }).promise;
+  try {
+    for (let i = 0; i < tugas.length; i++) {
+      const t = tugas[i];
+      const hal = await js.getPage(i + 1);
+      const vp = hal.getViewport({ scale: t.bagi });
+      const kanvas = document.createElement("canvas");
+      kanvas.width = t.tw; kanvas.height = t.th;
+      const c = kanvas.getContext("2d", { alpha: false, willReadFrequently: t.perluPiksel });
+      c.fillStyle = "#ffffff"; c.fillRect(0, 0, t.tw, t.th);
+      await hal.render({ canvasContext: c, viewport: vp, intent: "print" }).promise;
+      t.kanvas = kanvas;
+      hal.cleanup();
+    }
+  } finally {
+    await js.destroy();
+  }
+}
+
+function keAbu(kanvas) {
+  const c = kanvas.getContext("2d");
+  const data = c.getImageData(0, 0, kanvas.width, kanvas.height);
+  const p = data.data;
+  for (let i = 0; i < p.length; i += 4) {
+    const y = (p[i] * 299 + p[i + 1] * 587 + p[i + 2] * 114) / 1000;
+    p[i] = p[i + 1] = p[i + 2] = y;
+  }
+  c.putImageData(data, 0, 0);
+}
+
+function jpegDari(kanvas, mutu) {
+  return new Promise((jadi, gagal) => kanvas.toBlob(async (blob) => {
+    if (!blob) { gagal(new Error("Peramban gagal membuat JPEG.")); return; }
+    jadi(new Uint8Array(await blob.arrayBuffer()));
+  }, "image/jpeg", mutu));
+}
+
+// Isi kanvas sebagai deretan byte abu-abu atau RGB, untuk dimampatkan lossless.
+function pikselMentah(kanvas, abu) {
+  const p = kanvas.getContext("2d").getImageData(0, 0, kanvas.width, kanvas.height).data;
+  const n = kanvas.width * kanvas.height;
+  if (abu) { const o = new Uint8Array(n); for (let i = 0; i < n; i++) o[i] = p[i * 4]; return o; }
+  const o = new Uint8Array(n * 3);
+  for (let i = 0, j = 0; i < n; i++, j += 3) { o[j] = p[i * 4]; o[j + 1] = p[i * 4 + 1]; o[j + 2] = p[i * 4 + 2]; }
+  return o;
+}
+
+function apaKelabu(kanvas) {
+  const p = kanvas.getContext("2d").getImageData(0, 0, kanvas.width, kanvas.height).data;
+  const langkah = Math.max(4, Math.floor(p.length / 4 / 40000) * 4);
+  for (let i = 0; i < p.length; i += langkah) {
+    if (Math.abs(p[i] - p[i + 1]) > 6 || Math.abs(p[i + 1] - p[i + 2]) > 6) return false;
+  }
+  return true;
+}
+
+function satuBit(kanvas) {
+  const w = kanvas.width, h = kanvas.height;
+  const p = kanvas.getContext("2d").getImageData(0, 0, w, h).data;
+  const baris = Math.ceil(w / 8), o = new Uint8Array(baris * h);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      if (p[(y * w + x) * 4] >= 128) o[y * baris + (x >> 3)] |= 0x80 >> (x & 7);
+    }
+  }
+  return o;
+}
+
+function aliranGambar(ctx, asal, isi, ubah) {
+  const d = asal.dict.clone();
+  ["Filter", "DecodeParms", "Decode", "Length", "Alternates", "SMaskInData", "Name", "Intent"].forEach((k) => d.delete(N(k)));
+  Object.keys(ubah).forEach((k) => d.set(N(k), ctx.obj(ubah[k])));
+  return P.PDFRawStream.of(d, isi);
+}
+
+async function kecilkanGambar(doc, aturan, kabarkan) {
+  const ctx = doc.context;
+  const tampil = petaTampil(doc);
+  const semua = kumpulkanGambar(doc, tampil);
+  let diganti = 0, hemat = 0;
+
+  for (let a = 0; a < semua.length; a += GAMBAR_PER_KELOMPOK) {
+    const kelompok = semua.slice(a, a + GAMBAR_PER_KELOMPOK);
+    kabarkan("gambar " + Math.min(a + kelompok.length, semua.length) + " dari " + semua.length);
+    const tugas = [];
+    for (const g of kelompok) {
+      const { tw, th, s } = ukuranSasaran(g, aturan);
+      // Gambar kecil yang tidak perlu diperkecil dan sudah JPEG cukup dicoba
+      // dikodekan ulang; gambar yang amat kecil dilewati saja.
+      if (g.w * g.h < 4096 && s > 0.95) continue;
+      g.tw = tw; g.th = th;
+      tugas.push({ g, jenis: "dasar", aliran: salinanTanpaTopeng(g.obj), tw, th, perluPiksel: true });
+      if (g.smObj) tugas.push({ g, jenis: "topeng", aliran: salinanTanpaTopeng(g.smObj), tw, th, perluPiksel: true });
+    }
+    if (!tugas.length) continue;
+    try {
+      await gambarUlang(doc, tugas);
+    } catch (e) {
+      console.warn("Kelompok gambar dilewati", e);
+      continue;
+    }
+    for (const g of kelompok) {
+      const dasar = tugas.find((t) => t.g === g && t.jenis === "dasar");
+      if (!dasar || !dasar.kanvas) continue;
+      const topeng = tugas.find((t) => t.g === g && t.jenis === "topeng");
+      try {
+        let isi, ubah;
+        if (apaBitonal(g)) {
+          isi = ctx.flateStream(satuBit(dasar.kanvas)).contents;
+          ubah = { Width: g.tw, Height: g.th, ColorSpace: "DeviceGray", BitsPerComponent: 1, Filter: "FlateDecode" };
+        } else {
+          if (aturan.abu) keAbu(dasar.kanvas);
+          const kelabu = aturan.abu || apaKelabu(dasar.kanvas);
+          const jpeg = await jpegDari(dasar.kanvas, aturan.mutu);
+          isi = jpeg;
+          ubah = { Width: g.tw, Height: g.th, ColorSpace: "DeviceRGB", BitsPerComponent: 8, Filter: "DCTDecode" };
+          // Logo dan grafik berwarna sedikit sering lebih kecil dan tetap tajam
+          // bila dimampatkan tanpa kehilangan. Dicoba untuk gambar yang tidak besar.
+          if (g.tw * g.th <= 1500000) {
+            const flate = ctx.flateStream(pikselMentah(dasar.kanvas, kelabu)).contents;
+            if (flate.length <= jpeg.length * 1.15) {
+              isi = flate;
+              ubah = { Width: g.tw, Height: g.th, ColorSpace: kelabu ? "DeviceGray" : "DeviceRGB", BitsPerComponent: 8, Filter: "FlateDecode" };
+            }
+          }
+        }
+        let isiTopeng = null;
+        if (topeng && topeng.kanvas) isiTopeng = ctx.flateStream(pikselMentah(topeng.kanvas, true)).contents;
+        if (g.smObj && !isiTopeng) continue;            // topeng gagal digambar, biarkan gambar asli
+        const baru = isi.length + (isiTopeng ? isiTopeng.length : 0);
+        if (baru > g.lama * HEMAT_MIN) continue;
+        ctx.assign(g.ref, aliranGambar(ctx, g.obj, isi, ubah));
+        if (isiTopeng) {
+          ctx.assign(g.smRef, aliranGambar(ctx, g.smObj, isiTopeng,
+            { Width: g.tw, Height: g.th, ColorSpace: "DeviceGray", BitsPerComponent: 8, Filter: "FlateDecode" }));
+        }
+        diganti++; hemat += g.lama - baru;
+      } catch (e) {
+        console.warn("Gambar dilewati", e);
+      } finally {
+        dasar.kanvas.width = dasar.kanvas.height = 0;
+        if (topeng && topeng.kanvas) topeng.kanvas.width = topeng.kanvas.height = 0;
+      }
+    }
+  }
+  return { jumlah: semua.length, diganti, hemat };
+}
+
+/* ---------------- 4. Merapikan struktur ---------------- */
+function rapikanStruktur(doc) {
+  const ctx = doc.context;
+  // Gambar mini halaman dan data pribadi aplikasi pembuat (misalnya salinan
+  // berkas Illustrator) tidak dipakai saat membaca dan sering amat besar.
+  doc.getPages().forEach((p) => { p.node.delete(N("Thumb")); p.node.delete(N("PieceInfo")); });
+  doc.catalog.delete(N("PieceInfo"));
+  const meta = doc.catalog.lookupMaybe(N("Metadata"), P.PDFRawStream);
+  if (meta && meta.contents.length > 65536) doc.catalog.delete(N("Metadata"));
+
+  // Aliran yang belum dimampatkan, atau dimampatkan dengan cara lemah, dimampatkan ulang.
+  const lemah = new Set(["ASCIIHexDecode", "ASCII85Decode", "LZWDecode", "RunLengthDecode"]);
+  for (const [ref, obj] of ctx.enumerateIndirectObjects()) {
+    if (!(obj instanceof P.PDFRawStream) || obj.contents.length < 256) continue;
+    const jenis = obj.dict.get(N("Type"));
+    if (jenis === N("XRef") || jenis === N("ObjStm")) continue;
+    const f = namaFilter(obj.dict);
+    const parm = obj.dict.get(N("DecodeParms"));
+    let mentah = null;
+    if (!f.length) mentah = obj.contents;
+    else if (f.every((x) => lemah.has(x)) && !parm) {
+      try { mentah = P.decodePDFRawStream(obj).decode(); } catch (e) { mentah = null; }
+    }
+    if (!mentah) continue;
+    const isi = ctx.flateStream(mentah).contents;
+    if (isi.length >= obj.contents.length) continue;
+    const d = obj.dict.clone();
+    d.delete(N("DecodeParms")); d.delete(N("Length"));
+    d.set(N("Filter"), N("FlateDecode"));
+    ctx.assign(ref, P.PDFRawStream.of(d, isi));
+  }
+  return buangYatim(ctx);
+}
+
+// Objek yang tidak lagi dirujuk dari mana pun, misalnya sisa suntingan
+// lama pada berkas yang disimpan bertahap, tidak ikut ditulis.
+function buangYatim(ctx) {
+  const ada = new Set(), tumpuk = [];
+  const t = ctx.trailerInfo;
+  [t.Root, t.Info, t.Encrypt, t.ID].forEach((o) => { if (o) tumpuk.push(o); });
+  while (tumpuk.length) {
+    const o = tumpuk.pop();
+    if (o instanceof P.PDFRef) {
+      if (ada.has(o.tag)) continue;
+      ada.add(o.tag);
+      const v = ctx.lookup(o);
+      if (v) tumpuk.push(v);
+    } else if (o instanceof P.PDFDict) {
+      for (const [, v] of o.entries()) tumpuk.push(v);
+    } else if (o instanceof P.PDFArray) {
+      for (let i = 0; i < o.size(); i++) tumpuk.push(o.get(i));
+    } else if (o instanceof P.PDFStream) {
+      tumpuk.push(o.dict);
+    }
+  }
+  let buang = 0;
+  for (const [ref] of ctx.enumerateIndirectObjects()) {
+    if (!ada.has(ref.tag)) { ctx.delete(ref); buang++; }
+  }
+  return buang;
+}
+
+/* ---------------- 5. Cara cadangan: ratakan jadi gambar ---------------- */
+async function ratakan(bytes, aturan, kabarkan) {
+  const js = await pdfjsLib.getDocument({ data: bytes.slice(0), isEvalSupported: false }).promise;
+  const hasil = await P.PDFDocument.create();
+  try {
+    for (let i = 1; i <= js.numPages; i++) {
+      kabarkan("halaman " + i + " dari " + js.numPages);
+      const hal = await js.getPage(i);
+      const vp1 = hal.getViewport({ scale: 1 });
+      let skala = aturan.dpi / 72;
+      skala = Math.min(skala, Math.sqrt(LUAS_MAKS / (vp1.width * vp1.height)), SISI_MAKS / Math.max(vp1.width, vp1.height));
+      const vp = hal.getViewport({ scale: skala });
+      const kanvas = document.createElement("canvas");
+      kanvas.width = Math.ceil(vp.width); kanvas.height = Math.ceil(vp.height);
+      const c = kanvas.getContext("2d", { alpha: false, willReadFrequently: aturan.abu });
+      c.fillStyle = "#ffffff"; c.fillRect(0, 0, kanvas.width, kanvas.height);
+      await hal.render({ canvasContext: c, viewport: vp, intent: "print" }).promise;
+      if (aturan.abu) keAbu(kanvas);
+      const jpg = await hasil.embedJpg(await jpegDari(kanvas, aturan.mutu));
+      const p = hasil.addPage([vp1.width, vp1.height]);
+      p.drawImage(jpg, { x: 0, y: 0, width: vp1.width, height: vp1.height });
+      kanvas.width = kanvas.height = 0;
+      hal.cleanup();
+    }
+  } finally {
+    await js.destroy();
+  }
+  return hasil.save({ useObjectStreams: true });
+}
+
+/* ---------------- 6. Mengatur satu berkas ---------------- */
+function bertandaTangan(doc) {
+  try {
+    const af = doc.catalog.lookupMaybe(N("AcroForm"), P.PDFDict);
+    if (!af) return false;
+    const sf = af.get(N("SigFlags"));
+    if (sf && sf.asNumber && sf.asNumber() > 0) return true;
+    const fields = af.lookupMaybe(N("Fields"), P.PDFArray);
+    if (!fields) return false;
+    for (let i = 0; i < fields.size(); i++) {
+      const f = doc.context.lookup(fields.get(i));
+      if (f instanceof P.PDFDict && f.get(N("FT")) === N("Sig") && f.get(N("V"))) return true;
+    }
+  } catch (e) { /* abaikan */ }
+  return false;
+}
+
+async function struktural(bytes, aturan, kabarkan) {
+  const doc = await P.PDFDocument.load(bytes.slice(0), { updateMetadata: false });
+  const tanda = bertandaTangan(doc);
+  const gb = await kecilkanGambar(doc, aturan, kabarkan);
+  kabarkan("merapikan struktur");
+  rapikanStruktur(doc);
+  const hasil = await doc.save({ useObjectStreams: true, addDefaultPage: false, updateFieldAppearances: false });
+  return { bytes: hasil, tanda, gambar: gb };
+}
+
+// Hasil diperiksa dengan membukanya kembali sebelum diberikan.
+async function periksa(bytes, jumlahHalaman) {
+  const js = await pdfjsLib.getDocument({ data: bytes.slice(0), isEvalSupported: false }).promise;
+  const ok = js.numPages === jumlahHalaman;
+  if (ok) { const h = await js.getPage(1); await h.getOperatorList(); }
+  await js.destroy();
+  return ok;
+}
+
+async function kompresBerkas(f, pilihan, kabarkan) {
+  const asli = new Uint8Array(await f.arrayBuffer());
+  let jumlahHalaman = 0, terkunci = false, sandi = false;
+  try {
+    const js = await pdfjsLib.getDocument({ data: asli.slice(0), isEvalSupported: false }).promise;
+    jumlahHalaman = js.numPages;
+    await js.destroy();
+  } catch (e) {
+    if (e && e.name === "PasswordException") sandi = true;
+    else throw new Error("Berkas tidak bisa dibaca, kemungkinan rusak.");
+  }
+  if (sandi) {
+    return { bytes: asli, cara: "asli", asli: asli.length, kunci: true,
+             catatan: ["Berkas ini dilindungi kata sandi pembuka. Buka dulu proteksinya, lalu coba lagi."] };
+  }
+
+  const batas = pilihan.batas;                       // dalam byte, atau 0
+  const mulai = URUTAN.indexOf(pilihan.tingkat);
+  const urutan = batas ? URUTAN.slice(mulai) : [pilihan.tingkat];
+  let terbaik = { bytes: asli, cara: "asli", tingkat: null };
+  const catatan = [];
+  let tanda = false;
+
+  for (const t of urutan) {
+    const aturan = Object.assign({}, TINGKAT[t], { abu: pilihan.abu });
+    try {
+      const r = await struktural(asli, aturan, (s) => kabarkan(TINGKAT[t].nama + ", " + s));
+      tanda = tanda || r.tanda;
+      if (r.bytes.length < terbaik.bytes.length && await periksa(r.bytes, jumlahHalaman)) {
+        terbaik = { bytes: r.bytes, cara: "struktural", tingkat: t, gambar: r.gambar };
+      }
+    } catch (e) {
+      if ((P.EncryptedPDFError && e instanceof P.EncryptedPDFError) || /encrypt/i.test(String(e && e.message))) {
+        terkunci = true; break;
+      }
+      console.warn(e);
+      catatan.push("Cara biasa gagal pada tingkat " + TINGKAT[t].nama + ".");
+    }
+    if (!batas || terbaik.bytes.length <= batas) break;
+  }
+
+  const perluRata = pilihan.bolehRata && (terkunci || (batas && terbaik.bytes.length > batas) || terbaik.cara === "asli");
+  if (perluRata) {
+    for (const t of urutan) {
+      const aturan = Object.assign({}, TINGKAT[t], { abu: pilihan.abu });
+      try {
+        const r = await ratakan(asli, aturan, (s) => kabarkan("Ratakan " + TINGKAT[t].nama + ", " + s));
+        if (r.length < terbaik.bytes.length && await periksa(r, jumlahHalaman)) {
+          terbaik = { bytes: r, cara: "rata", tingkat: t };
+        }
+      } catch (e) { console.warn(e); }
+      if (!batas || terbaik.bytes.length <= batas) break;
+    }
+  }
+
+  // Penghematan di bawah 2% tidak sepadan dengan risiko mengganti berkas asli.
+  if (terbaik.cara !== "asli" && terbaik.bytes.length > asli.length * UNTUNG_MIN) {
+    terbaik = { bytes: asli, cara: "asli", tingkat: null };
+  }
+
+  if (terkunci && terbaik.cara === "asli") {
+    catatan.push("Berkas ini terkunci dengan izin pemilik sehingga strukturnya tidak bisa diubah. " +
+      "Centang pilihan ubah halaman menjadi gambar bila ingin tetap dikecilkan.");
+  }
+  if (tanda && terbaik.cara !== "asli") catatan.push("Berkas ini bertanda tangan elektronik. Tanda tangan pada hasil kompresi tidak lagi sah.");
+  if (batas && terbaik.bytes.length > batas) {
+    catatan.push("Batas " + Bersama.ukuran(batas) + " belum tercapai" +
+      (pilihan.bolehRata ? "." : ". Centang pilihan ubah halaman menjadi gambar untuk mengecilkan lebih jauh."));
+  }
+  return Object.assign(terbaik, { catatan, asli: asli.length, kunci: terkunci && terbaik.cara === "asli" });
+}
+
+/* ---------------- 7. Menjalankan antrean ---------------- */
+el("proses").addEventListener("click", async () => {
+  if (sibuk || !antre.length) return;
+  const mb = parseFloat(el("batasMb").value);
+  const pilihan = {
+    tingkat: (document.querySelector("input[name=tingkat]:checked") || {}).value || "seimbang",
+    abu: el("abu").checked,
+    bolehRata: el("bolehRata").checked,
+    batas: el("pakaiBatas").checked && mb > 0 ? Math.round(mb * 1048576) : 0
+  };
+  sibuk = true; gambarDaftar();
+  el("proses").textContent = "Memproses...";
+  el("bagianHasil").classList.remove("sembunyi");
+  const ul = el("daftarHasil");
+  ul.innerHTML = "";
+  let total = 0, totalBaru = 0;
+
+  for (let i = 0; i < antre.length; i++) {
+    const f = antre[i];
+    const li = document.createElement("li");
+    li.innerHTML = "<span class='nama'></span><span class='aksi'></span><span class='angka'></span><span class='cara'></span>";
+    li.querySelector(".nama").textContent = f.name;
+    li.querySelector(".angka").textContent = "Sedang diproses...";
+    ul.append(li);
+    const kabarkan = (s) => {
+      el("jalan").textContent = "Berkas " + (i + 1) + " dari " + antre.length + ", " + f.name + ". " + s + ".";
+    };
+    kabarkan("membaca");
+    await new Promise((r) => setTimeout(r, 20));
+    try {
+      const r = await kompresBerkas(f, pilihan, kabarkan);
+      total += r.asli; totalBaru += r.bytes.length;
+      const persen = Math.round((1 - r.bytes.length / r.asli) * 100);
+      const angka = li.querySelector(".angka"), cara = li.querySelector(".cara");
+      if (r.cara === "asli") {
+        li.className = "tetap";
+        angka.innerHTML = Bersama.ukuran(r.asli) + (r.kunci ? ", <b>tidak bisa dikompres</b>" : ", <b>sudah optimal</b>");
+        cara.textContent = r.kunci ? "Berkas asli dipertahankan."
+          : "Tidak ada cara yang menghasilkan berkas lebih kecil, jadi berkas asli tidak perlu diganti.";
+      } else {
+        li.className = "untung";
+        angka.innerHTML = Bersama.ukuran(r.asli) + " menjadi " + Bersama.ukuran(r.bytes.length) +
+          ", <b>" + persen + "% lebih kecil</b>";
+        cara.textContent = r.cara === "rata"
+          ? "Halaman diubah menjadi gambar pada tingkat " + TINGKAT[r.tingkat].nama + ". Teks tidak bisa dicari lagi."
+          : "Teks tetap utuh. Tingkat " + TINGKAT[r.tingkat].nama +
+            (r.gambar && r.gambar.diganti ? ", " + r.gambar.diganti + " dari " + r.gambar.jumlah + " gambar diperkecil." : ", struktur berkas dirapikan.");
+        const nama = Bersama.tanpaAkhiran(f.name) + "-kompres.pdf";
+        const tombol = document.createElement("button");
+        tombol.type = "button";
+        tombol.className = "tombol kecil";
+        tombol.textContent = "Unduh";
+        tombol.setAttribute("aria-label", "Unduh " + nama);
+        tombol.addEventListener("click", () => Bersama.unduh(r.bytes, nama));
+        li.querySelector(".aksi").append(tombol);
+      }
+      r.catatan.forEach((c) => {
+        const s = document.createElement("span");
+        s.className = "awas";
+        s.textContent = " " + c;
+        cara.append(s);
+      });
+    } catch (e) {
+      console.error(e);
+      li.className = "gagal";
+      li.querySelector(".angka").textContent = "Gagal diproses.";
+      li.querySelector(".cara").textContent = (e && e.message) || "Terjadi kesalahan yang tidak diketahui.";
+    }
+  }
+  el("jalan").textContent = antre.length > 1
+    ? "Selesai. Total " + Bersama.ukuran(total) + " menjadi " + Bersama.ukuran(totalBaru) + "."
+    : "Selesai.";
+  sibuk = false;
+  el("proses").textContent = "Kompres sekarang";
+  gambarDaftar();
+});
+
+gambarDaftar();
+</script>
+</body>
+</html>

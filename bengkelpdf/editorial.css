@@ -1,0 +1,495 @@
+/*
+ * Bengkel PDF | Editorial Split v2
+ * Dirancang mengikuti mockup terpilih: katalog 9 alat (3 x 3 di desktop), kiri narasi,
+ * ilustrasi pesisir, dan ornamen geometris/organik terinspirasi Kalimantan.
+ * Semua aturan beranda dibatasi ke body.beranda-editorial.
+ */
+body.beranda-editorial {
+  /* Warna beranda mengambil dari variabel di gaya.css, supaya ikut berganti
+     bersama tema. */
+  --editorial-navy: var(--biru-tua);
+  --editorial-gold: var(--emas-tua);
+  --editorial-muted: var(--tinta-lembut);
+  --editorial-gold-text: var(--emas-teks);
+  --editorial-paper: var(--latar);
+  --editorial-line: var(--garis-editorial);
+  --editorial-gutter: clamp(18px, 6.2vw, 94px);
+  --editorial-column-gap: clamp(22px, 3.85vw, 56px);
+  margin: 0;
+  background: var(--editorial-paper);
+  color: var(--editorial-navy);
+  font-family: "Public Sans", sans-serif;
+  font-size: 15px;
+}
+.beranda-editorial *,
+.beranda-editorial *::before,
+.beranda-editorial *::after { box-sizing: border-box; }
+.beranda-editorial body::before,
+body.beranda-editorial::before { display: none !important; }
+.beranda-editorial .sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Menu atas kini diatur bersama di gaya.css supaya sama di semua halaman. */
+
+/* Editorial split: kanan mulai dengan alat, bukan blok header tambahan.
+   Hiasan baru dibatasi ke area pinggir kiri, bukan menimpa kartu atau formulir. */
+.beranda-editorial .editorial-halaman {
+  max-width: 1550px;
+  margin: 0 auto;
+  padding: 0 var(--editorial-gutter);
+}
+.beranda-editorial .editorial-split {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, .456fr) minmax(0, .544fr);
+  column-gap: var(--editorial-column-gap);
+  align-items: stretch;
+}
+/* Pita anyaman kembar: jalinan belah ketupat yang samar di tepi kiri dan kanan,
+   simetris dan seluruhnya di luar kolom isi. Hanya dekorasi, tidak menangkap
+   pointer/fokus dan tidak memengaruhi layout. */
+.beranda-editorial .editorial-split::before,
+.beranda-editorial .editorial-split::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  width: 48px;
+  top: 0;
+  bottom: 0;
+  background: url("ornamen-kalimantan-anyaman.svg") left top / 48px 24px repeat-y;
+  opacity: var(--anyaman-opasitas);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 9%, #000 91%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 9%, #000 91%, transparent);
+}
+.beranda-editorial .editorial-split::before { left: calc(var(--editorial-gutter) * -.5 - 24px); }
+.beranda-editorial .editorial-split::after { right: calc(var(--editorial-gutter) * -.5 - 24px); }
+.beranda-editorial .editorial-cerita {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.beranda-editorial .editorial-pembuka {
+  z-index: 1;
+  padding: 34px 10px 0 0;
+}
+.beranda-editorial .editorial-label {
+  color: var(--editorial-gold-text);
+  font-family: "Public Sans", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .15em;
+  line-height: 1.55;
+  text-transform: uppercase;
+}
+.beranda-editorial .editorial-pembuka > .editorial-label { margin: 0 0 16px; }
+.beranda-editorial .editorial-label span { padding: 0 5px; }
+.beranda-editorial h1,
+.beranda-editorial h2,
+.beranda-editorial .editorial-kartu strong {
+  font-family: "Public Sans", system-ui, sans-serif;
+  letter-spacing: -.025em;
+  font-weight: 700;
+}
+.beranda-editorial h1 {
+  color: var(--editorial-navy);
+  font-size: clamp(38px, 3.6vw, 54px);
+  line-height: 1.06;
+  margin: 0 0 19px;
+  max-width: 600px;
+}
+.beranda-editorial h1 span { display: block; color: var(--editorial-gold); }
+.beranda-editorial .editorial-deskripsi {
+  max-width: 53ch;
+  color: var(--editorial-muted);
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.65;
+  margin: 0 0 21px;
+}
+.beranda-editorial .editorial-privasi {
+  background: var(--kaca);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border: 0;
+  border-left: 3px solid var(--editorial-gold);
+  border-radius: 4px;
+  display: block;
+  padding: 13px 21px 15px 25px;
+  margin: 0 0 22px;
+  max-width: 600px;
+  min-height: 105px;
+}
+.beranda-editorial .editorial-privasi .editorial-privasi-label {
+  font-size: 12px;
+  line-height: 1.5;
+  letter-spacing: .13em;
+  color: var(--editorial-gold-text);
+  font-weight: 700;
+  margin: 0 0 5px;
+}
+.beranda-editorial .editorial-privasi strong {
+  display: block;
+  font: 700 17px/1.3 "Public Sans", system-ui, sans-serif;
+  color: var(--editorial-navy);
+  margin: 0 0 4px;
+}
+.beranda-editorial .editorial-privasi > p:last-child {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--editorial-muted);
+}
+.beranda-editorial .editorial-cari {
+  display: block;
+  margin: 0;
+  max-width: 600px;
+}
+.beranda-editorial .editorial-cari-baris {
+  display: flex;
+  overflow: hidden;
+  background: var(--putih);
+  border: 1px solid var(--cari-garis);
+  border-radius: 5px;
+}
+.beranda-editorial .editorial-cari-baris:focus-within { outline: 3px solid var(--fokus-lembut); outline-offset: 1px; }
+.beranda-editorial #cariAlat {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  width: 100%;
+  border: 0;
+  border-radius: 0;
+  outline: 0;
+  box-shadow: none;
+  background: transparent;
+  color: var(--editorial-navy);
+  font-size: 16px;
+  min-height: 50px;
+  padding: 12px 17px;
+}
+.beranda-editorial #cariAlat::placeholder { color: var(--teks-contoh); opacity: 1; }
+.beranda-editorial .editorial-cari button {
+  flex: none;
+  min-width: 112px;
+  min-height: 48px;
+  border: 0;
+  border-radius: 0;
+  background: var(--cari-tombol);
+  color: var(--aksen-teks);
+  font: 600 15px "Public Sans", sans-serif;
+  cursor: pointer;
+  padding: 10px 19px;
+}
+.beranda-editorial .editorial-cari button:hover { background: var(--aksen-hover); }
+.beranda-editorial .editorial-cari button:focus-visible { outline: 3px solid var(--cari-fokus); outline-offset: -3px; }
+.beranda-editorial .editorial-cari button span { display: none; }
+
+/* Banner sebagai latar penuh kolom kiri, menjulur sampai tepi kiri layar dan
+   melebur ke arah kartu di kanan. Bagian atas dipudarkan ke warna kertas supaya
+   judul dan teks tetap gelap dan mudah dibaca; foto tampil jelas di bagian bawah.
+   Banner mengikuti tema (variabel --banner dan --banner-latar-posisi di gaya.css). */
+.beranda-editorial .editorial-cerita { isolation: isolate; }
+.beranda-editorial .editorial-cerita::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--editorial-gutter) * -1 - max(0px, (100vw - 1550px) / 2));
+  right: calc(var(--editorial-column-gap) * -.85);
+  background:
+    linear-gradient(to bottom, rgba(var(--rgb-latar),.97) 0%, rgba(var(--rgb-latar),.93) 42%, rgba(var(--rgb-latar),.62) 62%, rgba(var(--rgb-latar),0) 82%),
+    linear-gradient(to bottom, transparent 62%, rgba(var(--rgb-gelap),.22) 80%, rgba(var(--rgb-gelap),.62)),
+    var(--banner) var(--banner-latar-posisi) / var(--banner-latar-ukuran, cover) no-repeat;
+  -webkit-mask-image: linear-gradient(to right, #000 88%, transparent);
+  mask-image: linear-gradient(to right, #000 88%, transparent);
+  pointer-events: none;
+}
+/* Pita anyaman kiri tidak dipakai lagi karena tepi kiri kini tertutup foto. */
+.beranda-editorial .editorial-split::before { display: none; }
+
+/* Keterangan di pojok kiri bawah, di atas bagian foto yang paling jelas. */
+.beranda-editorial .editorial-lanskap {
+  margin: auto calc(var(--editorial-column-gap) * -.85) 0 calc(var(--editorial-gutter) * -1);
+  position: relative;
+  z-index: 1;
+  height: 120px;
+}
+/* Gambar latar ada di .editorial-cerita::before; elemen ini hanya membawa uraian gambarnya. */
+.beranda-editorial .editorial-lanskap-gambar { position: absolute; inset: 0; }
+.beranda-editorial .editorial-lanskap figcaption {
+  z-index: 2;
+  position: absolute;
+  left: clamp(36px,5.1vw,82px);
+  bottom: 20px;
+  right: 18px;
+  color: #fff;
+  display: grid;
+  gap: 4px;
+  font-size: 14px;
+  line-height: 1.4;
+  text-shadow: 0 1px 10px rgba(0,0,0,.55);
+}
+.beranda-editorial .editorial-lanskap figcaption span:first-child {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .18em;
+}
+.beranda-editorial .editorial-lanskap figcaption i {
+  display: inline-block;
+  background: var(--emas-terang);
+  width: 37px;
+  height: 2px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+/* 9 alat, 3 x 3 di desktop supaya kisi penuh tanpa petak kosong.
+   Kolom alat dibuat lentur agar tiga baris kartu mengisi tinggi kolom narasi. */
+.beranda-editorial .editorial-alat {
+  padding: 30px 0 18px;
+  min-width: 0;
+  scroll-margin-top: 95px;
+  display: flex;
+  flex-direction: column;
+}
+.beranda-editorial .editorial-alat-kepala { margin: 0; padding: 0; }
+.beranda-editorial .editorial-kartu-grid {
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  grid-auto-rows: minmax(180px,1fr);
+  gap: 14px;
+}
+.beranda-editorial .editorial-kartu {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  min-height: 180px;
+  padding: 20px 20px 18px;
+  background: var(--putih);
+  border: 1px solid var(--kartu-garis);
+  border-radius: 4px;
+  color: var(--editorial-navy);
+  text-decoration: none;
+  box-shadow: 0 1px 6px rgba(var(--rgb-bayangan-kartu),.022);
+  transition: border-color .16s ease, background-color .16s ease;
+}
+.beranda-editorial .editorial-kartu:hover {
+  border-color: var(--kartu-garis-hover);
+  background: var(--kartu-latar-hover);
+  transform: none;
+  box-shadow: 0 1px 8px rgba(var(--rgb-bayangan-kartu),.045);
+}
+.beranda-editorial .editorial-kartu:focus-visible { outline: 3px solid var(--editorial-gold); outline-offset: 3px; }
+.beranda-editorial .editorial-kartu[hidden] { display: none !important; }
+.beranda-editorial .editorial-kartu-nomor {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 8px;
+  row-gap: 3px;
+  font: 700 14px/1 "Public Sans", system-ui, sans-serif;
+  letter-spacing: .08em;
+  font-variant-numeric: tabular-nums;
+  color: var(--editorial-gold-text);
+  margin-bottom: 12px;
+}
+.beranda-editorial .editorial-kartu-nomor small {
+  display: inline-block;
+  margin: 0;
+  padding: 4px 8px;
+  background: var(--lencana-latar);
+  border-radius: 12px;
+  color: var(--lencana-teks);
+  font: 700 10px/1 "Public Sans",sans-serif;
+  letter-spacing: .04em;
+}
+.beranda-editorial .editorial-kartu strong {
+  display: block;
+  color: var(--editorial-navy);
+  font-size: clamp(16px, 1.25vw, 18px);
+  line-height: 1.15;
+  margin: 0 0 10px;
+  overflow-wrap: break-word;
+}
+.beranda-editorial .editorial-kartu > span:nth-child(3) {
+  color: var(--editorial-muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+.beranda-editorial .editorial-kartu .editorial-buka {
+  margin-top: auto;
+  padding-top: 17px;
+  color: var(--tautan-kartu);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.beranda-editorial .editorial-kartu .editorial-buka span { margin-left: 5px; }
+.beranda-editorial .editorial-keterangan {
+  color: var(--editorial-muted);
+  font-size: 14px;
+  line-height: 1.55;
+  margin: 17px 0 0;
+}
+.beranda-editorial .editorial-kosong {
+  background: var(--kosong-latar);
+  padding: 18px 22px;
+  border-left: 3px solid var(--kosong-garis);
+  color: var(--editorial-muted);
+  font-size: 15px;
+}
+.beranda-editorial .editorial-kosong[hidden] { display: none; }
+
+/* Pita penutup: teks di kiri, hamparan anyaman di kanan. */
+.beranda-editorial .editorial-penutup {
+  margin: 0 calc(var(--editorial-gutter) * -1);
+  padding: 31px var(--editorial-gutter) 33px;
+  background: linear-gradient(to bottom, rgba(var(--rgb-gelap),.09), rgba(var(--rgb-gelap),0) 30px), linear-gradient(110deg,var(--penutup-1),var(--penutup-2) 60%,var(--penutup-3));
+  border-top: 0;
+  border-bottom: 0;
+  border-radius: 0;
+  display: grid;
+  grid-template-columns: minmax(0,1.18fr) minmax(0,1fr);
+  align-items: center;
+  gap: 43px;
+  position: relative;
+  overflow: hidden;
+}
+/* Tidak mengulang motif besar di footer; ruang kosong adalah bagian desain. */
+.beranda-editorial .editorial-penutup-isi { position: relative; z-index: 1; }
+.beranda-editorial .editorial-penutup .editorial-label { margin: 0 0 8px; }
+.beranda-editorial .editorial-penutup h2 {
+  color: var(--editorial-navy);
+  font-size: clamp(24px, 2.4vw, 34px);
+  line-height: 1.05;
+  margin: 0 0 10px;
+  /* Judul berupa alamat tautan panjang tanpa spasi; boleh dipatah agar tidak terpotong di ponsel. */
+  overflow-wrap: anywhere;
+}
+.beranda-editorial .editorial-penutup-isi > p:last-child {
+  color: var(--editorial-muted);
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0;
+}
+/* Hamparan anyaman di sisi kanan pita penutup: pola yang sama dengan pita di
+   tepi halaman, melebar sampai tepi kanan dan memudar ke arah teks. */
+.beranda-editorial .editorial-penutup-ornamen {
+  align-self: stretch;
+  min-height: 124px;
+  margin: -31px calc(var(--editorial-gutter) * -1) -33px 0;
+  background: url("ornamen-kalimantan-anyaman.svg") right center / 48px 24px repeat;
+  opacity: .3;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 34%), linear-gradient(to bottom, transparent, #000 22%, #000 78%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent, #000 34%), linear-gradient(to bottom, transparent, #000 22%, #000 78%, transparent);
+  mask-composite: intersect;
+}
+.beranda-editorial .editorial-kaki {
+  margin: 0;
+  border-top: 1px solid var(--kaki-garis);
+  padding: 13px 0 23px;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 5px 20px;
+  color: var(--editorial-muted);
+  font-size: 14px;
+  letter-spacing: .01em;
+}
+.beranda-editorial .editorial-kaki::before,
+.beranda-editorial .editorial-kaki::after { display: none; }
+
+/* Responsive: desktop 3 kolom, medium 2 kolom, tablet 3 kolom, ponsel 2 lalu 1 kolom.
+   Pada kisi 2 kolom, kartu ke-9 melebar penuh supaya tidak menyisakan petak kosong. */
+@media (max-width: 1230px) and (min-width: 1041px) {
+  .beranda-editorial .editorial-kartu-grid { grid-template-columns: repeat(2,minmax(0,1fr)); grid-auto-rows: minmax(158px,auto); }
+  .beranda-editorial .editorial-kartu { min-height: 158px; }
+  .beranda-editorial .editorial-kartu:last-child:nth-child(odd) { grid-column: 1 / -1; min-height: 0; }
+  .beranda-editorial .editorial-pembuka { padding-top: 30px; }
+  .beranda-editorial h1 { font-size: clamp(38px,3.8vw,48px); }
+}
+@media (max-width: 1040px) {
+  .beranda-editorial .editorial-split { grid-template-columns: 1fr; }
+  .beranda-editorial .editorial-pembuka { padding: 38px 0 30px; }
+  .beranda-editorial h1 { max-width: 680px; font-size: clamp(40px, 5.4vw, 58px); }
+  .beranda-editorial .editorial-deskripsi { max-width: 620px; }
+  .beranda-editorial .editorial-privasi,
+  .beranda-editorial .editorial-cari { max-width: 620px; }
+  .beranda-editorial .editorial-lanskap { margin: 10px calc(var(--editorial-gutter) * -1) 0; height: 150px; }
+  .beranda-editorial .editorial-cerita::before {
+    right: calc(var(--editorial-gutter) * -1);
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  /* Tepi halaman menyempit: pita cukup satu belah ketupat. */
+  .beranda-editorial .editorial-split::before,
+  .beranda-editorial .editorial-split::after { width: 24px; }
+  .beranda-editorial .editorial-split::before { left: calc(var(--editorial-gutter) * -.5 - 12px); }
+  .beranda-editorial .editorial-split::after { right: calc(var(--editorial-gutter) * -.5 - 12px); }
+  .beranda-editorial .editorial-alat { padding: 29px 0 35px; position: relative; }
+  .beranda-editorial .editorial-alat::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: calc(var(--editorial-gutter) * -1);
+    right: calc(var(--editorial-gutter) * -1);
+    height: 30px;
+    background: linear-gradient(to bottom, rgba(var(--rgb-gelap),.09), rgba(var(--rgb-gelap),0));
+    pointer-events: none;
+  }
+  .beranda-editorial .editorial-kartu-grid { grid-template-columns: repeat(3, minmax(0,1fr)); grid-auto-rows: minmax(185px,auto); }
+  .beranda-editorial .editorial-kartu { min-height: 185px; }
+  .beranda-editorial .editorial-penutup { grid-template-columns: 1fr; gap: 24px; }
+  /* Satu kolom: anyaman menjadi pita pendek di bawah teks, memudar di kedua ujung. */
+  .beranda-editorial .editorial-penutup-ornamen {
+    min-height: 48px;
+    margin: 0 calc(var(--editorial-gutter) * -1) -33px;
+    background-position: center top;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 28%, #000 72%, transparent);
+    mask-image: linear-gradient(to right, transparent, #000 28%, #000 72%, transparent);
+  }
+}
+/* Pada viewport sempit ornamen pinggir disembunyikan agar tidak bertumpuk dengan konten. */
+@media (max-width: 700px) {
+  .beranda-editorial .editorial-split::before,
+  .beranda-editorial .editorial-split::after { display: none; }
+  .beranda-editorial .editorial-pembuka { padding: 30px 0 24px; }
+  .beranda-editorial h1 { font-size: clamp(34px, 8.4vw, 52px); }
+  .beranda-editorial .editorial-deskripsi { font-size: 16px; }
+  .beranda-editorial .editorial-kartu-grid { grid-template-columns: repeat(2,minmax(0,1fr)); grid-auto-rows: minmax(175px,auto); gap: 11px; }
+  .beranda-editorial .editorial-kartu { padding: 16px 15px; min-height: 175px; }
+  .beranda-editorial .editorial-kartu:last-child:nth-child(odd) { grid-column: 1 / -1; min-height: 0; }
+  .beranda-editorial .editorial-kartu strong { font-size: 17px; }
+  .beranda-editorial .editorial-kartu > span:nth-child(3) { font-size: 14px; }
+  .beranda-editorial .editorial-lanskap { height: 140px; }
+}
+@media (max-width: 440px) {
+  .beranda-editorial .editorial-kartu-grid { grid-template-columns: 1fr; grid-auto-rows: auto; }
+  .beranda-editorial .editorial-kartu,
+  .beranda-editorial .editorial-kartu:last-child:nth-child(odd) { min-height: 120px; }
+  .beranda-editorial .editorial-kartu strong { font-size: 18px; }
+  .beranda-editorial .editorial-kartu-nomor { margin-bottom: 6px; }
+  .beranda-editorial .editorial-privasi { padding: 14px 17px; }
+  .beranda-editorial .editorial-cari button { min-width: 80px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .beranda-editorial .editorial-kartu { transition: none; }
+}
