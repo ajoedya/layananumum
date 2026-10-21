@@ -38,8 +38,8 @@ window.KONTEN_BAWAAN = {
       "judul": "S-708/MK.03/2026 Langkah Strategis Belanja Kementerian/Lembaga pada Triwulan IV Tahun Anggaran 2026",
       "isi": "Terdapat penyesuaian kembali pagu belanja birokrasi pada akhir Triwulan IV TA 2026, rincian perubahan akan disampaikan pada kesempatan pertama." },
     { "tampil": true, "label": "[Perubahan Alamat Layanan]",
-      "judul": "Terdapat Perubahan Alamat Dashboard Anggaran dan Penyunting PDF.",
-      "isi": "Alamat situs Dashboard Anggaran (**ajoedya.github.io/jagakas**) & Alamat situs Penyunting PDF (**ajoedya.github.io/bengkelpdf**)." }
+      "judul": "Terdapat Perubahan Alamat Dashboard Anggaran dan Bengkel PDF.",
+      "isi": "Alamat situs Dashboard Anggaran (**ajoedya.github.io/jagakas**) & Alamat situs Bengkel PDF (**ajoedya.github.io/bengkelpdf**)." }
   ],
   "kelompok": [
     { "id": "perjadin", "nama": "Perjalanan dinas", "judulBagian": "Perjalanan dinas", "arsip": false, "tampil": true },
@@ -68,9 +68,9 @@ window.KONTEN_BAWAAN = {
       "uraian": "Tempat PIC Caput tiap seksi mengisi capaian keluaran (_output_) seksinya.",
       "alamat": "https://kemenkeu-my.sharepoint.com/:x:/g/personal/ivandana_saputra_kemenkeu_go_id/EXBeprZHSmBNnoMqSDTGhjAByrGOoIzKgq89T399r4HyeA?e=5yLWYP",
       "kunci": "keuangan caput capaian output keluaran pic seksi" },
-    { "tampil": true, "kelompok": "perkakas", "judul": "Perkakas PDF",
+    { "tampil": true, "kelompok": "perkakas", "judul": "Bengkel PDF",
       "uraian": "Edit teks, gabung, pecah, dan beri tanda air langsung di peramban tanpa mengunggah berkas.",
-      "alamat": "https://ajoedya.github.io/bengkelpdf/", "kunci": "perkakas pdf edit teks gabung pecah watermark tanda air kompres word naskah" },
+      "alamat": "https://ajoedya.github.io/bengkelpdf/", "kunci": "bengkel perkakas pdf edit teks gabung pecah watermark tanda air kompres word naskah" },
     { "tampil": true, "kelompok": "arsip", "judul": "Monitoring E-Perjadin v1",
       "uraian": "Pemantauan SPD untuk perjalanan dinas sebelum **27 Juli 2026**.",
       "alamat": "https://sites.google.com/view/gerbanginternal/halaman-muka/monitoring-spd", "kunci": "arsip perjadin perjalanan dinas spd monitoring lama versi 1" },
