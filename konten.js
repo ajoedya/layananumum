@@ -66,7 +66,7 @@ window.KONTEN_BAWAAN = {
       "alamat": "https://forms.office.com/r/1nnq1CSKEC", "kunci": "keuangan rekening bank honor pembayaran update perbarui pemutakhiran" },
     { "tampil": true, "kelompok": "keuangan", "judul": "Pengisian Capaian Output",
       "uraian": "Tempat PIC Caput tiap seksi mengisi capaian keluaran (_output_) seksinya.",
-      "alamat": "https://kemenkeu-my.sharepoint.com/:x:/g/personal/ivandana_saputra_kemenkeu_go_id/EXBeprZHSmBNnoMqSDTGhjAByrGOoIzKgq89T399r4HyeA?e=5yLWYP",
+      "alamat": "https://s.kemenkeu.go.id/CaputBPN2026",
       "kunci": "keuangan caput capaian output keluaran pic seksi" },
     { "tampil": true, "kelompok": "perkakas", "judul": "Bengkel PDF",
       "uraian": "Edit teks, gabung, pecah, dan beri tanda air langsung di peramban tanpa mengunggah berkas.",
