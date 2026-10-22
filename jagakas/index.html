@@ -15,7 +15,7 @@
    ============================================================ */
 (function(){
   "use strict";
-  var KUNCI_MODE="jagakas-mode";
+  var KUNCI_MODE="layanan-mode";
   var media=window.matchMedia?window.matchMedia("(prefers-color-scheme: dark)"):null;
   function baca(){try{return localStorage.getItem(KUNCI_MODE);}catch(e){return null;}}
   function tulis(m){try{localStorage.setItem(KUNCI_MODE,m);}catch(e){}}
@@ -1072,11 +1072,13 @@ td.nol{color:var(--tinta-lembut);opacity:.6}
 }
 @media print{#panelPrioritas{display:none!important}}
 </style>
+<link rel="stylesheet" href="../dasar.css">
 </head>
 <body>
 
 <nav class="menu" aria-label="Menu utama">
   <div class="menu-isi">
+    <a class="menu-kembali" href="../"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 18l-6-6 6-6"/></svg><span>Layanan Umum</span></a><span class="menu-pemisah" aria-hidden="true"></span>
     <span class="menu-nama">Dashboard Anggaran<small>KPKNL BALIKPAPAN</small></span>
     <div class="alat">
       

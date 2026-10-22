@@ -82,7 +82,7 @@
      dipakai seterusnya, termasuk untuk semua halaman alat.
      Mode dipasang lewat atribut data-mode="gelap" pada <html>; warnanya ada di
      gaya.css, bagian "Mode gelap". */
-  var KUNCI_MODE = "bengkel-mode";
+  var KUNCI_MODE = "layanan-mode";
   var media = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
 
   function modePerangkat() { return media && media.matches ? "gelap" : "terang"; }

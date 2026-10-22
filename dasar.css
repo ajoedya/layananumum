@@ -1,0 +1,193 @@
+/* ============================================================
+   Dasar bersama Layanan Subbagian Umum
+   Dimuat PALING AKHIR di Bengkel PDF dan Dashboard Anggaran (jagakas),
+   setelah gaya halaman masing-masing, supaya palet, bilah atas, dan
+   ukuran kontrolnya sama dengan beranda.
+   Ubah warna di sini, bukan di gaya.css atau di halaman jagakas.
+   Selektor :root:root sengaja dipakai agar menang atas :root di gaya lama.
+   ============================================================ */
+
+/* ---------- Palet beranda, mode terang ---------- */
+:root:root {
+  --laut-tua: #0f3554;
+  --laut-hover: #1b4d75;
+  --emas-terang: #ffd27a;
+  --panel-teks: #dbe6ee;
+
+  --biru-tua: #0f3554;
+  --biru: #0f4a78;
+  --biru-hover: #1b4d75;
+  --biru-muda: #eef3f6;
+  --emas: #b8700f;
+  --emas-tua: #b8700f;
+  --emas-teks: #8a5208;
+  --emas-muda: #fff6e1;
+  --emas-garis: #e9d3a0;
+  --putih: #ffffff;
+  --latar: #f5f8fa;
+  --latar-bening: rgba(245, 248, 250, 0);
+  --rgb-latar: 245, 248, 250;
+
+  --tinta: #0f3554;
+  --tinta-lembut: #4f6577;
+  --garis: #e2e9ec;
+  --garis-editorial: #e2e9ec;
+  --garis-fokus: #cdd9e0;
+
+  --menu-latar: #0f3554;
+  --menu-garis: #0f3554;
+  --tombol-polos: #fbfdfd;
+  --hover-hangat: #fff8e6;
+  --kop-kiri: #f5f8fa;
+  --kop-kanan: #eef3f6;
+  --jatuhan-latar: #fbfdfd;
+  --jatuhan-garis: #9fb2c1;
+  --teks-contoh: #677d8e;
+  --fokus-lembut: #cddcea;
+  --kartu-garis: #e2e9ec;
+  --kartu-garis-hover: #e9d3a0;
+  --kartu-latar-hover: #fff8e6;
+  --aksen-latar: #0f3554;
+  --aksen-hover: #1b4d75;
+
+  /* Ornamen anyaman tidak dipakai lagi, beranda tampil polos. */
+  --anyaman-opasitas: 0;
+}
+
+/* ---------- Palet beranda, mode gelap ---------- */
+:root:root[data-mode="gelap"] {
+  --laut-tua: #0b2033;
+  --laut-hover: #2a5f8c;
+  --panel-teks: #c9d6e0;
+
+  --biru-tua: #e4ecf2;
+  --biru: #8cc3f0;
+  --biru-hover: #b3d6f5;
+  --biru-muda: #132a42;
+  --emas: #e0a040;
+  --emas-tua: #e0a040;
+  --emas-teks: #f0b860;
+  --emas-muda: #241d13;
+  --emas-garis: #5a4626;
+  --putih: #16212c;
+  --latar: #0e1620;
+  --latar-bening: rgba(14, 22, 32, 0);
+  --rgb-latar: 14, 22, 32;
+
+  --tinta: #e4ecf2;
+  --tinta-lembut: #a3b3c0;
+  --garis: #243341;
+  --garis-editorial: #243341;
+  --garis-fokus: #314353;
+
+  --menu-latar: #0b2033;
+  --menu-garis: #0b2033;
+  --tombol-polos: #16212c;
+  --hover-hangat: #1c2935;
+  --kop-kiri: #0e1620;
+  --kop-kanan: #132131;
+  --jatuhan-latar: #121c27;
+  --jatuhan-garis: #4a5f72;
+  --teks-contoh: #7f92a1;
+  --fokus-lembut: #2c4c6e;
+  --kartu-garis: #243341;
+  --kartu-garis-hover: #5a4626;
+  --kartu-latar-hover: #1c2935;
+  --aksen-latar: #1f5482;
+  --aksen-hover: #2a5f8c;
+}
+
+/* ---------- Bilah atas navy ----------
+   Merek putih, tautan kembali ke beranda Layanan Subbagian Umum,
+   lalu tombol halaman dan saklar tema dengan garis putih tipis. */
+.menu { background: var(--laut-tua); border-bottom: 0; }
+.menu-isi { min-height: 64px; padding-top: 8px; padding-bottom: 8px; gap: 10px 14px; flex-wrap: wrap; }
+.menu-kembali {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 12px 0 8px; margin-left: -8px;
+  border-radius: 6px; color: var(--panel-teks); font-size: 14px; font-weight: 600; text-decoration: none;
+}
+.menu-kembali svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.menu-kembali:hover { color: #fff; background: rgba(255,255,255,.12); }
+.menu-pemisah { width: 1px; height: 28px; background: rgba(255,255,255,.22); }
+.menu .menu-nama, .menu .menu-nama:hover { color: #fff; }
+.menu .menu-nama small { color: var(--emas-terang); }
+.menu .menu-beranda { color: #fff; }
+.menu .menu-beranda:hover { color: #fff; border-bottom-color: rgba(255,255,255,.4); }
+.menu .menu-beranda[aria-current="page"] { border-bottom-color: var(--emas-terang); }
+
+/* Tombol di atas bilah navy: transparan dengan garis putih tipis, tinggi 44px. */
+.menu .menu-dropdown-btn,
+.menu .alat > button,
+.menu .menu-mode,
+.menu .saklar-tema {
+  min-height: 44px; background: transparent; color: #fff;
+  border: 1px solid rgba(255,255,255,.32); box-shadow: none;
+}
+.menu .menu-dropdown-btn { padding: 10px 16px; }
+.menu .menu-mode, .menu .saklar-tema { width: 44px; height: 44px; border-radius: 50%; }
+.menu .menu-dropdown-btn:hover,
+.menu .menu-dropdown-btn[aria-expanded="true"],
+.menu .alat > button:hover,
+.menu .menu-mode:hover,
+.menu .saklar-tema:hover { background: rgba(255,255,255,.12); border-color: var(--emas-terang); color: #fff; }
+.menu a:focus-visible,
+.menu button:focus-visible { outline: 3px solid var(--emas-terang); outline-offset: 3px; }
+
+@media (max-width: 560px) {
+  .menu-kembali span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+  .menu-kembali { padding: 0 8px; }
+  .menu-isi { flex-wrap: nowrap; gap: 8px; padding-left: 12px; padding-right: 12px; }
+  .menu-pemisah, .menu .menu-nama small { display: none; }
+  .menu .menu-nama { font-size: 17px; white-space: nowrap; }
+  .menu .menu-dropdown-btn, .menu .alat > button { padding: 8px 12px; font-size: 14px; }
+}
+
+/* ---------- Beranda Bengkel PDF: panel navy seperti beranda utama ---------- */
+/* Foto banner tetap dipasang oleh gaya halaman, karena alamat url() di dalam
+   variabel dihitung dari berkas yang memakainya. Tabir navy digambar di ::before. */
+.beranda-c .c-panel { border-radius: 8px; }
+.beranda-c .c-panel::before {
+  background:
+    linear-gradient(to bottom, rgba(5,16,27,0) 82%, rgba(5,16,27,.6) 100%),
+    linear-gradient(to bottom, var(--laut-tua) 0%, var(--laut-tua) 40%, rgba(15,53,84,.82) 50%, rgba(15,53,84,0) 70%);
+}
+:root[data-mode="gelap"] .beranda-c .c-panel::before {
+  background:
+    linear-gradient(to bottom, rgba(5,16,27,0) 82%, rgba(5,16,27,.6) 100%),
+    linear-gradient(to bottom, var(--laut-tua) 0%, var(--laut-tua) 40%, rgba(11,32,51,.82) 50%, rgba(11,32,51,0) 70%);
+}
+.beranda-c .c-panel .editorial-label { color: var(--emas-terang); }
+.beranda-c .c-panel h1 { color: #fff; }
+.beranda-c .c-panel h1 span { color: var(--emas-terang); }
+.beranda-c .c-panel .editorial-deskripsi,
+.beranda-c .c-panel .c-privasi { color: var(--panel-teks); }
+.beranda-c .c-panel .c-privasi strong { color: #fff; }
+.beranda-c .c-keterangan { color: #fff; }
+.beranda-c .c-panel .editorial-cari button { background: var(--emas-terang); color: #0f3554; }
+.beranda-c .c-panel .editorial-cari button:hover { background: #ffe0a3; }
+
+/* Daftar perkakas: baris bernomor seperti daftar layanan di beranda. */
+.beranda-c .c-kisi {
+  display: block; counter-reset: perkakas; background: var(--putih);
+  border: 1px solid var(--garis); border-radius: 8px; overflow: hidden; box-shadow: 0 1px 6px rgba(15,53,84,.04);
+}
+.beranda-c .c-kisi .editorial-kartu {
+  counter-increment: perkakas; position: static; min-height: 0; margin: 0;
+  display: grid; grid-template-columns: 40px minmax(0,1fr) auto; grid-template-areas: "n j i" "n u i";
+  gap: 2px 14px; align-items: center; padding: 13px 20px;
+  border: 0; border-top: 1px solid var(--garis); border-radius: 0; background: transparent; box-shadow: none; transform: none;
+}
+.beranda-c .c-kisi .editorial-kartu:first-child { border-top: 0; }
+.beranda-c .c-kisi .editorial-kartu::before {
+  content: counter(perkakas, decimal-leading-zero); grid-area: n;
+  color: var(--emas-teks); font-size: 14px; font-weight: 700; letter-spacing: .08em; font-variant-numeric: tabular-nums;
+}
+.beranda-c .c-kisi .editorial-kartu strong { grid-area: j; margin: 0; font-size: 16px; line-height: 1.3; }
+.beranda-c .c-kisi .editorial-kartu > span { grid-area: u; margin: 0; font-size: 14px; line-height: 1.5; color: var(--tinta-lembut); }
+.beranda-c .c-kisi .editorial-kartu-ikon { grid-area: i; align-self: center; transform: none; position: static; width: 26px; height: 26px; margin: 0; opacity: .85; }
+.beranda-c .c-kisi .editorial-kartu:hover { background: var(--hover-hangat); border-color: var(--garis); box-shadow: none; transform: none; }
+.beranda-c .c-kisi .editorial-kartu:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: -3px; }
+@media (max-width: 560px) {
+  .beranda-c .c-kisi .editorial-kartu { grid-template-columns: 34px minmax(0,1fr); grid-template-areas: "n j" "n u"; padding: 13px 16px; }
+  .beranda-c .c-kisi .editorial-kartu-ikon { display: none; }
+}

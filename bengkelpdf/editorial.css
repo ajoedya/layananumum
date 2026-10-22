@@ -118,9 +118,8 @@ body.beranda-editorial::before { display: none !important; }
   margin: 0 0 21px;
 }
 .beranda-editorial .editorial-privasi {
-  background: var(--kaca);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
+  /* Latar padat, tanpa efek kaca buram (dilarang di .ux-profile.md). */
+  background: var(--putih);
   border: 0;
   border-left: 3px solid var(--editorial-gold);
   border-radius: 4px;

@@ -71,6 +71,16 @@
     const isi = document.createElement("div");
     isi.className = "menu-isi";
 
+    // Tautan kembali ke beranda Layanan Subbagian Umum, sama dengan Dashboard Anggaran.
+    const kembali = document.createElement("a");
+    kembali.className = "menu-kembali";
+    kembali.href = "../";
+    kembali.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 18l-6-6 6-6"/></svg><span>Layanan Umum</span>';
+    const pemisah = document.createElement("span");
+    pemisah.className = "menu-pemisah";
+    pemisah.setAttribute("aria-hidden", "true");
+    isi.append(kembali, pemisah);
+
     const merek = document.createElement("a");
     merek.className = "menu-nama";
     merek.href = "./";
@@ -82,7 +92,7 @@
     beranda.href = "./";
     beranda.textContent = "Beranda";
     if (kini === "index") beranda.setAttribute("aria-current", "page");
-    isi.appendChild(beranda);
+    // Merek sudah menuju beranda Bengkel PDF, jadi tautan "Beranda" tidak dipasang lagi.
 
     const container = document.createElement("div");
     container.className = "menu-dropdown-wrapper";
