@@ -1,8 +1,14 @@
 <!DOCTYPE html>
-<html lang="id"><head>
+<html lang="id" data-panel="lepas"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
+<script>
+/* Panel kiri: "lepas" berarti menyusut otomatis menjadi lajur ikon, "kunci" berarti selalu terbuka.
+   Dipasang sebelum halaman digambar supaya isi tidak bergeser saat dimuat. */
+(function(){var k=null;try{k=localStorage.getItem("jagakas-panel");}catch(e){}
+document.documentElement.setAttribute("data-panel",k==="kunci"?"kunci":"lepas");})();
+</script>
 <script>
 /* ============================================================
    Mode terang dan gelap, cara kerjanya sama dengan Layanan Subbagian Umum.
@@ -1482,6 +1488,62 @@ body.halaman-alat .kop.kop::before {
 }
 .lewati-konten { position: absolute; left: 8px; top: -60px; z-index: 50; padding: 10px 16px; border-radius: 6px; background: #fff; color: #0f3554; font-weight: 700; text-decoration: none; }
 .lewati-konten:focus { top: 8px; }
+
+/* ---------- Panel menyusut otomatis (layar lebar) ----------
+   data-panel="lepas" pada <html>: panel menjadi lajur ikon 72px dan
+   terbuka menimpa isi saat .panel-terbuka dipasang oleh skrip.
+   data-panel="kunci": panel selalu terbuka dan mendorong isi seperti biasa. */
+.jk .jk-lajur { display: none; }
+.jk .jk-atas-kanan { display: flex; align-items: center; gap: 8px; }
+@media screen {
+  .jk .jk-panel .jk-kunci {
+    width: 44px; height: 44px; min-height: 44px; padding: 0; border-radius: 50%; display: grid; place-items: center;
+    background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.32); cursor: pointer;
+  }
+  .jk .jk-panel .jk-kunci:hover { background: rgba(255,255,255,.12); border-color: var(--emas-terang); }
+  .jk .jk-panel .jk-kunci[aria-pressed="true"] { background: var(--emas-terang); border-color: var(--emas-terang); color: #0f3554; }
+  .jk .jk-kunci svg, .jk .jk-lajur svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+}
+@media screen and (max-width: 920px) { .jk .jk-panel .jk-kunci { display: none; } }
+@media screen and (min-width: 921px) {
+  :root[data-panel="lepas"] .jk .jk-panel {
+    position: fixed; left: 0; top: 0; bottom: 0; height: auto; width: 72px; z-index: 40;
+    overflow: hidden; transition: width .2s ease, box-shadow .2s ease;
+  }
+  :root[data-panel="lepas"] .jk .rk-isi { margin-left: 72px; }
+  /* Isi panel diberi lebar tetap supaya tidak terlipat selama panel melebar. */
+  :root[data-panel="lepas"] .jk .jk-panel > :not(.jk-lajur):not(.latar-foto):not(.rk-tabir) { flex: none; width: 296px; }
+  :root[data-panel="lepas"] .jk .jk-panel .latar-foto { width: 360px; }
+  :root[data-panel="lepas"] .jk .jk-panel > :not(.jk-lajur) { transition: opacity .15s ease; }
+  :root[data-panel="lepas"] .jk:not(.panel-terbuka) .jk-panel > :not(.jk-lajur) { visibility: hidden; opacity: 0; }
+  :root[data-panel="lepas"] .jk.panel-terbuka .jk-panel { width: 360px; overflow-y: auto; box-shadow: 10px 0 28px rgba(5,16,27,.22); }
+
+  :root[data-panel="lepas"] .jk .jk-lajur {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    position: absolute; left: 0; top: 0; bottom: 0; width: 72px; padding: 20px 0; z-index: 5;
+    transition: opacity .15s ease;
+  }
+  :root[data-panel="lepas"] .jk.panel-terbuka .jk-lajur { visibility: hidden; opacity: 0; transition: none; }
+  .jk .jk-lajur button {
+    width: 44px; height: 44px; min-height: 44px; padding: 0; display: grid; place-items: center;
+    border: 0; border-radius: 8px; background: transparent; color: #fff; cursor: pointer; box-shadow: none;
+  }
+  .jk .jk-lajur button:hover { background: rgba(255,255,255,.12); }
+  .jk .jk-lajur button:focus-visible { outline: 3px solid var(--emas-terang); outline-offset: 2px; }
+  .jk .jk-lajur button[aria-current="true"] { background: rgba(255,255,255,.16); box-shadow: inset 0 0 0 2px var(--emas-terang); }
+  .jk .jk-lajur button[hidden] { display: none; }
+  .jk .jk-lajur-buka { border: 1px solid rgba(255,255,255,.32) !important; }
+  .jk .jk-lajur-persen { margin: 6px 0 4px; color: var(--emas-terang); font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .jk .jk-lajur-persen:empty { display: none; }
+  .jk .jk-lajur-tab { display: flex; flex-direction: column; gap: 6px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.18); }
+  .jk:has(#isi.sembunyi) .jk-lajur-tab { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .jk .jk-panel, .jk .jk-panel > *, .jk .jk-lajur { transition: none !important; }
+}
+@media screen and (min-width: 921px) {
+  :root[data-panel="lepas"] .jk .jk-panel > nav.tab { width: 320px; }
+}
 </style>
 <link rel="stylesheet" href="../dasar.css">
 <style id="rangka-dasbor">
@@ -1594,21 +1656,85 @@ body.halaman-alat .kop.kop::before {
 }
 .lewati-konten { position: absolute; left: 8px; top: -60px; z-index: 50; padding: 10px 16px; border-radius: 6px; background: #fff; color: #0f3554; font-weight: 700; text-decoration: none; }
 .lewati-konten:focus { top: 8px; }
+
+/* ---------- Panel menyusut otomatis (layar lebar) ----------
+   data-panel="lepas" pada <html>: panel menjadi lajur ikon 72px dan
+   terbuka menimpa isi saat .panel-terbuka dipasang oleh skrip.
+   data-panel="kunci": panel selalu terbuka dan mendorong isi seperti biasa. */
+.jk .jk-lajur { display: none; }
+.jk .jk-atas-kanan { display: flex; align-items: center; gap: 8px; }
+@media screen {
+  .jk .jk-panel .jk-kunci {
+    width: 44px; height: 44px; min-height: 44px; padding: 0; border-radius: 50%; display: grid; place-items: center;
+    background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.32); cursor: pointer;
+  }
+  .jk .jk-panel .jk-kunci:hover { background: rgba(255,255,255,.12); border-color: var(--emas-terang); }
+  .jk .jk-panel .jk-kunci[aria-pressed="true"] { background: var(--emas-terang); border-color: var(--emas-terang); color: #0f3554; }
+  .jk .jk-kunci svg, .jk .jk-lajur svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+}
+@media screen and (max-width: 920px) { .jk .jk-panel .jk-kunci { display: none; } }
+@media screen and (min-width: 921px) {
+  :root[data-panel="lepas"] .jk .jk-panel {
+    position: fixed; left: 0; top: 0; bottom: 0; height: auto; width: 72px; z-index: 40;
+    overflow: hidden; transition: width .2s ease, box-shadow .2s ease;
+  }
+  :root[data-panel="lepas"] .jk .rk-isi { margin-left: 72px; }
+  /* Isi panel diberi lebar tetap supaya tidak terlipat selama panel melebar. */
+  :root[data-panel="lepas"] .jk .jk-panel > :not(.jk-lajur):not(.latar-foto):not(.rk-tabir) { flex: none; width: 296px; }
+  :root[data-panel="lepas"] .jk .jk-panel .latar-foto { width: 360px; }
+  :root[data-panel="lepas"] .jk .jk-panel > :not(.jk-lajur) { transition: opacity .15s ease; }
+  :root[data-panel="lepas"] .jk:not(.panel-terbuka) .jk-panel > :not(.jk-lajur) { visibility: hidden; opacity: 0; }
+  :root[data-panel="lepas"] .jk.panel-terbuka .jk-panel { width: 360px; overflow-y: auto; box-shadow: 10px 0 28px rgba(5,16,27,.22); }
+
+  :root[data-panel="lepas"] .jk .jk-lajur {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    position: absolute; left: 0; top: 0; bottom: 0; width: 72px; padding: 20px 0; z-index: 5;
+    transition: opacity .15s ease;
+  }
+  :root[data-panel="lepas"] .jk.panel-terbuka .jk-lajur { visibility: hidden; opacity: 0; transition: none; }
+  .jk .jk-lajur button {
+    width: 44px; height: 44px; min-height: 44px; padding: 0; display: grid; place-items: center;
+    border: 0; border-radius: 8px; background: transparent; color: #fff; cursor: pointer; box-shadow: none;
+  }
+  .jk .jk-lajur button:hover { background: rgba(255,255,255,.12); }
+  .jk .jk-lajur button:focus-visible { outline: 3px solid var(--emas-terang); outline-offset: 2px; }
+  .jk .jk-lajur button[aria-current="true"] { background: rgba(255,255,255,.16); box-shadow: inset 0 0 0 2px var(--emas-terang); }
+  .jk .jk-lajur button[hidden] { display: none; }
+  .jk .jk-lajur-buka { border: 1px solid rgba(255,255,255,.32) !important; }
+  .jk .jk-lajur-persen { margin: 6px 0 4px; color: var(--emas-terang); font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .jk .jk-lajur-persen:empty { display: none; }
+  .jk .jk-lajur-tab { display: flex; flex-direction: column; gap: 6px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.18); }
+  .jk:has(#isi.sembunyi) .jk-lajur-tab { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .jk .jk-panel, .jk .jk-panel > *, .jk .jk-lajur { transition: none !important; }
+}
+@media screen and (min-width: 921px) {
+  :root[data-panel="lepas"] .jk .jk-panel > nav.tab { width: 320px; }
+}
 </style>
 </head>
 <body>
 
 <a class="lewati-konten" href="#konten">Lewati ke isi</a>
 <div class="rk jk">
-<aside class="rk-panel jk-panel" aria-label="Dashboard Anggaran">
+<aside class="rk-panel jk-panel" id="panelDasbor" aria-label="Dashboard Anggaran">
+  <div class="jk-lajur">
+    <button type="button" class="jk-lajur-buka" id="jkBukaPanel" aria-expanded="false" aria-controls="panelDasbor" aria-label="Buka panel" title="Buka panel"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
+    <p class="jk-lajur-persen" aria-hidden="true"><span id="jkPersenKecil">77,5%</span></p>
+    <div class="jk-lajur-tab" id="jkLajurTab"><button type="button" class="jk-lajur-ikon" data-ke-tab="ringkasan" aria-label="Ringkasan" title="Ringkasan" aria-current="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="4" width="7" height="7" rx="1.5"></rect><rect x="13" y="4" width="7" height="7" rx="1.5"></rect><rect x="4" y="13" width="7" height="7" rx="1.5"></rect><rect x="13" y="13" width="7" height="7" rx="1.5"></rect></svg></button><button type="button" class="jk-lajur-ikon" data-ke-tab="telusur" aria-label="Monitoring per RO" title="Monitoring per RO"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 6h11M9 12h11M9 18h11"></path><circle cx="4.5" cy="6" r="1"></circle><circle cx="4.5" cy="12" r="1"></circle><circle cx="4.5" cy="18" r="1"></circle></svg></button><button type="button" class="jk-lajur-ikon" data-ke-tab="laporan" aria-label="Quick Report" title="Quick Report"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="4" width="16" height="16" rx="2"></rect><path d="M4 10h16M10 10v10"></path></svg></button><button type="button" class="jk-lajur-ikon" data-ke-tab="parameter" aria-label="Parameter" title="Parameter"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3"></circle><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"></path></svg></button><button type="button" class="jk-lajur-ikon jk-lajur-cetak" aria-label="Cetak" title="Cetak"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 9V4h10v5"></path><rect x="4" y="9" width="16" height="7" rx="1.5"></rect><path d="M7 14h10v6H7z"></path></svg></button></div>
+  </div>
   <div class="latar-foto" id="latarFoto" aria-hidden="true"><i></i><i></i></div>
   <div class="rk-tabir" aria-hidden="true"></div>
   <div class="jk-atas">
     <a class="rk-kembali" href="../"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 18l-6-6 6-6"></path></svg>Layanan Umum</a>
+    <span class="jk-atas-kanan">
+    <button type="button" class="jk-kunci" id="jkKunci" aria-pressed="false" aria-label="Kunci panel agar tetap terbuka" title="Kunci panel"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 4h6l-1 6 3 3H7l3-3-1-6Z"></path><path d="M12 13v7"></path></svg></button>
     <button type="button" class="saklar-tema" data-tombol-mode="" aria-pressed="false" aria-label="Ganti ke tampilan gelap" title="Tampilan gelap">
         <svg class="ikon-bulan" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"></path></svg>
         <svg class="ikon-matahari" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
       </button>
+    </span>
   </div>
   <header class="kop">
     <div class="kop-isi">
@@ -1645,7 +1771,7 @@ body.halaman-alat .kop.kop::before {
   <div class="tirai sembunyi" id="tiraiCetak">
     <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="judulCetak">
       <h2 id="judulCetak">Pilih yang akan dicetak</h2>
-      <label class="centang tebal"><input type="checkbox" id="cetakRingkasan" checked="" style=""> Sertakan halaman Ringkasan</label>
+      <label class="centang tebal"><input type="checkbox" id="cetakRingkasan" checked=""> Sertakan halaman Ringkasan</label>
       <div class="pilih-alat">
         <button type="button" class="sunyi kecil" id="cetakSemua">Pilih semua</button>
         <button type="button" class="sunyi kecil" id="cetakKosong">Kosongkan</button>
@@ -1872,7 +1998,7 @@ body.halaman-alat .kop.kop::before {
         <div class="qr-opsi">
           <fieldset class="qr-kelompok-opsi">
             <legend>Nilai yang ditampilkan</legend>
-            <div class="qr-centang-nilai" id="qrNilai"><label class="centang"><input type="checkbox" data-nilai="pagu" checked="" style=""> Pagu</label><label class="centang"><input type="checkbox" data-nilai="blokir" style=""> Blokir</label><label class="centang"><input type="checkbox" data-nilai="lalu" style=""> Realisasi s.d. bulan lalu</label><label class="centang"><input type="checkbox" data-nilai="ini" style=""> Realisasi bulan ini</label><label class="centang"><input type="checkbox" data-nilai="sd" style=""> Realisasi s.d. periode</label><label class="centang"><input type="checkbox" data-nilai="sisa" style=""> Sisa pagu</label><label class="centang"><input type="checkbox" data-nilai="persen" style=""> Persen realisasi</label><label class="centang"><input type="checkbox" data-nilai="jumlah" style=""> Jumlah item</label></div>
+            <div class="qr-centang-nilai" id="qrNilai"><label class="centang"><input type="checkbox" data-nilai="pagu" checked=""> Pagu</label><label class="centang"><input type="checkbox" data-nilai="blokir"> Blokir</label><label class="centang"><input type="checkbox" data-nilai="lalu"> Realisasi s.d. bulan lalu</label><label class="centang"><input type="checkbox" data-nilai="ini"> Realisasi bulan ini</label><label class="centang"><input type="checkbox" data-nilai="sd"> Realisasi s.d. periode</label><label class="centang"><input type="checkbox" data-nilai="sisa"> Sisa pagu</label><label class="centang"><input type="checkbox" data-nilai="persen"> Persen realisasi</label><label class="centang"><input type="checkbox" data-nilai="jumlah"> Jumlah item</label></div>
           </fieldset>
           <fieldset class="qr-kelompok-opsi">
             <legend>Tampilan</legend>
@@ -1894,10 +2020,10 @@ body.halaman-alat .kop.kop::before {
           </fieldset>
           <fieldset class="qr-kelompok-opsi">
             <legend>Jumlah dan baris</legend>
-            <label class="centang"><input type="checkbox" id="qrSubtotal" style=""> Subtotal tiap kelompok</label>
-            <label class="centang"><input type="checkbox" id="qrTotalBaris" style=""> Baris jumlah keseluruhan</label>
-            <label class="centang"><input type="checkbox" id="qrTotalKolom" style=""> Kolom jumlah di kanan</label>
-            <label class="centang"><input type="checkbox" id="qrSembunyiNol" style=""> Sembunyikan baris bernilai nol</label>
+            <label class="centang"><input type="checkbox" id="qrSubtotal"> Subtotal tiap kelompok</label>
+            <label class="centang"><input type="checkbox" id="qrTotalBaris"> Baris jumlah keseluruhan</label>
+            <label class="centang"><input type="checkbox" id="qrTotalKolom"> Kolom jumlah di kanan</label>
+            <label class="centang"><input type="checkbox" id="qrSembunyiNol"> Sembunyikan baris bernilai nol</label>
           </fieldset>
         </div>
       </section>
@@ -2380,6 +2506,7 @@ function gambarRingkasan(){
   /* capaian yang sama ditampilkan ringkas di panel kiri */
   if(el('jkPersen')){
     el('jkPersen').textContent=ps1.format(H.persenTotal*100);
+    if(el('jkPersenKecil')) el('jkPersenKecil').textContent=ps1.format(H.persenTotal*100)+'%';
     el('jkTarget').textContent='Target tertimbang '+ps1.format(H.targetTertimbang*100)+'%';
     const r0=el('relUtama'),r1=el('jkRel');
     r1.className='jk-rel '+r0.className.replace(/\brel\b/,'').trim();
@@ -3919,6 +4046,110 @@ document.addEventListener('DOMContentLoaded',()=>{
       '<div class="bungkus"><p class="galat">Data yang tertanam pada berkas ini tidak terbaca. Minta berkas terbaru kepada bendahara pengeluaran.</p></div>');
   }
 });
+</script>
+<script>
+/* ============================================================
+   Panel kiri yang menyusut otomatis (layar lebar saja)
+   Keadaan "lepas": panel menjadi lajur ikon dan terbuka saat disorot
+   tetikus, difokus papan ketik, atau tombol menu diklik; menutup lagi
+   saat tetikus pergi, tab dipilih, tombol Escape, atau klik di luar.
+   Keadaan "kunci": panel selalu terbuka. Pilihan disimpan di peramban.
+   ============================================================ */
+(function(){
+  const akar=document.documentElement, panel=document.getElementById('panelDasbor'), rangka=document.querySelector('.jk');
+  const tombolBuka=document.getElementById('jkBukaPanel'), tombolKunci=document.getElementById('jkKunci');
+  const lajurTab=document.getElementById('jkLajurTab');
+  if(!panel||!rangka||!tombolBuka||!tombolKunci) return;
+  const lebar=window.matchMedia('(min-width: 921px)');
+  const IKON={
+    ringkasan:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
+    telusur:'<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/>',
+    laporan:'<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 10v10"/>',
+    parameter:'<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/>',
+    cetak:'<path d="M7 9V4h10v5"/><rect x="4" y="9" width="16" height="7" rx="1.5"/><path d="M7 14h10v6H7z"/>'
+  };
+  const svg=d=>'<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">'+d+'</svg>';
+
+  /* Tombol ikon di lajur dibangun dari tab yang ada, jadi tab Parameter di file induk ikut muncul. */
+  function bangunLajur(){
+    lajurTab.textContent='';
+    document.querySelectorAll('nav.tab button').forEach(t=>{
+      const b=document.createElement('button');
+      b.type='button'; b.className='jk-lajur-ikon'; b.dataset.keTab=t.dataset.tab;
+      const nama=t.childNodes[0].textContent.trim();
+      b.setAttribute('aria-label',nama); b.title=nama; b.innerHTML=svg(IKON[t.dataset.tab]||IKON.ringkasan);
+      b.addEventListener('click',()=>{ t.click(); });
+      lajurTab.appendChild(b);
+    });
+    const cetak=document.getElementById('tombolCetak');
+    if(cetak){
+      const b=document.createElement('button');
+      b.type='button'; b.className='jk-lajur-ikon jk-lajur-cetak'; b.setAttribute('aria-label','Cetak'); b.title='Cetak';
+      b.innerHTML=svg(IKON.cetak); b.hidden=cetak.classList.contains('sembunyi');
+      b.addEventListener('click',()=>cetak.click());
+      new MutationObserver(()=>{ b.hidden=cetak.classList.contains('sembunyi'); }).observe(cetak,{attributes:true,attributeFilter:['class']});
+      lajurTab.appendChild(b);
+    }
+    selaraskan();
+  }
+  function selaraskan(){
+    document.querySelectorAll('nav.tab button').forEach(t=>{
+      const b=lajurTab.querySelector('[data-ke-tab="'+t.dataset.tab+'"]');
+      if(b){ if(t.getAttribute('aria-selected')==='true') b.setAttribute('aria-current','true'); else b.removeAttribute('aria-current'); }
+    });
+  }
+  const navTab=document.querySelector('nav.tab');
+  if(navTab) new MutationObserver(selaraskan).observe(navTab,{attributes:true,subtree:true,attributeFilter:['aria-selected']});
+
+  const terkunci=()=>akar.getAttribute('data-panel')==='kunci';
+  const aktif=()=>lebar.matches&&!terkunci();
+  let pewaktu=null, membuka=false;
+  function buka(fokus){
+    clearTimeout(pewaktu);
+    if(!aktif()) return;
+    /* Tombol menu ikut tersembunyi saat panel terbuka, jadi fokus dipindah dulu ke tombol kunci
+       dan hilangnya fokus selama peralihan tidak dianggap meninggalkan panel. */
+    membuka=true; setTimeout(()=>{ membuka=false; },300);
+    rangka.classList.add('panel-terbuka'); tombolBuka.setAttribute('aria-expanded','true');
+    if(fokus) tombolKunci.focus();
+  }
+  function tutup(kembalikanFokus){
+    clearTimeout(pewaktu);
+    if(!rangka.classList.contains('panel-terbuka')) return;
+    const fokusDiDalam=panel.contains(document.activeElement);
+    rangka.classList.remove('panel-terbuka'); tombolBuka.setAttribute('aria-expanded','false');
+    if(kembalikanFokus||fokusDiDalam) tombolBuka.focus({preventScroll:true});
+  }
+  function pasangKunci(k){
+    akar.setAttribute('data-panel',k?'kunci':'lepas');
+    try{ localStorage.setItem('jagakas-panel',k?'kunci':'lepas'); }catch(e){}
+    tombolKunci.setAttribute('aria-pressed',String(k));
+    tombolKunci.setAttribute('aria-label',k?'Lepas kunci, panel menyusut otomatis':'Kunci panel agar tetap terbuka');
+    tombolKunci.title=k?'Lepas kunci panel':'Kunci panel';
+    rangka.classList.remove('panel-terbuka'); tombolBuka.setAttribute('aria-expanded','false');
+  }
+
+  tombolBuka.addEventListener('click',()=>buka(true));
+  tombolKunci.addEventListener('click',()=>{ pasangKunci(!terkunci()); if(!terkunci()) tombolBuka.focus(); });
+  panel.addEventListener('mouseenter',()=>{ if(!aktif()) return; clearTimeout(pewaktu); pewaktu=setTimeout(()=>buka(false),120); });
+  panel.addEventListener('mouseleave',()=>{
+    if(!aktif()) return; clearTimeout(pewaktu);
+    const a=document.activeElement;
+    if(panel.contains(a)&&a.matches(':focus-visible')) return; /* pengguna papan ketik masih di dalam panel */
+    pewaktu=setTimeout(()=>tutup(false),280);
+  });
+  panel.addEventListener('focusin',e=>{ if(aktif()&&e.target!==tombolBuka&&!e.target.closest('.jk-lajur')) buka(false); });
+  panel.addEventListener('focusout',e=>{ if(membuka) return; if(aktif()&&!panel.contains(e.relatedTarget)) tutup(false); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&rangka.classList.contains('panel-terbuka')) tutup(true); });
+  document.addEventListener('pointerdown',e=>{ if(aktif()&&!panel.contains(e.target)) tutup(false); });
+  /* Setelah memilih tab di panel, panel menutup sendiri supaya isi kembali lega. */
+  if(navTab) navTab.addEventListener('click',e=>{ if(e.target.closest('button')&&aktif()) setTimeout(()=>tutup(false),150); });
+  lebar.addEventListener&&lebar.addEventListener('change',()=>{ rangka.classList.remove('panel-terbuka'); });
+
+  rangka.classList.remove('panel-terbuka');
+  pasangKunci(terkunci());
+  bangunLajur();
+})();
 </script>
 
 
