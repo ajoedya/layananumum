@@ -1907,11 +1907,11 @@ function isiPilihanRo(){
 /* Susunan menyerupai kertas kerja, dipakai baik oleh tab Monitoring
    per RO maupun oleh halaman cetak pilihan. */
 function htmlTabelItem(d,ro){
-const kolomItem=[{j:'Uraian',lebar:1},{j:'Pagu',n:1},{j:'S.d. bulan lalu',n:1},
-  {j:'Bulan ini',n:1},{j:'Total realisasi',n:1},{j:'% real.',bar:1},{j:'Sisa pagu',n:1}];
+const kolomItem=[{j:'Uraian',lebar:1},{j:'Pagu',n:1},{j:'Blokir',n:1},
+  {j:'Real. Bulan Ini',n:1},{j:'Real. Total',n:1},{j:'% real.',bar:1},{j:'Sisa pagu',n:1}];
 const targetSatker=HASIL.targetTertimbang, ambangSatker=HASIL.ambangTertimbang;
 const selAngka=(x)=>'<td class="n num">'+rp.format(x.pagu)+'</td>'+
-  '<td class="n num">'+rp.format(x.lalu)+'</td>'+
+  '<td class="n num">'+rp.format(x.blokir||0)+'</td>'+
   '<td class="n num">'+rp.format(x.ini)+'</td>'+
   '<td class="n num">'+rp.format(x.sd)+'</td>'+
   '<td class="kol-bar">'+barPersen(x,targetSatker,ambangSatker)+'</td>'+
