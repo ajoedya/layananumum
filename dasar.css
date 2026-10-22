@@ -14,6 +14,7 @@
   --emas-terang: #ffd27a;
   --panel-teks: #dbe6ee;
   --rgb-laut: 15, 53, 84;
+  --rgb-gelap: 10, 40, 66;
 
   --biru-tua: #0f3554;
   --biru: #0f4a78;
@@ -61,6 +62,7 @@
   --laut-hover: #2a5f8c;
   --panel-teks: #c9d6e0;
   --rgb-laut: 11, 32, 51;
+  --rgb-gelap: 5, 16, 27;
 
   --biru-tua: #e4ecf2;
   --biru: #8cc3f0;
@@ -157,12 +159,15 @@
   display: flex; flex-direction: column; gap: 16px;
 }
 .rk-foto, .rk-tabir { position: absolute; left: 0; right: 0; bottom: 0; }
-.rk-foto { z-index: -2; height: 36%; }
+.rk-foto { z-index: -2; height: 54%; }
+/* Tabir sedikit lebih tinggi daripada foto dan memakai kurva halus seperti beranda utama,
+   jadi tepi atas foto tertutup penuh sebelum peralihannya dimulai (tidak tampak sebagai pita). */
 .rk-tabir {
-  z-index: -1; height: 46%;
+  z-index: -1; height: 60%;
   background:
-    linear-gradient(to bottom, rgba(5,16,27,0) 66%, rgba(5,16,27,.78) 100%),
-    linear-gradient(to bottom, rgb(var(--rgb-laut)) 16%, rgba(var(--rgb-laut),.82) 30%, rgba(var(--rgb-laut),.4) 44%, rgba(var(--rgb-laut),0) 60%);
+    linear-gradient(to bottom, rgba(var(--rgb-gelap),0) 80%, rgba(var(--rgb-gelap),0.55) 100%),
+    linear-gradient(to bottom,
+      rgb(var(--rgb-laut)) 7%, rgba(var(--rgb-laut),.998) 9.3%, rgba(var(--rgb-laut),.984) 11.6%, rgba(var(--rgb-laut),.951) 13.9%, rgba(var(--rgb-laut),.896) 16.2%, rgba(var(--rgb-laut),.82) 18.6%, rgba(var(--rgb-laut),.725) 20.9%, rgba(var(--rgb-laut),.616) 23.2%, rgba(var(--rgb-laut),.5) 25.5%, rgba(var(--rgb-laut),.384) 27.8%, rgba(var(--rgb-laut),.275) 30.1%, rgba(var(--rgb-laut),.18) 32.4%, rgba(var(--rgb-laut),.104) 34.8%, rgba(var(--rgb-laut),.049) 37.1%, rgba(var(--rgb-laut),.016) 39.4%, rgba(var(--rgb-laut),.002) 41.7%, rgba(var(--rgb-laut),0) 44%);
 }
 .rk-kembali, .halaman-alat .rk-kembali {
   align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin: -6px 0 -6px -10px; padding: 0 12px 0 8px;
@@ -235,7 +240,13 @@
 @media (max-width: 920px) {
   .rk-panel { padding: 22px clamp(18px, 4vw, 56px) 92px; gap: 14px; }
   .rk-foto { height: 120px; }
-  .rk-tabir { height: 170px; background: linear-gradient(to bottom, rgb(var(--rgb-laut)) 15%, rgba(var(--rgb-laut),.5) 45%, rgba(var(--rgb-laut),0) 74%); }
+  .rk-tabir {
+    height: 170px;
+    background:
+      linear-gradient(to bottom, rgba(var(--rgb-gelap),0) 60%, rgba(var(--rgb-gelap),0.35) 100%),
+      linear-gradient(to bottom,
+      rgb(var(--rgb-laut)) 15%, rgba(var(--rgb-laut),.998) 18.7%, rgba(var(--rgb-laut),.984) 22.4%, rgba(var(--rgb-laut),.951) 26.1%, rgba(var(--rgb-laut),.896) 29.8%, rgba(var(--rgb-laut),.82) 33.4%, rgba(var(--rgb-laut),.725) 37.1%, rgba(var(--rgb-laut),.616) 40.8%, rgba(var(--rgb-laut),.5) 44.5%, rgba(var(--rgb-laut),.384) 48.2%, rgba(var(--rgb-laut),.275) 51.9%, rgba(var(--rgb-laut),.18) 55.6%, rgba(var(--rgb-laut),.104) 59.2%, rgba(var(--rgb-laut),.049) 62.9%, rgba(var(--rgb-laut),.016) 66.6%, rgba(var(--rgb-laut),.002) 70.3%, rgba(var(--rgb-laut),0) 74%);
+  }
   .rk-ket { display: none; }
   .rk-kelompok { flex-direction: row; flex-wrap: wrap; gap: 8px; margin: 0; }
   .rk-kelompok a { background: rgba(255,255,255,.12); padding: 6px 8px 6px 14px; border-radius: 999px; }
@@ -255,13 +266,19 @@
    foto banner di dasar panel. Bilah alat (daftar perkakas, saklar tema)
    ada di atas kolom isi. Foto tetap memakai .kop::after dari gaya.css.
    ============================================================ */
-.halaman-alat .kop { display: flex; flex-direction: column; background: var(--laut-tua); color: #fff; }
-.halaman-alat .kop::before { display: none; }
+.halaman-alat .kop { display: flex; flex-direction: column; background: var(--laut-tua); color: #fff; isolation: isolate; }
 .halaman-alat .kop::after {
-  left: 0; right: 0; top: auto; bottom: 0; height: 36%;
+  left: 0; right: 0; top: auto; bottom: 0; height: 44%; z-index: -2;
   background-size: cover; background-position: center;
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 70%); mask-image: linear-gradient(to bottom, transparent 0, #000 70%);
-  -webkit-mask-composite: source-over; mask-composite: add; z-index: 0;
+  -webkit-mask-image: none; mask-image: none;
+}
+body.halaman-alat .kop.kop::before {
+  content: ""; display: block; position: absolute; left: 0; right: 0; top: auto; bottom: 0; height: 50%; z-index: -1;
+  opacity: 1; -webkit-mask-image: none; mask-image: none;
+  background:
+    linear-gradient(to bottom, rgba(var(--rgb-gelap),0) 80%, rgba(var(--rgb-gelap),0.55) 100%),
+    linear-gradient(to bottom,
+      rgb(var(--rgb-laut)) 7%, rgba(var(--rgb-laut),.998) 9.3%, rgba(var(--rgb-laut),.984) 11.6%, rgba(var(--rgb-laut),.951) 13.9%, rgba(var(--rgb-laut),.896) 16.2%, rgba(var(--rgb-laut),.82) 18.6%, rgba(var(--rgb-laut),.725) 20.9%, rgba(var(--rgb-laut),.616) 23.2%, rgba(var(--rgb-laut),.5) 25.5%, rgba(var(--rgb-laut),.384) 27.8%, rgba(var(--rgb-laut),.275) 30.1%, rgba(var(--rgb-laut),.18) 32.4%, rgba(var(--rgb-laut),.104) 34.8%, rgba(var(--rgb-laut),.049) 37.1%, rgba(var(--rgb-laut),.016) 39.4%, rgba(var(--rgb-laut),.002) 41.7%, rgba(var(--rgb-laut),0) 44%);
 }
 .halaman-alat .kop-isi { flex: 1; display: flex; flex-direction: column; gap: 14px; max-width: none; margin: 0; padding: 24px 28px 180px; }
 .halaman-alat .kop .kop-label { margin: 6px 0 0; color: var(--emas-terang); font-size: 12px; font-weight: 700; letter-spacing: .15em; }
@@ -296,6 +313,13 @@
 }
 @media (max-width: 920px) {
   .halaman-alat .kop::after { height: 120px; }
+  body.halaman-alat .kop.kop::before {
+    height: 170px;
+    background:
+      linear-gradient(to bottom, rgba(var(--rgb-gelap),0) 60%, rgba(var(--rgb-gelap),0.35) 100%),
+      linear-gradient(to bottom,
+      rgb(var(--rgb-laut)) 15%, rgba(var(--rgb-laut),.998) 18.7%, rgba(var(--rgb-laut),.984) 22.4%, rgba(var(--rgb-laut),.951) 26.1%, rgba(var(--rgb-laut),.896) 29.8%, rgba(var(--rgb-laut),.82) 33.4%, rgba(var(--rgb-laut),.725) 37.1%, rgba(var(--rgb-laut),.616) 40.8%, rgba(var(--rgb-laut),.5) 44.5%, rgba(var(--rgb-laut),.384) 48.2%, rgba(var(--rgb-laut),.275) 51.9%, rgba(var(--rgb-laut),.18) 55.6%, rgba(var(--rgb-laut),.104) 59.2%, rgba(var(--rgb-laut),.049) 62.9%, rgba(var(--rgb-laut),.016) 66.6%, rgba(var(--rgb-laut),.002) 70.3%, rgba(var(--rgb-laut),0) 74%);
+  }
   .halaman-alat .kop-isi { padding: 18px clamp(18px, 4vw, 48px) 124px; gap: 12px; }
   .halaman-alat .kop h1 { font-size: 26px; }
   .halaman-alat .kop p { font-size: 14px; }
