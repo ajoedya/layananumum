@@ -9,292 +9,146 @@
 <title>Bengkel PDF — KPKNL Balikpapan</title>
 <script src="tema.js"></script>
 <link rel="stylesheet" href="gaya.css">
-<link rel="stylesheet" href="editorial.css">
 <style>
-/* ============================================================
-   Beranda: panel banner menempel di kiri, kisi perkakas ringkas
-   di kanan. Warna, huruf, banner, dan anyaman memakai variabel gaya.css,
-   jadi ikut berganti bersama tema acak.
-   ============================================================ */
-.beranda-c .editorial-halaman { position: relative; }
-.beranda-c .editorial-halaman::before,
-.beranda-c .editorial-halaman::after {
-  content: ""; position: absolute; top: 0; bottom: 0; width: 48px;
-  background: url("ornamen-kalimantan-anyaman.svg") left top / 48px 24px repeat-y;
-  opacity: var(--anyaman-opasitas); pointer-events: none; z-index: 0;
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 6%, #000 94%, transparent);
-  mask-image: linear-gradient(to bottom, transparent, #000 6%, #000 94%, transparent);
-}
-.beranda-c .editorial-halaman::before { left: calc(var(--editorial-gutter) * .5 - 24px); }
-.beranda-c .editorial-halaman::after { right: calc(var(--editorial-gutter) * .5 - 24px); }
-
-.c-split {
-  position: relative; z-index: 1;
-  display: grid;
-  grid-template-columns: minmax(0, .4fr) minmax(0, .6fr);
-  gap: clamp(22px, 3vw, 44px);
-  align-items: start;
-  padding: 26px 0 40px;
-}
-
-/* ---------- Panel kiri ---------- */
-.c-panel {
-  position: sticky;
-  top: 100px;
-  min-height: min(640px, calc(100vh - 124px));
-  border-radius: 6px;
-  overflow: hidden;
-  isolation: isolate;
-  display: flex;
-  flex-direction: column;
-  background: var(--banner) var(--banner-latar-posisi) / var(--banner-latar-ukuran, cover) no-repeat;
-}
-/* Kabut terang: bagian atas dipudarkan ke warna kertas, foto jelas di bawah. */
-.c-panel::before {
-  content: ""; position: absolute; inset: 0; z-index: -1;
-  background:
-    linear-gradient(to bottom, rgba(var(--rgb-latar),.97) 0%, rgba(var(--rgb-latar),.94) 48%, rgba(var(--rgb-latar),.6) 66%, rgba(var(--rgb-latar),0) 84%),
-    linear-gradient(to bottom, transparent 70%, rgba(var(--rgb-gelap),.5));
-}
-.c-panel-isi { padding: 30px clamp(20px, 2.4vw, 32px) 24px; }
-.beranda-c .editorial-label { margin: 0 0 12px; }
-.beranda-c h1 { font-size: clamp(30px, 2.7vw, 42px); margin-bottom: 12px; }
-.beranda-c .editorial-deskripsi { font-size: 16px; margin-bottom: 18px; }
-.beranda-c .editorial-cari button { min-width: 88px; }
-.c-privasi { margin: 12px 0 0; color: var(--editorial-muted); font-size: 14px; line-height: 1.5; }
-.c-privasi strong { color: var(--editorial-navy); }
-.c-keterangan {
-  margin-top: auto;
-  padding: 0 clamp(20px, 2.4vw, 32px) 18px;
-  color: #fff; font-size: 12px; font-weight: 700; letter-spacing: .18em;
-  text-shadow: 0 1px 10px rgba(0,0,0,.6);
-}
-
-/* ---------- Kolom kanan ---------- */
-.c-alat { min-width: 0; scroll-margin-top: 100px; }
-.c-kepala {
-  display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap;
-  padding: 4px 0 12px; margin-bottom: 14px; border-bottom: 1px solid var(--garis-editorial);
-}
-.c-kepala h2 { margin: 0; color: var(--editorial-navy); font-size: clamp(22px, 2vw, 26px); }
-.c-kepala p {
-  margin: 0; color: var(--editorial-gold-text); font-size: 12px; font-weight: 700;
-  letter-spacing: .14em; text-transform: uppercase;
-}
-.c-kisi { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.beranda-c .editorial-kartu { min-height: 128px; padding: 18px 20px; }
-/* Nomor kartu menjadi hiasan latar di kanan tengah: 24px, gradasi putih
-   ke navy tema (--biru-tua) yang samar. Teks kartu diberi ruang di
-   kanan supaya tidak bertumpuk dengan nomor. */
-.beranda-c .editorial-kartu { position: relative; padding-right: 72px; }
-.beranda-c .editorial-kartu > strong,
-.beranda-c .editorial-kartu > span { position: relative; z-index: 1; }
-.beranda-c .editorial-kartu-nomor {
-  position: absolute;
-  right: 20px;
-  top: 50%;
-  transform: translateY(-50%);
-  margin: 0;
-  font-size: 24px;
-  line-height: 1;
-  font-weight: 800;
-  letter-spacing: .04em;
-  background: linear-gradient(160deg, #ffffff 0%, var(--nomor-ujung) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  opacity: var(--nomor-opasitas);
-  pointer-events: none;
-}
-.beranda-c .editorial-kartu-ikon {
-  position: absolute; right: 18px; top: 50%; transform: translateY(-50%);
-  width: 40px; height: 40px; opacity: .9; pointer-events: none;
-}
-/* Warna gradasi dipasang pada wadah defs, karena gradasi SVG mewarisi
-   variabel dari tempat ia didefinisikan, bukan dari ikon pemakainya. */
-.ikon-gradasi {
-  --ikon-awal: color-mix(in srgb, var(--nomor-ujung) 75%, #ffffff);
-  --ikon-ujung: var(--nomor-ujung);
-}
-.beranda-c .editorial-kartu:hover .editorial-kartu-ikon { opacity: 1; }
-/* Mode gelap: ujung navy terlalu gelap untuk garis ikon, jadi gradasi
-   dibalik ke arah terang supaya ikon tetap terbaca samar. */
-:root[data-mode="gelap"] .ikon-gradasi {
-  --ikon-awal: #e8eef7;
-  --ikon-ujung: color-mix(in srgb, var(--nomor-ujung) 30%, #ffffff);
-}
-:root[data-mode="gelap"] .beranda-c .editorial-kartu-ikon { opacity: .85; }
-/* Deskripsi kartu yang diberi label tambahan tetap bergaya sama. */
-.beranda-c .editorial-kartu > strong + span { color: var(--editorial-muted); font-size: 14px; line-height: 1.55; }
-.c-tanda {
-  align-self: flex-start;
-  margin: 0 0 8px;
-  padding: 4px 8px;
-  background: var(--lencana-latar);
-  border-radius: 12px;
-  color: var(--lencana-teks);
-  font: 700 10px/1 "Public Sans", sans-serif;
-  letter-spacing: .04em;
-}
-.beranda-c .editorial-kartu strong { margin-bottom: 6px; }
-.c-kisi > .editorial-kartu:last-child:nth-child(odd) { grid-column: 1 / -1; min-height: 0; }
-.beranda-c .editorial-kosong { margin: 14px 0 0; }
-
-/* Gerbang Internal sebagai pita ringkas di bawah kisi. */
-.c-gerbang {
-  position: relative; overflow: hidden;
-  display: flex; align-items: center; justify-content: space-between; gap: 12px 20px; flex-wrap: wrap;
-  margin-top: 18px; padding: 22px 24px;
-  border: 1px solid var(--kartu-garis); border-radius: 4px;
-  background: linear-gradient(110deg, var(--penutup-1), var(--penutup-2) 60%, var(--penutup-3));
-  color: var(--editorial-navy); text-decoration: none;
-}
-.c-gerbang::after {
-  content: ""; position: absolute; top: 0; bottom: 0; right: 0; width: 45%;
-  background: url("ornamen-kalimantan-anyaman.svg") right center / 48px 24px repeat;
-  opacity: calc(var(--anyaman-opasitas) * 1.4); pointer-events: none;
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 60%);
-  mask-image: linear-gradient(to right, transparent, #000 60%);
-}
-.c-gerbang:hover { border-color: var(--kartu-garis-hover); }
-.c-gerbang:focus-visible { outline: 3px solid var(--editorial-gold); outline-offset: 3px; }
-.c-gerbang > span { position: relative; z-index: 1; }
-.c-gerbang .editorial-label { display: block; margin: 0 0 6px; }
-.c-gerbang strong { display: block; font-size: clamp(18px, 1.7vw, 22px); overflow-wrap: anywhere; }
-.c-gerbang .c-buka { font-weight: 700; color: var(--tautan-kartu); white-space: nowrap; }
-.beranda-c .editorial-kaki { margin-top: 18px; }
-
-@media (max-width: 1040px) {
-  .c-split { grid-template-columns: 1fr; }
-  .c-panel { position: relative; top: 0; min-height: 0; padding-bottom: 150px; background-position: center bottom; }
-  .beranda-c .editorial-halaman::before,
-  .beranda-c .editorial-halaman::after { width: 24px; }
-  .beranda-c .editorial-halaman::before { left: calc(var(--editorial-gutter) * .5 - 12px); }
-  .beranda-c .editorial-halaman::after { right: calc(var(--editorial-gutter) * .5 - 12px); }
-}
-@media (max-width: 700px) {
-  .beranda-c .editorial-halaman::before,
-  .beranda-c .editorial-halaman::after { display: none; }
-  .c-split { padding-top: 16px; }
-}
-@media (max-width: 440px) {
-  .c-kisi { grid-template-columns: 1fr; }
-  .beranda-c .editorial-kartu { min-height: 0; }
-}
+/* Beranda Bengkel PDF memakai rangka beranda Layanan Subbagian Umum (dasar.css).
+   Foto panel dipasang di sini karena variabel --banner berisi alamat relatif
+   terhadap folder ini, dan ikut berganti bersama tema acak. */
+body { margin: 0; }
+.rk-foto { background: var(--banner) var(--banner-latar-posisi, center) / cover no-repeat; }
 </style>
 <link rel="stylesheet" href="../dasar.css">
 </head>
-<body class="beranda-editorial beranda-c">
+<body class="rk-beranda">
 <a class="lewati-konten" href="#konten">Lewati navigasi</a>
+<div class="rk">
+  <aside class="rk-panel" aria-labelledby="judul-utama">
+    <div class="rk-foto" data-banner-tema role="img" aria-label="Pemandangan teluk saat matahari terbenam dengan perbukitan, gedung kota, dermaga, kilang, dan kapal"></div>
+    <div class="rk-tabir" aria-hidden="true"></div>
+    <a class="rk-kembali" href="../"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 18l-6-6 6-6"/></svg>Layanan Umum</a>
+    <p class="rk-label">Olah / PDF / Bubuhan BPP</p>
+    <h1 id="judul-utama">Bengkel PDF <span>untuk pekerjaan yang lebih JOSJIS.</span></h1>
+    <p class="rk-deskripsi">Berbagai perkakas PDF yang mudah digunakan, cepat, dan aman.</p>
+    <p class="rk-privasi"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span><strong>Privasi terjaga.</strong> Dokumen diproses langsung di peramban, tidak diunggah ke server aplikasi.</span></p>
+    <nav class="rk-kelompok" id="menuKelompok" aria-label="Kelompok perkakas"><a href="#susun">Susun halaman <b>2</b></a><a href="#format">Ubah format <b>2</b></a><a href="#tandai">Sunting dan tandai <b>3</b></a><a href="#optimasi">Optimasi <b>1</b></a></nav>
+    <p class="rk-ket">KPKNL BALIKPAPAN</p>
+  </aside>
 
-<main id="konten" class="editorial-halaman">
-  <div class="c-split">
-    <aside class="c-panel" aria-labelledby="judul-utama">
-      <div class="c-panel-isi">
-        <p class="editorial-label">OLAH <span>/</span> PDF <span>/</span> BUBUHAN BPP</p>
-        <h1 id="judul-utama">Bengkel PDF <span>untuk pekerjaan yang lebih JOSJIS.</span></h1>
-        <p class="editorial-deskripsi">Berbagai perkakas PDF yang mudah digunakan, cepat, dan aman.</p>
-        <form class="editorial-cari" role="search" id="cariPerkakas">
-          <label for="cariAlat" class="sr-only">Cari perkakas PDF</label>
-          <div class="editorial-cari-baris">
-            <input type="search" id="cariAlat" name="q" autocomplete="off" placeholder="Contoh: gabung, watermark, Word..." aria-controls="daftarAlat">
-            <button type="submit">Cari <span aria-hidden="true">→</span></button>
-          </div>
-        </form>
-        <p class="c-privasi"><strong>Privasi terjaga.</strong> Dokumen diproses langsung di browser, tidak diunggah ke server aplikasi.</p>
+  <main id="konten" class="rk-isi">
+    <div class="rk-alat">
+      <form class="rk-cari" role="search" id="cariPerkakas">
+        <label for="cariAlat" class="sr-only">Cari perkakas PDF</label>
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input type="search" id="cariAlat" name="q" autocomplete="off" placeholder="Contoh: gabung, watermark, Word">
+        <button type="button" class="rk-hapus" id="hapusCari" aria-label="Hapus pencarian" title="Hapus pencarian" hidden><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+      </form>
+      <button type="button" class="menu-mode" data-tombol-mode aria-pressed="false" aria-label="Ganti tampilan terang atau gelap" title="Ganti tampilan">
+        <svg class="ikon-bulan" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>
+        <svg class="ikon-matahari" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+    </div>
+    <p class="sr-only" id="jumlahAlat" role="status" aria-live="polite">8 perkakas tersedia</p>
+
+    <section class="rk-bagian" id="susun" aria-labelledby="j-susun">
+      <h2 id="j-susun">Susun halaman</h2>
+      <div class="rk-daftar">
+        <a class="rk-baris editorial-kartu" href="gabung-pecah" data-cari="gabung susun pecah pisah ekstrak ambil halaman urut putar hapus nomor"><span class="rk-nomor">01</span><span class="rk-uraian"><strong>Gabung/Pecah</strong><span>Gabungkan, susun, ambil halaman tertentu, atau pecah per halaman.</span></span><svg class="rk-ikon" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 7.5h6l3 3v14h-9z"/><path d="M19.5 7.5h6l3 3v14h-9z"/><path d="M14.6 12.5l2.2 2.2-2.2 2.2M17.4 17.8l-2.2 2.2 2.2 2.2"/></g></svg></a>
+        <a class="rk-baris editorial-kartu" href="pengubah-uk" data-cari="ubah ukuran kertas a4 f4 legal halaman"><span class="rk-nomor">02</span><span class="rk-uraian"><strong>Ubah Ukuran Kertas</strong><span>Sesuaikan ukuran halaman PDF dengan kebutuhan.</span></span><svg class="rk-ikon" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 4.5h10v13h-10z" stroke-dasharray="2 2.2"/><path d="M12 11h11l5 5v12.5H12z"/><path d="M23 11v5h5"/><path d="M16.5 15.5l4 4M20.5 16.2v3.3h-3.3"/></g></svg></a>
       </div>
-      <div class="c-keterangan" data-banner-tema role="img" aria-label="Pemandangan teluk saat matahari terbenam dengan perbukitan, gedung kota, dermaga, kilang, dan kapal">KPKNL BALIKPAPAN</div>
-    </aside>
-
-    <section class="c-alat" id="alat" aria-labelledby="judul-alat">
-      <header class="c-kepala">
-        <h2 id="judul-alat">Daftar perkakas</h2>
-        <p id="jumlahAlat" role="status" aria-live="polite">8 perkakas tersedia</p>
-      </header>
-      <svg class="ikon-gradasi" width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><linearGradient id="gradasiIkon" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--ikon-awal)"/><stop offset="1" style="stop-color:var(--ikon-ujung)"/></linearGradient></defs></svg>
-      <div class="c-kisi" id="daftarAlat">
-        <a class="editorial-kartu" href="gabung-pecah" data-cari="gabung susun pecah pisah ekstrak ambil halaman urut putar hapus nomor">
-          <svg class="editorial-kartu-ikon" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><g fill="none" stroke="url(#gradasiIkon)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 7.5h6l3 3v14h-9z"/><path d="M19.5 7.5h6l3 3v14h-9z"/><path d="M14.6 12.5l2.2 2.2-2.2 2.2M17.4 17.8l-2.2 2.2 2.2 2.2"/></g></svg><strong>Gabung/Pecah</strong>
-          <span>Gabungkan, susun, ambil halaman tertentu, atau pecah per halaman.</span></a>
-        <a class="editorial-kartu" href="koreksi" data-cari="edit teks koreksi sunting isi pdf">
-          <svg class="editorial-kartu-ikon" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><g fill="none" stroke="url(#gradasiIkon)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4.5h10l5.5 5.5v17.5H9z"/><path d="M19 4.5V10h5.5"/><path d="M12.5 15h5M12.5 19h3"/><path d="M20.5 16v8M19 16h3M19 24h3"/></g></svg><strong>Edit Teks</strong>
-          <span>Koreksi, tambahkan, atau hapus teks dalam naskah.</span>
-        </a>
-        <a class="editorial-kartu" href="tanda-air" data-cari="watermark tanda air salinan konsep">
-          <svg class="editorial-kartu-ikon" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><g fill="none" stroke="url(#gradasiIkon)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4.5h10l5.5 5.5v17.5H9z"/><path d="M19 4.5V10h5.5"/><path d="M12 22.5l8-8M14.5 25l7-7" stroke-dasharray="2 2.2"/></g></svg><strong>Watermark</strong>
-          <span>Tambahkan tulisan seperti SALINAN atau KONSEP.</span>
-        </a>
-        <a class="editorial-kartu" href="gambar" data-cari="pdf gambar jpg png konversi foto">
-          <svg class="editorial-kartu-ikon" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><g fill="none" stroke="url(#gradasiIkon)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4.5h10l5.5 5.5v17.5H9z"/><path d="M19 4.5V10h5.5"/><path d="M11.5 24l4-4.5 2.5 2.5 2-2 2.5 4"/><circle cx="14.5" cy="15" r="1.6"/></g></svg><strong>PDF &amp; Gambar</strong>
-          <span>Ubah halaman PDF ke JPG atau susun gambar jadi PDF.</span>
-        </a>
-        <a class="editorial-kartu" href="word" data-cari="pdf ke word docx ocr pindai konversi">
-          <svg class="editorial-kartu-ikon" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><g fill="none" stroke="url(#gradasiIkon)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5h8l3 3V25H4z"/><path d="M7 14h5M7 17.5h5M7 21h3"/><path d="M16.5 17h5.5M19.5 14.5l2.5 2.5-2.5 2.5"/><path d="M24 9.5h4.5V25H24"/></g></svg><strong>PDF ke Word</strong>
-          <span>Konversi menjadi dokumen Word, termasuk hasil pindaian.</span>
-        </a>
-        <a class="editorial-kartu" href="penanda" data-cari="penanda tte elektronik tandatangan tanda tangan">
-          <svg class="editorial-kartu-ikon" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><g fill="none" stroke="url(#gradasiIkon)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4.5h10l5.5 5.5v17.5H9z"/><path d="M19 4.5V10h5.5"/><path d="M12 22c1.5-3 2.5-5 3.2-2.8.5 1.6 1.3 2.8 2.6.6.8-1.3 1.7-.8 3.2.2"/><path d="M12 25h9"/></g></svg><strong>Penanda TTE</strong>
-          <span>Tambahkan penanda tulisan tanda tangan elektronik.</span>
-        </a>
-        <a class="editorial-kartu" href="pengubah-uk" data-cari="ubah ukuran kertas a4 f4 legal halaman">
-          <svg class="editorial-kartu-ikon" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><g fill="none" stroke="url(#gradasiIkon)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 4.5h10v13h-10z" stroke-dasharray="2 2.2"/><path d="M12 11h11l5 5v12.5H12z"/><path d="M23 11v5h5"/><path d="M16.5 15.5l4 4M20.5 16.2v3.3h-3.3"/></g></svg><strong>Ubah Ukuran Kertas</strong>
-          <span>Sesuaikan ukuran halaman PDF dengan kebutuhan.</span>
-        </a>
-        <a class="editorial-kartu" href="kompres" data-cari="kompres kecilkan perkecil ukuran berkas hemat optimasi">
-          <svg class="editorial-kartu-ikon" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><g fill="none" stroke="url(#gradasiIkon)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4.5h10l5.5 5.5v17.5H9z"/><path d="M19 4.5V10h5.5"/><path d="M16.75 12.5v4.2M14.6 14.6l2.15 2.15 2.15-2.15M16.75 25.5v-4.2M14.6 23.4l2.15-2.15 2.15 2.15"/></g></svg><strong>Kompres PDF</strong>
-          <span>Perkecil ukuran berkas, teks tetap utuh dan bisa dicari.</span>
-        </a>
-      </div>
-      <p class="editorial-kosong" id="alatKosong" hidden>Tidak ada perkakas yang cocok. Coba kata kunci lain.</p>
-
-      <a class="c-gerbang" href="https://s.kemenkeu.go.id/GerbangInternal">
-        <span>
-          <span class="editorial-label">Subbagian Umum Presents</span>
-          <strong>s.kemenkeu.go.id/<wbr>GerbangInternal</strong>
-        </span>
-        <span class="c-buka">Buka <span aria-hidden="true">→</span></span>
-      </a>
-
-      <footer class="editorial-kaki">
-        <span>KPKNL Balikpapan · Berintegritas dalam Tugas, Prima dalam Pelayanan.</span>
-        <span class="kredit">Built with Claude ft. GPT <svg class="kredit-hati" viewBox="0 0 24 24" width="14" height="14" role="img" aria-label="cinta"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 5 6.4 5c2 0 3.6 1.1 4.6 2.6l1 1.4 1-1.4C14 6.1 15.6 5 17.6 5 21 5 23.1 8.4 21.6 11.8 19.5 16.4 12 21 12 21z"/></svg></span>
-      </footer>
     </section>
-  </div>
-</main>
+    <section class="rk-bagian" id="format" aria-labelledby="j-format">
+      <h2 id="j-format">Ubah format</h2>
+      <div class="rk-daftar">
+        <a class="rk-baris editorial-kartu" href="gambar" data-cari="pdf gambar jpg png konversi foto"><span class="rk-nomor">03</span><span class="rk-uraian"><strong>PDF &amp; Gambar</strong><span>Ubah halaman PDF ke JPG atau susun gambar jadi PDF.</span></span><svg class="rk-ikon" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4.5h10l5.5 5.5v17.5H9z"/><path d="M19 4.5V10h5.5"/><path d="M11.5 24l4-4.5 2.5 2.5 2-2 2.5 4"/><circle cx="14.5" cy="15" r="1.6"/></g></svg></a>
+        <a class="rk-baris editorial-kartu" href="word" data-cari="pdf ke word docx ocr pindai konversi"><span class="rk-nomor">04</span><span class="rk-uraian"><strong>PDF ke Word</strong><span>Konversi menjadi dokumen Word, termasuk hasil pindaian.</span></span><svg class="rk-ikon" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5h8l3 3V25H4z"/><path d="M7 14h5M7 17.5h5M7 21h3"/><path d="M16.5 17h5.5M19.5 14.5l2.5 2.5-2.5 2.5"/><path d="M24 9.5h4.5V25H24"/></g></svg></a>
+      </div>
+    </section>
+    <section class="rk-bagian" id="tandai" aria-labelledby="j-tandai">
+      <h2 id="j-tandai">Sunting dan tandai</h2>
+      <div class="rk-daftar">
+        <a class="rk-baris editorial-kartu" href="koreksi" data-cari="edit teks koreksi sunting isi pdf"><span class="rk-nomor">05</span><span class="rk-uraian"><strong>Edit Teks</strong><span>Koreksi, tambahkan, atau hapus teks dalam naskah.</span></span><svg class="rk-ikon" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4.5h10l5.5 5.5v17.5H9z"/><path d="M19 4.5V10h5.5"/><path d="M12.5 15h5M12.5 19h3"/><path d="M20.5 16v8M19 16h3M19 24h3"/></g></svg></a>
+        <a class="rk-baris editorial-kartu" href="tanda-air" data-cari="watermark tanda air salinan konsep"><span class="rk-nomor">06</span><span class="rk-uraian"><strong>Watermark</strong><span>Tambahkan tulisan seperti SALINAN atau KONSEP.</span></span><svg class="rk-ikon" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4.5h10l5.5 5.5v17.5H9z"/><path d="M19 4.5V10h5.5"/><path d="M12 22.5l8-8M14.5 25l7-7" stroke-dasharray="2 2.2"/></g></svg></a>
+        <a class="rk-baris editorial-kartu" href="penanda" data-cari="penanda tte elektronik tandatangan tanda tangan"><span class="rk-nomor">07</span><span class="rk-uraian"><strong>Penanda TTE</strong><span>Tambahkan penanda tulisan tanda tangan elektronik.</span></span><svg class="rk-ikon" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4.5h10l5.5 5.5v17.5H9z"/><path d="M19 4.5V10h5.5"/><path d="M12 22c1.5-3 2.5-5 3.2-2.8.5 1.6 1.3 2.8 2.6.6.8-1.3 1.7-.8 3.2.2"/><path d="M12 25h9"/></g></svg></a>
+      </div>
+    </section>
+    <section class="rk-bagian" id="optimasi" aria-labelledby="j-optimasi">
+      <h2 id="j-optimasi">Optimasi</h2>
+      <div class="rk-daftar">
+        <a class="rk-baris editorial-kartu" href="kompres" data-cari="kompres kecilkan perkecil ukuran berkas hemat optimasi"><span class="rk-nomor">08</span><span class="rk-uraian"><strong>Kompres PDF</strong><span>Perkecil ukuran berkas, teks tetap utuh dan bisa dicari.</span></span><svg class="rk-ikon" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4.5h10l5.5 5.5v17.5H9z"/><path d="M19 4.5V10h5.5"/><path d="M16.75 12.5v4.2M14.6 14.6l2.15 2.15 2.15-2.15M16.75 25.5v-4.2M14.6 23.4l2.15-2.15 2.15 2.15"/></g></svg></a>
+      </div>
+    </section>
+
+    <p class="rk-kosong" id="alatKosong" hidden>Tidak ada perkakas yang cocok. Coba kata kunci lain.</p>
+
+    <a class="rk-gerbang" href="https://s.kemenkeu.go.id/GerbangInternal" target="_blank" rel="noopener">
+      <span><small>Subbagian Umum</small><strong>s.kemenkeu.go.id/<wbr>GerbangInternal</strong><span class="sr-only"> (membuka tab baru)</span></span>
+      <span>Buka <span aria-hidden="true">↗</span></span>
+    </a>
+
+    <footer>
+      <span>KPKNL Balikpapan · Berintegritas dalam Tugas, Prima dalam Pelayanan.</span>
+      <span class="kredit">Dibuat dengan Claude dan GPT <svg class="kredit-hati" viewBox="0 0 24 24" width="14" height="14" role="img" aria-label="cinta"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 5 6.4 5c2 0 3.6 1.1 4.6 2.6l1 1.4 1-1.4C14 6.1 15.6 5 17.6 5 21 5 23.1 8.4 21.6 11.8 19.5 16.4 12 21 12 21z"/></svg></span>
+    </footer>
+  </main>
+</div>
 
 <script src="bersama.js"></script>
 <script>
 (function () {
   "use strict";
-  const form = document.getElementById("cariPerkakas");
-  const input = document.getElementById("cariAlat");
-  const cards = Array.from(document.querySelectorAll(".editorial-kartu"));
-  const status = document.getElementById("jumlahAlat");
-  const kosong = document.getElementById("alatKosong");
+  var form = document.getElementById("cariPerkakas");
+  var input = document.getElementById("cariAlat");
+  var hapus = document.getElementById("hapusCari");
+  var baris = Array.prototype.slice.call(document.querySelectorAll(".rk-baris"));
+  var bagian = Array.prototype.slice.call(document.querySelectorAll(".rk-bagian"));
+  var status = document.getElementById("jumlahAlat");
+  var kosong = document.getElementById("alatKosong");
 
   function cari() {
-    const query = input.value.trim().toLocaleLowerCase("id");
-    let terlihat = 0;
-    for (const kartu of cards) {
-      const teks = (kartu.textContent + " " + kartu.dataset.cari).toLocaleLowerCase("id");
-      const cocok = !query || teks.includes(query);
-      kartu.hidden = !cocok;
+    var kata = input.value.trim().toLocaleLowerCase("id");
+    var terlihat = 0;
+    baris.forEach(function (b) {
+      var cocok = !kata || (b.textContent + " " + b.dataset.cari).toLocaleLowerCase("id").indexOf(kata) !== -1;
+      b.hidden = !cocok;
       if (cocok) terlihat++;
-    }
-    status.textContent = query ? terlihat + " dari " + cards.length + " perkakas cocok" : cards.length + " perkakas tersedia";
+    });
+    bagian.forEach(function (s) {
+      var tampak = s.querySelectorAll(".rk-baris:not([hidden])");
+      s.hidden = tampak.length === 0;
+      s.querySelectorAll(".rk-baris").forEach(function (b) { b.classList.remove("pertama"); });
+      if (tampak.length) tampak[0].classList.add("pertama");
+    });
+    hapus.hidden = !input.value;
+    status.textContent = kata ? terlihat + " dari " + baris.length + " perkakas cocok" : baris.length + " perkakas tersedia";
     kosong.hidden = terlihat > 0;
   }
-
-  form.addEventListener("submit", function (e) {
-    e.preventDefault();
-    cari();
-    document.getElementById("alat").scrollIntoView({ behavior: "auto", block: "start" });
-  });
+  form.addEventListener("submit", function (e) { e.preventDefault(); cari(); });
   input.addEventListener("input", cari);
-  input.addEventListener("keydown", function (e) {
-    if (e.key === "Escape" && input.value) { input.value = ""; cari(); }
+  input.addEventListener("keydown", function (e) { if (e.key === "Escape" && input.value) { input.value = ""; cari(); } });
+  hapus.addEventListener("click", function () { input.value = ""; cari(); input.focus(); });
+
+  // Saklar tema
+  var saklar = document.querySelector("[data-tombol-mode]");
+  if (saklar && window.Tema && window.Tema.alihMode) saklar.addEventListener("click", function () { window.Tema.alihMode(); });
+
+  // Menu kelompok: gulir ke bagian dan tandai bagian yang sedang dilihat.
+  var halus = !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  var tautan = Array.prototype.slice.call(document.querySelectorAll(".rk-kelompok a"));
+  function tandai(id) { tautan.forEach(function (a) { if (a.getAttribute("href") === "#" + id) a.setAttribute("aria-current", "true"); else a.removeAttribute("aria-current"); }); }
+  tautan.forEach(function (a) {
+    a.addEventListener("click", function (e) {
+      var t = document.getElementById(a.getAttribute("href").slice(1));
+      if (!t) return;
+      e.preventDefault();
+      if (input.value) { input.value = ""; cari(); }
+      t.scrollIntoView({ behavior: halus ? "smooth" : "auto", block: "start" });
+    });
   });
+  if ("IntersectionObserver" in window) {
+    var pengamat = new IntersectionObserver(function (entri) { entri.forEach(function (e) { if (e.isIntersecting) tandai(e.target.id); }); }, { rootMargin: "-25% 0px -65% 0px" });
+    bagian.forEach(function (b) { pengamat.observe(b); });
+  }
+  if (bagian[0]) tandai(bagian[0].id);
+  cari();
 })();
 </script>
 </body>

@@ -61,6 +61,10 @@
   rapikanAlamat();
 
   function pasangMenu() {
+    // Beranda Bengkel PDF sudah memuat panel dan saklar tema sendiri.
+    if (document.body.classList.contains("rk-beranda")) return;
+    // Halaman alat memakai rangka panel navy (dasar.css).
+    if (document.body.classList.contains("halaman-alat")) { pasangRangkaAlat(); return; }
     // Alamat halaman dibandingkan tanpa akhiran .html, sebab situs memakai
     // alamat pendek seperti /pecah, dan beranda bisa berupa / atau /index.
     const kini = namaHalaman();
@@ -150,6 +154,122 @@
     } else {
       document.body.insertBefore(bar, document.body.firstChild);
     }
+  }
+
+  // Rangka halaman alat: tautan kembali di panel, urutan langkah dari tiap
+  // bagian berlabel "Langkah", serta bilah daftar perkakas dan saklar tema
+  // di atas kolom isi (wadah .rk-alat-atas sudah ada di HTML supaya isi tidak bergeser).
+  function pasangRangkaAlat() {
+    const kini = namaHalaman();
+    const kopIsi = document.querySelector(".kop .kop-isi");
+    if (kopIsi) {
+      const kembali = document.createElement("a");
+      kembali.className = "rk-kembali";
+      kembali.href = "./";
+      kembali.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 18l-6-6 6-6"/></svg>Bengkel PDF';
+      kopIsi.insertBefore(kembali, kopIsi.firstChild);
+      // Label "Bengkel PDF / 08" menjadi "Perkakas 08", karena tautan kembali sudah menyebut Bengkel PDF.
+      const label = kopIsi.querySelector(".kop-label");
+      const urut = label && label.textContent.match(/(\d+)\s*$/);
+      if (urut) label.textContent = "Perkakas " + urut[1];
+      pasangLangkah(kopIsi);
+    }
+
+    let atas = document.querySelector(".rk-alat-atas");
+    if (!atas) {
+      atas = document.createElement("div");
+      atas.className = "rk-alat-atas";
+      const kop = document.querySelector(".kop");
+      if (kop) kop.insertAdjacentElement("afterend", atas); else document.body.insertBefore(atas, document.body.firstChild);
+    }
+    atas.setAttribute("role", "navigation");
+    atas.setAttribute("aria-label", "Navigasi perkakas");
+
+    const container = document.createElement("div");
+    container.className = "menu-dropdown-wrapper";
+    const tombol = document.createElement("button");
+    tombol.className = "menu-dropdown-btn";
+    tombol.type = "button";
+    tombol.innerHTML = 'Daftar perkakas <span class="panah" aria-hidden="true">▾</span>';
+    tombol.setAttribute("aria-expanded", "false");
+    tombol.setAttribute("aria-controls", "menu-perkakas");
+    tombol.setAttribute("aria-haspopup", "true");
+    const menuKonten = document.createElement("div");
+    menuKonten.className = "menu-dropdown-content";
+    menuKonten.id = "menu-perkakas";
+    HALAMAN.forEach((item) => {
+      const a = document.createElement("a");
+      a.href = item.berkas === "index" ? "./" : item.berkas;
+      a.textContent = item.berkas === "index" ? "Semua perkakas" : item.nama;
+      if (kini === item.berkas.toLowerCase()) { a.classList.add("aktif"); a.setAttribute("aria-current", "page"); }
+      menuKonten.appendChild(a);
+    });
+    container.append(tombol, menuKonten);
+    atas.appendChild(container);
+    pasangBukaTutup(container, tombol);
+
+    if (window.Tema && window.Tema.alihMode) {
+      const mode = document.createElement("button");
+      mode.type = "button";
+      mode.className = "menu-mode";
+      mode.setAttribute("data-tombol-mode", "");
+      mode.setAttribute("aria-label", "Ganti tampilan terang atau gelap");
+      mode.title = "Ganti tampilan";
+      mode.innerHTML =
+        '<svg class="ikon-bulan" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
+          '<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>' +
+        '<svg class="ikon-matahari" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
+          '<circle cx="12" cy="12" r="4"/>' +
+          '<path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+      mode.addEventListener("click", function () { window.Tema.alihMode(); });
+      atas.appendChild(mode);
+      if (window.Tema.segarkan) window.Tema.segarkan();
+    }
+  }
+
+  // Urutan langkah di panel. Langkah yang bagiannya masih tersembunyi
+  // ditandai belum tersedia; langkah terakhir yang tampil menjadi langkah aktif.
+  function pasangLangkah(kopIsi) {
+    const bagian = Array.from(document.querySelectorAll(".bungkus .nomor"))
+      .filter((n) => /langkah/i.test(n.textContent))
+      .map((n) => ({ wadah: n.closest("section") || n.parentElement, judul: n.parentElement.querySelector("h2") }))
+      .filter((b) => b.wadah && b.judul);
+    if (bagian.length < 2) return;
+    const daftar = document.createElement("ol");
+    daftar.className = "rk-langkah";
+    daftar.setAttribute("aria-label", "Langkah pengerjaan");
+    const tombol = bagian.map((b) => {
+      const li = document.createElement("li");
+      const t = document.createElement("button");
+      t.type = "button";
+      t.textContent = b.judul.textContent.trim();
+      t.addEventListener("click", () => {
+        if (t.getAttribute("aria-disabled") === "true") return;
+        b.wadah.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+      li.appendChild(t);
+      daftar.appendChild(li);
+      return t;
+    });
+    function tersembunyi(el) {
+      for (let n = el; n && n !== document.body; n = n.parentElement) {
+        if (n.classList.contains("sembunyi") || n.hidden) return true;
+      }
+      return false;
+    }
+    function segarkan() {
+      let aktif = 0;
+      bagian.forEach((b, i) => {
+        const tutup = tersembunyi(b.wadah);
+        tombol[i].setAttribute("aria-disabled", String(tutup));
+        if (!tutup) aktif = i;
+        tombol[i].removeAttribute("aria-current");
+      });
+      tombol[aktif].setAttribute("aria-current", "step");
+    }
+    segarkan();
+    new MutationObserver(segarkan).observe(document.querySelector(".bungkus"), { attributes: true, attributeFilter: ["class", "hidden"], subtree: true });
+    kopIsi.appendChild(daftar);
   }
 
   // Perilaku buka-tutup yang sama untuk semua menu tarik-turun di bilah atas:
