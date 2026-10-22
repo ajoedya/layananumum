@@ -88,7 +88,7 @@
    kanan supaya tidak bertumpuk dengan nomor. */
 .beranda-c .editorial-kartu { position: relative; padding-right: 72px; }
 .beranda-c .editorial-kartu > strong,
-.beranda-c .editorial-kartu > span:not(.editorial-kartu-nomor) { position: relative; z-index: 1; }
+.beranda-c .editorial-kartu > span { position: relative; z-index: 1; }
 .beranda-c .editorial-kartu-nomor {
   position: absolute;
   right: 20px;
@@ -106,6 +106,24 @@
   opacity: var(--nomor-opasitas);
   pointer-events: none;
 }
+.beranda-c .editorial-kartu-ikon {
+  position: absolute; right: 18px; top: 50%; transform: translateY(-50%);
+  width: 40px; height: 40px; opacity: .9; pointer-events: none;
+}
+/* Warna gradasi dipasang pada wadah defs, karena gradasi SVG mewarisi
+   variabel dari tempat ia didefinisikan, bukan dari ikon pemakainya. */
+.ikon-gradasi {
+  --ikon-awal: color-mix(in srgb, var(--nomor-ujung) 75%, #ffffff);
+  --ikon-ujung: var(--nomor-ujung);
+}
+.beranda-c .editorial-kartu:hover .editorial-kartu-ikon { opacity: 1; }
+/* Mode gelap: ujung navy terlalu gelap untuk garis ikon, jadi gradasi
+   dibalik ke arah terang supaya ikon tetap terbaca samar. */
+:root[data-mode="gelap"] .ikon-gradasi {
+  --ikon-awal: #e8eef7;
+  --ikon-ujung: color-mix(in srgb, var(--nomor-ujung) 30%, #ffffff);
+}
+:root[data-mode="gelap"] .beranda-c .editorial-kartu-ikon { opacity: .85; }
 /* Deskripsi kartu yang diberi label tambahan tetap bergaya sama. */
 .beranda-c .editorial-kartu > strong + span { color: var(--editorial-muted); font-size: 14px; line-height: 1.55; }
 .c-tanda {
@@ -192,36 +210,37 @@
         <h2 id="judul-alat">Daftar perkakas</h2>
         <p id="jumlahAlat" role="status" aria-live="polite">8 perkakas tersedia</p>
       </header>
+      <svg class="ikon-gradasi" width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><linearGradient id="gradasiIkon" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--ikon-awal)"/><stop offset="1" style="stop-color:var(--ikon-ujung)"/></linearGradient></defs></svg>
       <div class="c-kisi" id="daftarAlat">
         <a class="editorial-kartu" href="gabung-pecah" data-cari="gabung susun pecah pisah ekstrak ambil halaman urut putar hapus nomor">
-          <span class="editorial-kartu-nomor" aria-hidden="true">01</span><strong>Gabung/Pecah</strong>
+          <svg class="editorial-kartu-ikon" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><g fill="none" stroke="url(#gradasiIkon)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 7.5h6l3 3v14h-9z"/><path d="M19.5 7.5h6l3 3v14h-9z"/><path d="M14.6 12.5l2.2 2.2-2.2 2.2M17.4 17.8l-2.2 2.2 2.2 2.2"/></g></svg><strong>Gabung/Pecah</strong>
           <span>Gabungkan, susun, ambil halaman tertentu, atau pecah per halaman.</span></a>
         <a class="editorial-kartu" href="koreksi" data-cari="edit teks koreksi sunting isi pdf">
-          <span class="editorial-kartu-nomor" aria-hidden="true">02</span><strong>Edit Teks</strong>
+          <svg class="editorial-kartu-ikon" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><g fill="none" stroke="url(#gradasiIkon)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4.5h10l5.5 5.5v17.5H9z"/><path d="M19 4.5V10h5.5"/><path d="M12.5 15h5M12.5 19h3"/><path d="M20.5 16v8M19 16h3M19 24h3"/></g></svg><strong>Edit Teks</strong>
           <span>Koreksi, tambahkan, atau hapus teks dalam naskah.</span>
         </a>
         <a class="editorial-kartu" href="tanda-air" data-cari="watermark tanda air salinan konsep">
-          <span class="editorial-kartu-nomor" aria-hidden="true">03</span><strong>Watermark</strong>
+          <svg class="editorial-kartu-ikon" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><g fill="none" stroke="url(#gradasiIkon)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4.5h10l5.5 5.5v17.5H9z"/><path d="M19 4.5V10h5.5"/><path d="M12 22.5l8-8M14.5 25l7-7" stroke-dasharray="2 2.2"/></g></svg><strong>Watermark</strong>
           <span>Tambahkan tulisan seperti SALINAN atau KONSEP.</span>
         </a>
         <a class="editorial-kartu" href="gambar" data-cari="pdf gambar jpg png konversi foto">
-          <span class="editorial-kartu-nomor" aria-hidden="true">04</span><strong>PDF &amp; Gambar</strong>
+          <svg class="editorial-kartu-ikon" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><g fill="none" stroke="url(#gradasiIkon)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4.5h10l5.5 5.5v17.5H9z"/><path d="M19 4.5V10h5.5"/><path d="M11.5 24l4-4.5 2.5 2.5 2-2 2.5 4"/><circle cx="14.5" cy="15" r="1.6"/></g></svg><strong>PDF &amp; Gambar</strong>
           <span>Ubah halaman PDF ke JPG atau susun gambar jadi PDF.</span>
         </a>
         <a class="editorial-kartu" href="word" data-cari="pdf ke word docx ocr pindai konversi">
-          <span class="editorial-kartu-nomor" aria-hidden="true">05</span><strong>PDF ke Word</strong>
+          <svg class="editorial-kartu-ikon" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><g fill="none" stroke="url(#gradasiIkon)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5h8l3 3V25H4z"/><path d="M7 14h5M7 17.5h5M7 21h3"/><path d="M16.5 17h5.5M19.5 14.5l2.5 2.5-2.5 2.5"/><path d="M24 9.5h4.5V25H24"/></g></svg><strong>PDF ke Word</strong>
           <span>Konversi menjadi dokumen Word, termasuk hasil pindaian.</span>
         </a>
         <a class="editorial-kartu" href="penanda" data-cari="penanda tte elektronik tandatangan tanda tangan">
-          <span class="editorial-kartu-nomor" aria-hidden="true">06</span><strong>Penanda TTE</strong>
+          <svg class="editorial-kartu-ikon" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><g fill="none" stroke="url(#gradasiIkon)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4.5h10l5.5 5.5v17.5H9z"/><path d="M19 4.5V10h5.5"/><path d="M12 22c1.5-3 2.5-5 3.2-2.8.5 1.6 1.3 2.8 2.6.6.8-1.3 1.7-.8 3.2.2"/><path d="M12 25h9"/></g></svg><strong>Penanda TTE</strong>
           <span>Tambahkan penanda tulisan tanda tangan elektronik.</span>
         </a>
         <a class="editorial-kartu" href="pengubah-uk" data-cari="ubah ukuran kertas a4 f4 legal halaman">
-          <span class="editorial-kartu-nomor" aria-hidden="true">07</span><strong>Ubah Ukuran Kertas</strong>
+          <svg class="editorial-kartu-ikon" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><g fill="none" stroke="url(#gradasiIkon)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 4.5h10v13h-10z" stroke-dasharray="2 2.2"/><path d="M12 11h11l5 5v12.5H12z"/><path d="M23 11v5h5"/><path d="M16.5 15.5l4 4M20.5 16.2v3.3h-3.3"/></g></svg><strong>Ubah Ukuran Kertas</strong>
           <span>Sesuaikan ukuran halaman PDF dengan kebutuhan.</span>
         </a>
         <a class="editorial-kartu" href="kompres" data-cari="kompres kecilkan perkecil ukuran berkas hemat optimasi">
-          <span class="editorial-kartu-nomor" aria-hidden="true">08</span><strong>Kompres PDF</strong>
+          <svg class="editorial-kartu-ikon" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><g fill="none" stroke="url(#gradasiIkon)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4.5h10l5.5 5.5v17.5H9z"/><path d="M19 4.5V10h5.5"/><path d="M16.75 12.5v4.2M14.6 14.6l2.15 2.15 2.15-2.15M16.75 25.5v-4.2M14.6 23.4l2.15-2.15 2.15 2.15"/></g></svg><strong>Kompres PDF</strong>
           <span>Perkecil ukuran berkas, teks tetap utuh dan bisa dicari.</span>
         </a>
       </div>
