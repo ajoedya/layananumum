@@ -160,12 +160,21 @@
 }
 .rk-foto, .rk-tabir { position: absolute; left: 0; right: 0; bottom: 0; }
 .rk-foto { z-index: -2; height: 54%; }
+/* Panel berbingkai: .rk-panel hanya wadah gulir, tata letak dan foto ada di .rk-dalam yang minimal setinggi panel
+   dan ikut memanjang bila isinya lebih panjang. Foto pun selalu menempel sampai dasar isi, tidak terpotong saat panel digulir. */
+.rk-panel.rk-bingkai { padding: 0; gap: 0; isolation: auto; overflow-x: hidden; }
+.rk-dalam {
+  flex: 1 0 auto; min-height: 100%; position: relative; isolation: isolate; overflow: hidden;
+  padding: 24px 32px 28px; display: flex; flex-direction: column; gap: 16px;
+}
+.rk-bingkai .rk-foto { height: 58%; }
+.rk-bingkai .rk-tabir { height: 64%; }
 /* Tabir sedikit lebih tinggi daripada foto dan memakai kurva halus seperti beranda utama,
    jadi tepi atas foto tertutup penuh sebelum peralihannya dimulai (tidak tampak sebagai pita). */
 .rk-tabir {
   z-index: -1; height: 60%;
   background:
-    linear-gradient(to bottom, rgba(var(--rgb-gelap),0) 80%, rgba(var(--rgb-gelap),0.55) 100%),
+    linear-gradient(to bottom, rgba(var(--rgb-gelap),0) 58%, rgba(var(--rgb-gelap),.55) 80%, rgba(var(--rgb-gelap),.88) 100%),
     linear-gradient(to bottom,
       rgb(var(--rgb-laut)) 7%, rgba(var(--rgb-laut),.998) 9.3%, rgba(var(--rgb-laut),.984) 11.6%, rgba(var(--rgb-laut),.951) 13.9%, rgba(var(--rgb-laut),.896) 16.2%, rgba(var(--rgb-laut),.82) 18.6%, rgba(var(--rgb-laut),.725) 20.9%, rgba(var(--rgb-laut),.616) 23.2%, rgba(var(--rgb-laut),.5) 25.5%, rgba(var(--rgb-laut),.384) 27.8%, rgba(var(--rgb-laut),.275) 30.1%, rgba(var(--rgb-laut),.18) 32.4%, rgba(var(--rgb-laut),.104) 34.8%, rgba(var(--rgb-laut),.049) 37.1%, rgba(var(--rgb-laut),.016) 39.4%, rgba(var(--rgb-laut),.002) 41.7%, rgba(var(--rgb-laut),0) 44%);
 }
@@ -184,16 +193,26 @@
 .rk-privasi { display: flex; gap: 10px; align-items: flex-start; margin: 0; padding: 10px 12px; border: 1px solid rgba(255,255,255,.22); border-radius: 6px; color: var(--panel-teks); font-size: 14px; line-height: 1.5; }
 .rk-privasi svg { flex: none; width: 18px; height: 18px; margin-top: 1px; fill: none; stroke: var(--emas-terang); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .rk-privasi strong { color: #fff; }
-.rk-kelompok { display: flex; flex-direction: column; gap: 4px; margin: 4px -12px 0; }
+/* Menu kelompok berupa kotak kaca seperti beranda utama: navy tembus pandang yang mengaburkan foto,
+   dengan garis tepi terang yang jelas, jadi teks putih tetap kontras di atas bagian foto yang terang. */
+.rk-kelompok { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 0; }
 .rk-kelompok a {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; padding: 6px 12px;
-  border-radius: 6px; color: #fff; font-size: 15px; font-weight: 600; text-decoration: none; transition: background-color .16s ease;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; padding: 8px 12px 8px 16px;
+  border-radius: 12px; color: #fff; font-size: 15px; font-weight: 600; text-decoration: none;
+  background: rgba(var(--rgb-laut),.62); border: 1px solid rgba(255,255,255,.30);
+  box-shadow: 0 4px 16px rgba(var(--rgb-gelap),.28), inset 0 1px 0 rgba(255,255,255,.12);
+  -webkit-backdrop-filter: blur(10px) saturate(1.2); backdrop-filter: blur(10px) saturate(1.2);
+  text-shadow: 0 1px 2px rgba(var(--rgb-gelap),.5);
+  transition: background-color .16s ease, border-color .16s ease;
 }
-.rk-kelompok a:hover { background: rgba(255,255,255,.14); color: #fff; }
-.rk-kelompok a[aria-current="true"] { background: rgba(255,255,255,.16); box-shadow: inset 3px 0 0 var(--emas-terang); }
+.rk-kelompok a:hover { background: rgba(var(--rgb-laut),.78); border-color: rgba(255,255,255,.5); color: #fff; }
+.rk-kelompok a[aria-current="true"] { background: rgba(var(--rgb-laut),.82); border-color: var(--emas-terang); box-shadow: 0 4px 16px rgba(var(--rgb-gelap),.32), inset 3px 0 0 var(--emas-terang); }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .rk-kelompok a { background: rgba(var(--rgb-laut),.88); }
+}
 .rk-kelompok b { min-width: 26px; padding: 2px 8px; border-radius: 12px; background: rgba(5,16,27,.55); box-shadow: inset 0 0 0 1px rgba(255,255,255,.22); font-size: 12px; text-align: center; font-variant-numeric: tabular-nums; }
 .rk-kelompok a[aria-current="true"] b { background: var(--emas-terang); color: #0f3554; box-shadow: none; }
-.rk-ket { margin: auto 0 0; padding-top: 40px; color: #fff; font-size: 12px; font-weight: 700; letter-spacing: .18em; text-shadow: 0 1px 8px #0a2338; }
+.rk-ket { margin: auto 0 0; padding-top: 40px; color: #fff; font-size: 12px; font-weight: 700; letter-spacing: .18em; text-shadow: 0 1px 10px #0a2338, 0 1px 3px #0a2338, 0 0 2px #0a2338; }
 .rk-panel a:focus-visible, .rk-panel button:focus-visible, .halaman-alat .kop a:focus-visible, .halaman-alat .kop button:focus-visible { outline: 3px solid var(--emas-terang); outline-offset: 3px; }
 
 .rk-isi { flex: 999 1 560px; min-width: 0; padding: 28px clamp(18px, 4vw, 56px) 26px; display: flex; flex-direction: column; gap: 22px; }
@@ -239,6 +258,10 @@
 }
 @media (max-width: 920px) {
   .rk-panel { padding: 22px clamp(18px, 4vw, 56px) 92px; gap: 14px; }
+  .rk-panel.rk-bingkai { padding: 0; gap: 0; }
+  .rk-dalam { padding: 22px clamp(18px, 4vw, 56px) 92px; gap: 14px; }
+  .rk-bingkai .rk-foto { height: 120px; }
+  .rk-bingkai .rk-tabir { height: 170px; }
   .rk-foto { height: 120px; }
   .rk-tabir {
     height: 170px;
@@ -249,8 +272,8 @@
   }
   .rk-ket { display: none; }
   .rk-kelompok { flex-direction: row; flex-wrap: wrap; gap: 8px; margin: 0; }
-  .rk-kelompok a { background: rgba(255,255,255,.12); padding: 6px 8px 6px 14px; border-radius: 999px; }
-  .rk-kelompok a[aria-current="true"] { box-shadow: inset 0 0 0 2px var(--emas-terang); }
+  .rk-kelompok a { min-height: 44px; padding: 6px 8px 6px 14px; border-radius: 999px; }
+  .rk-kelompok a[aria-current="true"] { box-shadow: inset 0 0 0 1px var(--emas-terang); }
 }
 @media (max-width: 560px) {
   .rk-panel h1 { font-size: 26px; }
