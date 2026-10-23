@@ -21,11 +21,11 @@ Semua berkas duduk sejajar pada lapisan paling atas *repository*. Tidak boleh ad
 | `kompres.html` | Pemampat ukuran berkas |
 | `gabung.html`, `pecah.html`, `susun.html`, `nomor.html` | Halaman pengalih ke `gabung-pecah.html`, supaya tautan lama tetap jalan |
 | `beta/` | Tempat uji coba tata letak; `beta/beta.js` mengarahkan menu ke halaman beta |
-| `tema.js` | Pengundi tema, dimuat paling awal di setiap halaman |
+| `tema.js` | Mode terang/gelap dan tema bawaan, dimuat paling awal di setiap halaman |
 | `gaya.css` | Warna, huruf, tema, dan tata letak seluruh halaman |
 | `editorial.css` | Tata letak khusus beranda |
 | `bersama.js` | Menu atas, ikon situs, alamat pendek, dan alat bantu yang dipakai semua halaman |
-| `banner-*.jpg` | Gambar banner, satu untuk tiap tema |
+| `banner-bengkel.js` | Memasang foto banner bersama dari beranda (`../banner.js`, `../konten.js`) |
 | `ornamen-kalimantan-anyaman.svg` | Ornamen di sisi kop dan beranda |
 | `favicon*` | Ikon situs untuk tab peramban dan layar ponsel |
 
