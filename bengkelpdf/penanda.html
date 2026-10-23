@@ -180,21 +180,31 @@ async function bacaSusunan() {
     // sebab tulisan yang digeser harus digambar ulang dengan fon yang sepadan.
     try { await h.getOperatorList(); } catch (e) { /* tidak apa-apa, nanti dianggap fon biasa */ }
     const isi = await h.getTextContent();
+    // Transformasi viewport disimpan supaya letak di layar bisa dikembalikan
+    // ke ruang asli PDF ketika menggambar, termasuk pada halaman yang diputar.
     halaman.push({ no: i, lebarPt: v.width, tinggiPt: v.height,
-                   baris: susunBaris(isi.items, h), peta: null });
+                   vt: v.transform, putar: ((h.rotate || 0) % 360 + 360) % 360,
+                   baris: susunBaris(isi.items, h, v), peta: null });
   }
 }
 
 /* ========== 2. Menyusun potongan teks menjadi baris ==========
    Tiap baris menyimpan potongan aslinya lengkap dengan letak, ukuran, dan
    ketebalan hurufnya, sebab satu baris bisa memuat dua blok tanda tangan
-   sekaligus dan sebagian baris nanti perlu digambar ulang di tempat baru. */
-function susunBaris(items, hal) {
+   sekaligus dan sebagian baris nanti perlu digambar ulang di tempat baru.
+   Semua letak dihitung dalam ruang halaman sebagaimana tampil di layar
+   (asal di kiri bawah), sebab halaman landskap sering disimpan sebagai
+   halaman tegak yang diputar sehingga koordinat aslinya menurun. */
+function susunBaris(items, hal, vp) {
   const kumpulan = [];
   items.forEach((it) => {
     if (!it.str || !it.str.trim()) return;
-    const x = it.transform[4], y = it.transform[5], w = it.width || 0;
-    const ukuran = Math.abs(it.transform[3]) || it.height || UKURAN;
+    const m = pdfjsLib.Util.transform(vp.transform, it.transform);
+    // Tulisan yang di layar tidak mendatar (misalnya teks tegak di tepi
+    // tabel) dilewati, sebab nama penandatangan selalu ditulis mendatar.
+    if (Math.abs(m[1]) > Math.abs(m[0]) * 0.2 || m[0] <= 0) return;
+    const x = m[4], y = vp.height - m[5], w = it.width || 0;
+    const ukuran = Math.hypot(m[2], m[3]) || it.height || UKURAN;
     const rupa = rupaFon(hal, it.fontName);
     const cocok = kumpulan.find((b) => Math.abs(b.y - y) < 2.5);
     const p = { x, w, s: it.str, ukuran, tebal: rupa.tebal, miring: rupa.miring };
@@ -533,6 +543,14 @@ async function siapkanRuang(p, jangkar, bolehGeser) {
 }
 
 /* ========== 7. Menggambar ulang tulisan yang digeser ========== */
+// Mengembalikan letak di layar (asal kiri bawah) ke ruang asli PDF,
+// lengkap dengan sudut putar halamannya, untuk dipakai pdf-lib.
+function keLembar(halNo, x, y) {
+  const hal = halaman[halNo - 1];
+  const t = pdfjsLib.Util.applyInverseTransform([x, hal.tinggiPt - y], hal.vt);
+  return { x: t[0], y: t[1], rotate: PDFLib.degrees(hal.putar) };
+}
+
 const bisaDigambar = (s) => /^[\x20-\x7E\xA0-\xFF\u2013\u2014\u2018\u2019\u201C\u201D\u2026]*$/.test(s);
 
 async function terapkanGeseran(semuaGeseran) {
@@ -556,13 +574,13 @@ async function terapkanGeseran(semuaGeseran) {
     const b = g.baris, lb = lembar[g.halamanNo - 1];
     const kiri = Math.min(...b.potongan.map((pt) => pt.x));
     const kanan = Math.max(...b.potongan.map((pt) => pt.x + pt.w));
-    lb.drawRectangle({ x: kiri - 1, y: b.y - b.tinggi * TURUN - 1,
+    lb.drawRectangle({ ...keLembar(g.halamanNo, kiri - 1, b.y - b.tinggi * TURUN - 1),
       width: (kanan - kiri) + 2, height: b.tinggi * (NAIK + TURUN) + 2, color: putih });
   });
   dipakai.forEach((g) => {
     const b = g.baris, lb = lembar[g.halamanNo - 1];
     b.potongan.forEach((pt) => {
-      try { lb.drawText(pt.s, { x: pt.x, y: b.y - g.turun, size: pt.ukuran, font: pilihFon(pt),
+      try { lb.drawText(pt.s, { ...keLembar(g.halamanNo, pt.x, b.y - g.turun), size: pt.ukuran, font: pilihFon(pt),
                                 color: PDFLib.rgb(0, 0, 0) }); } catch (e) { console.error(e); }
     });
   });
@@ -819,7 +837,7 @@ el("simpan").addEventListener("click", async () => {
     const semua = dok.getPages();
     penandaList.forEach((p) => {
       semua[p.halamanNo - 1].drawText(TEKS, {
-        x: p.x, y: p.y, size: UKURAN, font, color: PDFLib.rgb(...ABU)
+        ...keLembar(p.halamanNo, p.x, p.y), size: UKURAN, font, color: PDFLib.rgb(...ABU)
       });
     });
     Bersama.unduh(await dok.save(), Bersama.tanpaAkhiran(namaAsli) + "-bertanda.pdf");
