@@ -1397,20 +1397,17 @@ body.halaman-alat .kop.kop::before {
   .jk .jk-panel .saklar-tema:hover { background: rgba(255,255,255,.12); border-color: var(--emas-terang); }
   .jk .jk-panel button:focus-visible, .jk .jk-panel a:focus-visible { outline: 3px solid var(--emas-terang); outline-offset: 3px; }
 
-  /* Foto kop berwarna penuh di bagian bawah panel. Foto mengisi sisa ruang
-     di bawah tombol (bukan di belakangnya), karena foto kop dasbor terang
-     dan ramai sehingga teks di atasnya sulit terbaca. */
+  /* Foto kop menutup seluruh panel di belakang isi, dengan opasitas rendah
+     supaya warna navy tetap dominan dan teks di atasnya mudah dibaca. */
   .jk .jk-panel .latar-foto {
-    display: block; position: relative; order: 99; flex: 1 0 160px; margin: 0 -32px -28px; z-index: 0;
-    opacity: 1; mix-blend-mode: normal; -webkit-mask-image: none; mask-image: none; overflow: hidden; pointer-events: none;
+    display: block; position: absolute; inset: 0; width: auto; height: auto; margin: 0; order: 0; z-index: -2;
+    opacity: .3; mix-blend-mode: normal; -webkit-mask-image: none; mask-image: none; overflow: hidden; pointer-events: none;
   }
-  .jk .jk-panel .latar-foto::before {
-    content: ""; position: absolute; left: 0; right: 0; top: 0; height: 70%; z-index: 3;
-    background: linear-gradient(to bottom, rgb(var(--rgb-laut)) 0%, rgba(var(--rgb-laut),.95) 10%, rgba(var(--rgb-laut),.78) 24%, rgba(var(--rgb-laut),.5) 42%, rgba(var(--rgb-laut),.22) 64%, rgba(var(--rgb-laut),.06) 84%, rgba(var(--rgb-laut),0) 100%);
-  }
+  :root[data-mode="gelap"] .jk .jk-panel .latar-foto { opacity: .26; }
+  .jk .jk-panel .latar-foto::before { display: none; }
   .jk .jk-panel .rk-tabir { display: none; }
   .jk .jk-panel .latar-foto::after { display: none; }
-  .jk .jk-panel .latar-foto i { filter: none; background-position: 50% 60%; }
+  .jk .jk-panel .latar-foto i { filter: none; background-position: 58% 50%; }
 
   .jk .jk-panel .kop { position: static; overflow: visible; isolation: auto; background: none; border: 0; color: #fff; }
   .jk .jk-panel .kop::before, .jk .jk-panel .kop::after { display: none; }
@@ -1467,8 +1464,7 @@ body.halaman-alat .kop.kop::before {
   .jk .penutup { margin-left: 0; margin-right: 0; }
 }
 @media screen and (max-width: 920px) {
-  .jk .jk-panel .latar-foto { flex-basis: 120px; min-height: 120px; margin: 0 calc(-1 * clamp(18px, 4vw, 56px)) -92px; }
-  .jk .jk-panel { padding-bottom: 92px; }
+  .jk .jk-panel { padding-bottom: 24px; }
   .jk .jk-panel nav.tab { flex-direction: row; flex-wrap: wrap; gap: 8px; margin: 0; }
   .jk .jk-panel nav.tab button { width: auto; background: rgba(255,255,255,.12); padding: 6px 10px 6px 14px; border-radius: 999px; }
   .jk .jk-panel nav.tab button[aria-selected="true"] { box-shadow: inset 0 0 0 2px var(--emas-terang); }
@@ -1508,12 +1504,13 @@ body.halaman-alat .kop.kop::before {
 @media screen and (min-width: 921px) {
   :root[data-panel="lepas"] .jk .jk-panel {
     position: fixed; left: 0; top: 0; bottom: 0; height: auto; width: 72px; z-index: 40;
+    align-self: stretch; /* align-self berlaku juga pada elemen fixed, flex-start membuatnya memendek */
     overflow: hidden; transition: width .2s ease, box-shadow .2s ease;
   }
   :root[data-panel="lepas"] .jk .rk-isi { margin-left: 72px; }
   /* Isi panel diberi lebar tetap supaya tidak terlipat selama panel melebar. */
   :root[data-panel="lepas"] .jk .jk-panel > :not(.jk-lajur):not(.latar-foto):not(.rk-tabir) { flex: none; width: 296px; }
-  :root[data-panel="lepas"] .jk .jk-panel .latar-foto { width: 360px; }
+  :root[data-panel="lepas"] .jk .jk-panel .latar-foto { right: auto; width: 360px; }
   :root[data-panel="lepas"] .jk .jk-panel > :not(.jk-lajur) { transition: opacity .15s ease; }
   :root[data-panel="lepas"] .jk:not(.panel-terbuka) .jk-panel > :not(.jk-lajur) { visibility: hidden; opacity: 0; }
   :root[data-panel="lepas"] .jk.panel-terbuka .jk-panel { width: 360px; overflow-y: auto; box-shadow: 10px 0 28px rgba(5,16,27,.22); }
@@ -1565,20 +1562,17 @@ body.halaman-alat .kop.kop::before {
   .jk .jk-panel .saklar-tema:hover { background: rgba(255,255,255,.12); border-color: var(--emas-terang); }
   .jk .jk-panel button:focus-visible, .jk .jk-panel a:focus-visible { outline: 3px solid var(--emas-terang); outline-offset: 3px; }
 
-  /* Foto kop berwarna penuh di bagian bawah panel. Foto mengisi sisa ruang
-     di bawah tombol (bukan di belakangnya), karena foto kop dasbor terang
-     dan ramai sehingga teks di atasnya sulit terbaca. */
+  /* Foto kop menutup seluruh panel di belakang isi, dengan opasitas rendah
+     supaya warna navy tetap dominan dan teks di atasnya mudah dibaca. */
   .jk .jk-panel .latar-foto {
-    display: block; position: relative; order: 99; flex: 1 0 160px; margin: 0 -32px -28px; z-index: 0;
-    opacity: 1; mix-blend-mode: normal; -webkit-mask-image: none; mask-image: none; overflow: hidden; pointer-events: none;
+    display: block; position: absolute; inset: 0; width: auto; height: auto; margin: 0; order: 0; z-index: -2;
+    opacity: .3; mix-blend-mode: normal; -webkit-mask-image: none; mask-image: none; overflow: hidden; pointer-events: none;
   }
-  .jk .jk-panel .latar-foto::before {
-    content: ""; position: absolute; left: 0; right: 0; top: 0; height: 70%; z-index: 3;
-    background: linear-gradient(to bottom, rgb(var(--rgb-laut)) 0%, rgba(var(--rgb-laut),.95) 10%, rgba(var(--rgb-laut),.78) 24%, rgba(var(--rgb-laut),.5) 42%, rgba(var(--rgb-laut),.22) 64%, rgba(var(--rgb-laut),.06) 84%, rgba(var(--rgb-laut),0) 100%);
-  }
+  :root[data-mode="gelap"] .jk .jk-panel .latar-foto { opacity: .26; }
+  .jk .jk-panel .latar-foto::before { display: none; }
   .jk .jk-panel .rk-tabir { display: none; }
   .jk .jk-panel .latar-foto::after { display: none; }
-  .jk .jk-panel .latar-foto i { filter: none; background-position: 50% 60%; }
+  .jk .jk-panel .latar-foto i { filter: none; background-position: 58% 50%; }
 
   .jk .jk-panel .kop { position: static; overflow: visible; isolation: auto; background: none; border: 0; color: #fff; }
   .jk .jk-panel .kop::before, .jk .jk-panel .kop::after { display: none; }
@@ -1635,8 +1629,7 @@ body.halaman-alat .kop.kop::before {
   .jk .penutup { margin-left: 0; margin-right: 0; }
 }
 @media screen and (max-width: 920px) {
-  .jk .jk-panel .latar-foto { flex-basis: 120px; min-height: 120px; margin: 0 calc(-1 * clamp(18px, 4vw, 56px)) -92px; }
-  .jk .jk-panel { padding-bottom: 92px; }
+  .jk .jk-panel { padding-bottom: 24px; }
   .jk .jk-panel nav.tab { flex-direction: row; flex-wrap: wrap; gap: 8px; margin: 0; }
   .jk .jk-panel nav.tab button { width: auto; background: rgba(255,255,255,.12); padding: 6px 10px 6px 14px; border-radius: 999px; }
   .jk .jk-panel nav.tab button[aria-selected="true"] { box-shadow: inset 0 0 0 2px var(--emas-terang); }
@@ -1676,12 +1669,13 @@ body.halaman-alat .kop.kop::before {
 @media screen and (min-width: 921px) {
   :root[data-panel="lepas"] .jk .jk-panel {
     position: fixed; left: 0; top: 0; bottom: 0; height: auto; width: 72px; z-index: 40;
+    align-self: stretch; /* align-self berlaku juga pada elemen fixed, flex-start membuatnya memendek */
     overflow: hidden; transition: width .2s ease, box-shadow .2s ease;
   }
   :root[data-panel="lepas"] .jk .rk-isi { margin-left: 72px; }
   /* Isi panel diberi lebar tetap supaya tidak terlipat selama panel melebar. */
   :root[data-panel="lepas"] .jk .jk-panel > :not(.jk-lajur):not(.latar-foto):not(.rk-tabir) { flex: none; width: 296px; }
-  :root[data-panel="lepas"] .jk .jk-panel .latar-foto { width: 360px; }
+  :root[data-panel="lepas"] .jk .jk-panel .latar-foto { right: auto; width: 360px; }
   :root[data-panel="lepas"] .jk .jk-panel > :not(.jk-lajur) { transition: opacity .15s ease; }
   :root[data-panel="lepas"] .jk:not(.panel-terbuka) .jk-panel > :not(.jk-lajur) { visibility: hidden; opacity: 0; }
   :root[data-panel="lepas"] .jk.panel-terbuka .jk-panel { width: 360px; overflow-y: auto; box-shadow: 10px 0 28px rgba(5,16,27,.22); }
