@@ -68,12 +68,10 @@
     return tema;
   }
 
-  var id = baca("sessionStorage", KUNCI_SESI);
-  if (!cari(id)) {
-    id = undi();
-    tulis("sessionStorage", KUNCI_SESI, id);
-    tulis("localStorage", KUNCI_TERAKHIR, id);
-  }
+  // Sejak banner diseragamkan dengan beranda Layanan Subbagian Umum (lihat ../banner.js),
+  // tema dikunci ke tema bawaan navy-emas. Pengundian tema acak tidak dipakai lagi,
+  // tetapi fungsinya dibiarkan supaya mudah dipulihkan bila kelak dibutuhkan.
+  var id = BAWAAN;
   var kini = pasang(id);
 
   /* ---------- Mode terang dan gelap ----------

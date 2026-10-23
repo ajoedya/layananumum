@@ -81,6 +81,8 @@ Tautan antarhalaman ditulis tanpa akhiran `.html`, misalnya `pecah` alih-alih `p
 
 ### Mengganti atau menambah tema
 
+> **Catatan (Oktober 2026).** Banner kini mengikuti beranda Layanan Subbagian Umum lewat `../banner.js` dan `banner-bengkel.js`, dan `tema.js` dikunci ke tema bawaan navy-emas. Untuk mengganti foto, ubah daftar banner di dasbor admin beranda. Uraian di bawah ini berlaku bila pengundian tema acak dipulihkan.
+
 Situs punya beberapa tema, dan masing-masing berpasangan dengan satu gambar banner. Tema **diundi secara acak setiap kali situs dikunjungi**. Selama kunjungan itu (satu tab peramban), semua halaman memakai tema yang sama, dan kunjungan berikutnya diusahakan mendapat tema yang berbeda. Tidak ada tombol pemilih tema.
 
 Tema diatur di dua tempat:

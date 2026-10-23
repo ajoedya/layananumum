@@ -36,7 +36,7 @@ Setiap halaman memasang *Content Security Policy* yang hanya mengizinkan kedua a
 
 ## Tampilan
 
-Setiap kunjungan mendapat salah satu dari enam tema secara acak, masing-masing dengan banner khas Kalimantan Timur, yaitu Pelabuhan Senja, Hutan Hujan, Mangrove, Tongkang Batu Bara, Tepian Kota, dan Kilang. Di beranda, banner menjadi latar panel kiri yang menempel saat halaman digulir, berdampingan dengan kisi kartu perkakas yang ringkas. Selama satu kunjungan, semua halaman memakai tema yang sama.
+Banner Bengkel PDF sama dengan beranda Layanan Subbagian Umum. Fotonya diambil dari daftar banner beranda (diatur di dasbor admin), berganti bersamaan dengan beranda tiap beberapa menit, dan memakai foto malam di mode gelap. Pengaturnya `../banner.js` dan `banner-bengkel.js`. Warna situs dikunci ke tema navy-emas; foto tema lama (`banner-*.jpg` di folder ini) tidak dipakai lagi.
 
 ## Untuk pengelola
 
