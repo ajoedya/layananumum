@@ -299,7 +299,7 @@ body.halaman-alat .kop.kop::before {
   content: ""; display: block; position: absolute; left: 0; right: 0; top: auto; bottom: 0; height: 50%; z-index: -1;
   opacity: 1; -webkit-mask-image: none; mask-image: none;
   background:
-    linear-gradient(to bottom, rgba(var(--rgb-gelap),0) 80%, rgba(var(--rgb-gelap),0.55) 100%),
+    linear-gradient(to bottom, rgba(var(--rgb-gelap),0) 58%, rgba(var(--rgb-gelap),.55) 80%, rgba(var(--rgb-gelap),.88) 100%),
     linear-gradient(to bottom,
       rgb(var(--rgb-laut)) 7%, rgba(var(--rgb-laut),.998) 9.3%, rgba(var(--rgb-laut),.984) 11.6%, rgba(var(--rgb-laut),.951) 13.9%, rgba(var(--rgb-laut),.896) 16.2%, rgba(var(--rgb-laut),.82) 18.6%, rgba(var(--rgb-laut),.725) 20.9%, rgba(var(--rgb-laut),.616) 23.2%, rgba(var(--rgb-laut),.5) 25.5%, rgba(var(--rgb-laut),.384) 27.8%, rgba(var(--rgb-laut),.275) 30.1%, rgba(var(--rgb-laut),.18) 32.4%, rgba(var(--rgb-laut),.104) 34.8%, rgba(var(--rgb-laut),.049) 37.1%, rgba(var(--rgb-laut),.016) 39.4%, rgba(var(--rgb-laut),.002) 41.7%, rgba(var(--rgb-laut),0) 44%);
 }
@@ -309,19 +309,31 @@ body.halaman-alat .kop.kop::before {
 .halaman-alat .kop p { color: var(--panel-teks); font-size: 15px; line-height: 1.6; }
 .halaman-alat .kop em { color: var(--emas-terang); }
 .halaman-alat .kop a { color: inherit; }
-.rk-langkah { list-style: none; display: flex; flex-direction: column; gap: 4px; margin: 4px -12px 0; padding: 0; counter-reset: langkah; }
+/* Langkah berupa kotak kaca, sama dengan menu kelompok beranda: navy tembus pandang yang mengaburkan foto,
+   garis tepi terang, dan sudut membulat, jadi tetap terbaca saat berada di atas foto. */
+.rk-langkah { list-style: none; display: flex; flex-direction: column; gap: 8px; margin: 4px 0 0; padding: 0; counter-reset: langkah; }
 .rk-langkah li { counter-increment: langkah; }
 .rk-langkah button {
-  width: 100%; display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 6px 12px; border: 0; border-radius: 6px;
-  background: transparent; color: #fff; font: 600 15px/1.3 var(--huruf-isi); text-align: left; cursor: pointer;
+  width: 100%; display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 8px 12px; border-radius: 12px;
+  color: #fff; font: 600 15px/1.3 var(--huruf-isi); text-align: left; cursor: pointer;
+  background: rgba(var(--rgb-laut),.62); border: 1px solid rgba(255,255,255,.30);
+  box-shadow: 0 4px 16px rgba(var(--rgb-gelap),.28), inset 0 1px 0 rgba(255,255,255,.12);
+  -webkit-backdrop-filter: blur(10px) saturate(1.2); backdrop-filter: blur(10px) saturate(1.2);
+  text-shadow: 0 1px 2px rgba(var(--rgb-gelap),.5);
+  transition: background-color .16s ease, border-color .16s ease;
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .rk-langkah button { background: rgba(var(--rgb-laut),.88); }
 }
 .rk-langkah button::before {
   content: counter(langkah); flex: none; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
   background: rgba(5,16,27,.55); box-shadow: inset 0 0 0 1px rgba(255,255,255,.22); font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums;
 }
-.rk-langkah button:hover { background: rgba(255,255,255,.14); }
-.rk-langkah button[aria-disabled="true"] { color: #9fb4c4; cursor: default; background: transparent; }
-.rk-langkah button[aria-current="step"] { background: rgba(255,255,255,.16); box-shadow: inset 3px 0 0 var(--emas-terang); }
+.rk-langkah button:hover { background: rgba(var(--rgb-laut),.78); border-color: rgba(255,255,255,.5); }
+/* Langkah yang belum bisa dibuka tetap berkotak, hanya garis dan teksnya lebih redup. */
+.rk-langkah button[aria-disabled="true"],
+.rk-langkah button[aria-disabled="true"]:hover { color: #c3d2de; cursor: default; background: rgba(var(--rgb-laut),.62); border-color: rgba(255,255,255,.16); border-style: dashed; }
+.rk-langkah button[aria-current="step"] { background: rgba(var(--rgb-laut),.82); border-color: var(--emas-terang); box-shadow: 0 4px 16px rgba(var(--rgb-gelap),.32), inset 3px 0 0 var(--emas-terang); }
 .rk-langkah button[aria-current="step"]::before { background: var(--emas-terang); color: #0f3554; box-shadow: none; }
 .rk-alat-atas { display: flex; justify-content: flex-end; align-items: center; gap: 12px; padding: 24px clamp(18px, 4vw, 48px) 0; }
 .rk-alat-atas .menu-dropdown-btn { min-height: 48px; }
@@ -329,7 +341,11 @@ body.halaman-alat .kop.kop::before {
 @media (min-width: 921px) {
   body.halaman-alat { display: grid; grid-template-columns: 340px minmax(0, 1fr); grid-template-rows: auto 1fr; min-height: 100vh; }
   body.halaman-alat:has(.bungkus.lebar) { grid-template-columns: 300px minmax(0, 1fr); }
-  body.halaman-alat > .kop { grid-column: 1; grid-row: 1 / span 2; position: sticky; top: 0; align-self: start; height: 100vh; height: 100dvh; overflow-y: auto; }
+  /* Kop menempel setinggi layar dan tidak ikut tergulir. Yang tergulir hanya .kop-isi, jadi foto dan tabirnya
+     selalu menempel di dasar kop dan tidak pernah terpotong, berapa pun panjang isi dan tinggi layarnya. */
+  body.halaman-alat > .kop { grid-column: 1; grid-row: 1 / span 2; position: sticky; top: 0; align-self: start; height: 100vh; height: 100dvh; overflow: hidden; }
+  body.halaman-alat > .kop > .kop-isi { min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.3) transparent; }
+  body.halaman-alat > .kop .kop-isi > p { text-shadow: 0 1px 6px rgba(var(--rgb-gelap),.7); }
   body.halaman-alat > .rk-alat-atas { grid-column: 2; grid-row: 1; }
   body.halaman-alat > .bungkus { grid-column: 2; grid-row: 2; width: 100%; padding-left: clamp(18px, 4vw, 48px); padding-right: clamp(18px, 4vw, 48px); }
   body.halaman-alat > .bungkus > section:first-child { margin-top: 12px; }
@@ -348,12 +364,12 @@ body.halaman-alat .kop.kop::before {
   .halaman-alat .kop p { font-size: 14px; }
   .rk-langkah { flex-direction: row; flex-wrap: wrap; gap: 8px; margin: 0; }
   .rk-langkah li { flex: none; }
-  .rk-langkah button { width: auto; background: rgba(255,255,255,.12); padding: 6px 14px 6px 8px; border-radius: 999px; font-size: 14px; }
-  .rk-langkah button[aria-current="step"] { box-shadow: inset 0 0 0 2px var(--emas-terang); }
+  .rk-langkah button { width: auto; min-height: 44px; padding: 6px 14px 6px 8px; border-radius: 999px; font-size: 14px; }
+  .rk-langkah button[aria-current="step"] { box-shadow: inset 0 0 0 1px var(--emas-terang); }
   .rk-alat-atas { padding-top: 16px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .rk-kelompok a, .rk-baris { transition: none; }
+  .rk-kelompok a, .rk-baris, .rk-langkah button { transition: none; }
 }
 /* Wadah bilah alat disiapkan setinggi isinya sebelum skrip berjalan. */
 .rk-alat-atas { min-height: 72px; }
