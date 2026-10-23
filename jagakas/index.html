@@ -1541,6 +1541,120 @@ body.halaman-alat .kop.kop::before {
 @media screen and (min-width: 921px) {
   :root[data-panel="lepas"] .jk .jk-panel > nav.tab { width: 320px; }
 }
+
+/* ============================================================
+   Ringkasan visual (rs-), layar saja
+   ============================================================ */
+:root { --rs-isi: #1d5a8c; --rs-w0: #0f3554; --rs-w1: #3f7fb5; --rs-w2: #d39a3a; --rs-lalu: #1d5a8c; --rs-ini: #e0a040; --rs-kosong: #e3e9ed; --rs-pakai: #9fb2c1; --rs-blokir: #c7752d; --rs-sisa: #2f8f5b; }
+:root[data-mode="gelap"] { --rs-isi: #6fa3d6; --rs-w0: #8cc3f0; --rs-w1: #3f7fb5; --rs-w2: #e0a040; --rs-lalu: #6fa3d6; --rs-ini: #f0b860; --rs-kosong: #243341; --rs-pakai: #4a5f72; --rs-blokir: #e08a46; --rs-sisa: #5cc187; }
+.rs { display: none; }
+@media screen {
+  .rs { display: flex; flex-direction: column; gap: 16px; margin: 0 0 20px; }
+  #tab-ringkasan:not(.rs-lengkap) > .panel { display: none; }
+  .jk .pembuka-kartu, .jk .pembuka-label, .jk #kabarCapaian { display: none; }
+  .jk .pembuka { margin-bottom: 20px; }
+  .jk .pembuka #rekon { margin-top: 0; }
+
+  .rs-label { margin: 0; color: var(--emas-teks); font-size: 12px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; }
+  .rs .num { font-variant-numeric: tabular-nums; }
+
+  /* Kartu capaian */
+  .rs-hero { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; align-items: center; padding: 22px 26px; background: var(--putih); border: 1px solid var(--garis); border-radius: 8px; box-shadow: 0 1px 6px rgba(15,53,84,.04); }
+  .rs-cincin { width: 180px; height: 180px; }
+  .rs-cincin-jalur { fill: none; stroke: var(--rs-kosong); stroke-width: 16; }
+  .rs-cincin-isi { fill: none; stroke: var(--rs-isi); stroke-width: 16; stroke-linecap: round; }
+  .rs-cincin-isi.kurang { stroke: var(--kurang); } .rs-cincin-isi.dekat { stroke: var(--emas-tua); } .rs-cincin-isi.capai { stroke: var(--capai); }
+  .rs-cincin-target { stroke: var(--biru-tua); stroke-width: 3.5; stroke-linecap: round; }
+  .rs-cincin-angka { fill: var(--biru-tua); font-size: 29px; font-weight: 800; text-anchor: middle; dominant-baseline: middle; letter-spacing: -.02em; }
+  .rs-cincin-angka tspan { font-size: 15px; fill: var(--emas-teks); }
+  .rs-cincin-ket { fill: var(--tinta-lembut); font-size: 13px; text-anchor: middle; }
+  .rs-hero-teks { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .rs-chip { align-self: flex-start; margin: 0; padding: 4px 12px; border-radius: 999px; font-size: 13px; font-weight: 700; }
+  .rs-chip.kurang { background: var(--bahaya-muda); color: var(--kurang); }
+  .rs-chip.dekat { background: var(--emas-muda); color: var(--emas-teks); }
+  .rs-chip.capai { background: var(--hijau-muda); color: var(--capai); }
+  .rs-hero-kalimat { margin: 0; color: var(--tinta); font-size: 17px; line-height: 1.55; }
+  .rs-hero-kalimat b { color: var(--biru-tua); }
+  .rs-tindak { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; margin: 6px 0 0; border: 1px solid var(--garis); border-radius: 6px; }
+  .rs-tindak div { padding: 10px 14px; border-left: 1px solid var(--garis); }
+  .rs-tindak div:first-child { border-left: 0; }
+  .rs-tindak dt { color: var(--tinta-lembut); font-size: 13px; line-height: 1.35; }
+  .rs-tindak dd { margin: 4px 0 0; color: var(--biru-tua); font-size: 18px; font-weight: 800; letter-spacing: -.01em; white-space: nowrap; }
+
+  /* Kartu angka */
+  .rs-kartu-kisi { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+  .rs-kartu { container-type: inline-size; display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 16px 18px; background: var(--putih); border: 1px solid var(--garis); border-radius: 8px; box-shadow: 0 1px 6px rgba(15,53,84,.04); }
+  .rs-kartu-nama { color: var(--tinta); font-size: 14px; font-weight: 700; }
+  .rs-kartu strong { color: var(--biru-tua); font-size: min(26px, 12.5cqw); font-weight: 800; line-height: 1.1; letter-spacing: -.015em; white-space: nowrap; }
+  .rs-kartu strong small { margin-right: .25em; color: var(--emas-teks); font-size: .55em; font-weight: 700; }
+  .rs-kartu-ket { display: flex; flex-wrap: wrap; gap: 4px 12px; color: var(--tinta-lembut); font-size: 12.5px; line-height: 1.4; }
+  .rs-tumpuk { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--rs-kosong); }
+  .rs-tumpuk i, .rs-leg i { display: block; height: 100%; }
+  .rs-leg { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .rs-leg i { width: 9px; height: 9px; border-radius: 2px; }
+  .rs .w0 { background: var(--rs-w0); } .rs .w1 { background: var(--rs-w1); } .rs .w2 { background: var(--rs-w2); }
+  .rs .lalu { background: var(--rs-lalu); } .rs .ini { background: var(--rs-ini); } .rs .kosong { background: var(--rs-kosong); }
+  .rs .pakai { background: var(--rs-pakai); } .rs .blokir { background: var(--rs-blokir); } .rs .sisa { background: var(--rs-sisa); }
+
+  /* Bilah capaian dengan penanda target */
+  .rs-rel { position: relative; display: block; height: 10px; border-radius: 5px; background: var(--rs-kosong); }
+  .rs-rel.besar { height: 8px; }
+  .rs-rel i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 5px; background: var(--rs-isi); }
+  .rs-rel i.kurang { background: var(--kurang); } .rs-rel i.dekat { background: var(--emas-tua); } .rs-rel i.capai { background: var(--capai); }
+  .rs-rel b { position: absolute; top: -4px; bottom: -4px; width: 3px; margin-left: -1.5px; border-radius: 2px; background: var(--emas-tua); }
+
+  /* Peta capaian */
+  .rs-peta { padding: 20px 24px 16px; background: var(--putih); border: 1px solid var(--garis); border-radius: 8px; box-shadow: 0 1px 6px rgba(15,53,84,.04); }
+  .rs-peta-kepala { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+  .rs-peta h2 { margin: 0; color: var(--biru-tua); font-size: 20px; font-weight: 700; }
+  .rs-saklar { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; border-radius: 8px; background: var(--latar); border: 1px solid var(--garis); }
+  .rs-saklar button { min-height: 36px; padding: 6px 12px; border: 0; border-radius: 6px; background: transparent; color: var(--tinta-lembut); font-size: 14px; font-weight: 600; box-shadow: none; cursor: pointer; }
+  .rs-saklar button:hover { color: var(--biru-tua); background: var(--putih); }
+  .rs-saklar button[aria-pressed="true"] { background: var(--putih); color: var(--biru-tua); box-shadow: 0 1px 3px rgba(15,53,84,.12), inset 0 -2px 0 var(--emas-tua); }
+  .rs-saklar button:focus-visible, .rs-baris.bisa:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: 2px; }
+  .rs-daftar { list-style: none; margin: 0; padding: 0; }
+  .rs-baris { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1.6fr) 64px 92px; gap: 14px; align-items: center; padding: 10px 6px; border-top: 1px solid var(--garis); }
+  .rs-baris:first-child { border-top: 0; }
+  .rs-baris.bisa { cursor: pointer; border-radius: 6px; }
+  .rs-baris.bisa:hover { background: var(--emas-muda); }
+  .rs-baris-nama { min-width: 0; color: var(--biru-tua); font-size: 14.5px; font-weight: 600; line-height: 1.3; }
+  .rs-baris-nama b { color: var(--emas-teks); font-weight: 700; }
+  .rs-baris-nama small { display: block; margin-top: 2px; color: var(--tinta-lembut); font-size: 12.5px; font-weight: 400; }
+  .rs-baris-persen { text-align: right; font-size: 15px; font-weight: 800; color: var(--biru-tua); }
+  .rs-baris-persen.kurang { color: var(--kurang); } .rs-baris-persen.capai { color: var(--capai); } .rs-baris-persen.dekat { color: var(--dekat); }
+  .rs-baris-sisa { text-align: right; color: var(--tinta-lembut); font-size: 12.5px; white-space: nowrap; }
+  .rs-peta-kaki { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-top: 10px; padding-top: 12px; border-top: 1px solid var(--garis); }
+  .rs-peta-kaki p { margin: 0; color: var(--tinta-lembut); font-size: 13px; }
+  .rs-peta-kaki button { min-height: 40px; }
+}
+@media screen and (max-width: 1180px) {
+  .rs-kartu-kisi { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media screen and (max-width: 760px) {
+  .rs-hero { grid-template-columns: 1fr; justify-items: center; padding: 18px; }
+  .rs-hero-teks { width: 100%; }
+  .rs-tindak { grid-template-columns: 1fr; }
+  .rs-tindak div { border-left: 0; border-top: 1px solid var(--garis); display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .rs-tindak div:first-child { border-top: 0; }
+  .rs-tindak dd { margin: 0; font-size: 16px; }
+  .rs-baris { grid-template-columns: minmax(0, 1fr) 58px; gap: 6px 10px; }
+  .rs-baris-rel { grid-column: 1 / -1; grid-row: 2; }
+  .rs-baris-sisa { display: none; }
+  .rs-peta { padding: 16px; }
+}
+@media screen and (max-width: 440px) {
+  .rs-kartu-kisi { grid-template-columns: 1fr; }
+}
+
+/* Bagian sumber data di bawah dibuat polos, sekeluarga dengan kartu lain. */
+@media screen {
+  .jk .penutup { margin: 8px 0 0; padding: 0; background: none; border: 0; }
+  .jk .penutup::before, .jk .penutup::after { display: none; }
+  .jk .penutup-isi { max-width: none; margin: 0; padding: 14px 0 0; border-top: 1px solid var(--garis); }
+  .jk .penutup .pembuka-label { display: block; margin: 0 0 4px; }
+  .jk .penutup h2 { margin: 0 0 4px; font-size: 16px; color: var(--biru-tua); }
+  .jk .penutup p { margin: 0; font-size: 14px; color: var(--tinta-lembut); }
+}
 </style>
 <link rel="stylesheet" href="../dasar.css">
 <style id="rangka-dasbor">
@@ -1706,6 +1820,120 @@ body.halaman-alat .kop.kop::before {
 @media screen and (min-width: 921px) {
   :root[data-panel="lepas"] .jk .jk-panel > nav.tab { width: 320px; }
 }
+
+/* ============================================================
+   Ringkasan visual (rs-), layar saja
+   ============================================================ */
+:root { --rs-isi: #1d5a8c; --rs-w0: #0f3554; --rs-w1: #3f7fb5; --rs-w2: #d39a3a; --rs-lalu: #1d5a8c; --rs-ini: #e0a040; --rs-kosong: #e3e9ed; --rs-pakai: #9fb2c1; --rs-blokir: #c7752d; --rs-sisa: #2f8f5b; }
+:root[data-mode="gelap"] { --rs-isi: #6fa3d6; --rs-w0: #8cc3f0; --rs-w1: #3f7fb5; --rs-w2: #e0a040; --rs-lalu: #6fa3d6; --rs-ini: #f0b860; --rs-kosong: #243341; --rs-pakai: #4a5f72; --rs-blokir: #e08a46; --rs-sisa: #5cc187; }
+.rs { display: none; }
+@media screen {
+  .rs { display: flex; flex-direction: column; gap: 16px; margin: 0 0 20px; }
+  #tab-ringkasan:not(.rs-lengkap) > .panel { display: none; }
+  .jk .pembuka-kartu, .jk .pembuka-label, .jk #kabarCapaian { display: none; }
+  .jk .pembuka { margin-bottom: 20px; }
+  .jk .pembuka #rekon { margin-top: 0; }
+
+  .rs-label { margin: 0; color: var(--emas-teks); font-size: 12px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; }
+  .rs .num { font-variant-numeric: tabular-nums; }
+
+  /* Kartu capaian */
+  .rs-hero { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; align-items: center; padding: 22px 26px; background: var(--putih); border: 1px solid var(--garis); border-radius: 8px; box-shadow: 0 1px 6px rgba(15,53,84,.04); }
+  .rs-cincin { width: 180px; height: 180px; }
+  .rs-cincin-jalur { fill: none; stroke: var(--rs-kosong); stroke-width: 16; }
+  .rs-cincin-isi { fill: none; stroke: var(--rs-isi); stroke-width: 16; stroke-linecap: round; }
+  .rs-cincin-isi.kurang { stroke: var(--kurang); } .rs-cincin-isi.dekat { stroke: var(--emas-tua); } .rs-cincin-isi.capai { stroke: var(--capai); }
+  .rs-cincin-target { stroke: var(--biru-tua); stroke-width: 3.5; stroke-linecap: round; }
+  .rs-cincin-angka { fill: var(--biru-tua); font-size: 29px; font-weight: 800; text-anchor: middle; dominant-baseline: middle; letter-spacing: -.02em; }
+  .rs-cincin-angka tspan { font-size: 15px; fill: var(--emas-teks); }
+  .rs-cincin-ket { fill: var(--tinta-lembut); font-size: 13px; text-anchor: middle; }
+  .rs-hero-teks { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .rs-chip { align-self: flex-start; margin: 0; padding: 4px 12px; border-radius: 999px; font-size: 13px; font-weight: 700; }
+  .rs-chip.kurang { background: var(--bahaya-muda); color: var(--kurang); }
+  .rs-chip.dekat { background: var(--emas-muda); color: var(--emas-teks); }
+  .rs-chip.capai { background: var(--hijau-muda); color: var(--capai); }
+  .rs-hero-kalimat { margin: 0; color: var(--tinta); font-size: 17px; line-height: 1.55; }
+  .rs-hero-kalimat b { color: var(--biru-tua); }
+  .rs-tindak { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; margin: 6px 0 0; border: 1px solid var(--garis); border-radius: 6px; }
+  .rs-tindak div { padding: 10px 14px; border-left: 1px solid var(--garis); }
+  .rs-tindak div:first-child { border-left: 0; }
+  .rs-tindak dt { color: var(--tinta-lembut); font-size: 13px; line-height: 1.35; }
+  .rs-tindak dd { margin: 4px 0 0; color: var(--biru-tua); font-size: 18px; font-weight: 800; letter-spacing: -.01em; white-space: nowrap; }
+
+  /* Kartu angka */
+  .rs-kartu-kisi { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+  .rs-kartu { container-type: inline-size; display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 16px 18px; background: var(--putih); border: 1px solid var(--garis); border-radius: 8px; box-shadow: 0 1px 6px rgba(15,53,84,.04); }
+  .rs-kartu-nama { color: var(--tinta); font-size: 14px; font-weight: 700; }
+  .rs-kartu strong { color: var(--biru-tua); font-size: min(26px, 12.5cqw); font-weight: 800; line-height: 1.1; letter-spacing: -.015em; white-space: nowrap; }
+  .rs-kartu strong small { margin-right: .25em; color: var(--emas-teks); font-size: .55em; font-weight: 700; }
+  .rs-kartu-ket { display: flex; flex-wrap: wrap; gap: 4px 12px; color: var(--tinta-lembut); font-size: 12.5px; line-height: 1.4; }
+  .rs-tumpuk { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--rs-kosong); }
+  .rs-tumpuk i, .rs-leg i { display: block; height: 100%; }
+  .rs-leg { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .rs-leg i { width: 9px; height: 9px; border-radius: 2px; }
+  .rs .w0 { background: var(--rs-w0); } .rs .w1 { background: var(--rs-w1); } .rs .w2 { background: var(--rs-w2); }
+  .rs .lalu { background: var(--rs-lalu); } .rs .ini { background: var(--rs-ini); } .rs .kosong { background: var(--rs-kosong); }
+  .rs .pakai { background: var(--rs-pakai); } .rs .blokir { background: var(--rs-blokir); } .rs .sisa { background: var(--rs-sisa); }
+
+  /* Bilah capaian dengan penanda target */
+  .rs-rel { position: relative; display: block; height: 10px; border-radius: 5px; background: var(--rs-kosong); }
+  .rs-rel.besar { height: 8px; }
+  .rs-rel i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 5px; background: var(--rs-isi); }
+  .rs-rel i.kurang { background: var(--kurang); } .rs-rel i.dekat { background: var(--emas-tua); } .rs-rel i.capai { background: var(--capai); }
+  .rs-rel b { position: absolute; top: -4px; bottom: -4px; width: 3px; margin-left: -1.5px; border-radius: 2px; background: var(--emas-tua); }
+
+  /* Peta capaian */
+  .rs-peta { padding: 20px 24px 16px; background: var(--putih); border: 1px solid var(--garis); border-radius: 8px; box-shadow: 0 1px 6px rgba(15,53,84,.04); }
+  .rs-peta-kepala { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+  .rs-peta h2 { margin: 0; color: var(--biru-tua); font-size: 20px; font-weight: 700; }
+  .rs-saklar { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; border-radius: 8px; background: var(--latar); border: 1px solid var(--garis); }
+  .rs-saklar button { min-height: 36px; padding: 6px 12px; border: 0; border-radius: 6px; background: transparent; color: var(--tinta-lembut); font-size: 14px; font-weight: 600; box-shadow: none; cursor: pointer; }
+  .rs-saklar button:hover { color: var(--biru-tua); background: var(--putih); }
+  .rs-saklar button[aria-pressed="true"] { background: var(--putih); color: var(--biru-tua); box-shadow: 0 1px 3px rgba(15,53,84,.12), inset 0 -2px 0 var(--emas-tua); }
+  .rs-saklar button:focus-visible, .rs-baris.bisa:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: 2px; }
+  .rs-daftar { list-style: none; margin: 0; padding: 0; }
+  .rs-baris { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1.6fr) 64px 92px; gap: 14px; align-items: center; padding: 10px 6px; border-top: 1px solid var(--garis); }
+  .rs-baris:first-child { border-top: 0; }
+  .rs-baris.bisa { cursor: pointer; border-radius: 6px; }
+  .rs-baris.bisa:hover { background: var(--emas-muda); }
+  .rs-baris-nama { min-width: 0; color: var(--biru-tua); font-size: 14.5px; font-weight: 600; line-height: 1.3; }
+  .rs-baris-nama b { color: var(--emas-teks); font-weight: 700; }
+  .rs-baris-nama small { display: block; margin-top: 2px; color: var(--tinta-lembut); font-size: 12.5px; font-weight: 400; }
+  .rs-baris-persen { text-align: right; font-size: 15px; font-weight: 800; color: var(--biru-tua); }
+  .rs-baris-persen.kurang { color: var(--kurang); } .rs-baris-persen.capai { color: var(--capai); } .rs-baris-persen.dekat { color: var(--dekat); }
+  .rs-baris-sisa { text-align: right; color: var(--tinta-lembut); font-size: 12.5px; white-space: nowrap; }
+  .rs-peta-kaki { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-top: 10px; padding-top: 12px; border-top: 1px solid var(--garis); }
+  .rs-peta-kaki p { margin: 0; color: var(--tinta-lembut); font-size: 13px; }
+  .rs-peta-kaki button { min-height: 40px; }
+}
+@media screen and (max-width: 1180px) {
+  .rs-kartu-kisi { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media screen and (max-width: 760px) {
+  .rs-hero { grid-template-columns: 1fr; justify-items: center; padding: 18px; }
+  .rs-hero-teks { width: 100%; }
+  .rs-tindak { grid-template-columns: 1fr; }
+  .rs-tindak div { border-left: 0; border-top: 1px solid var(--garis); display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .rs-tindak div:first-child { border-top: 0; }
+  .rs-tindak dd { margin: 0; font-size: 16px; }
+  .rs-baris { grid-template-columns: minmax(0, 1fr) 58px; gap: 6px 10px; }
+  .rs-baris-rel { grid-column: 1 / -1; grid-row: 2; }
+  .rs-baris-sisa { display: none; }
+  .rs-peta { padding: 16px; }
+}
+@media screen and (max-width: 440px) {
+  .rs-kartu-kisi { grid-template-columns: 1fr; }
+}
+
+/* Bagian sumber data di bawah dibuat polos, sekeluarga dengan kartu lain. */
+@media screen {
+  .jk .penutup { margin: 8px 0 0; padding: 0; background: none; border: 0; }
+  .jk .penutup::before, .jk .penutup::after { display: none; }
+  .jk .penutup-isi { max-width: none; margin: 0; padding: 14px 0 0; border-top: 1px solid var(--garis); }
+  .jk .penutup .pembuka-label { display: block; margin: 0 0 4px; }
+  .jk .penutup h2 { margin: 0 0 4px; font-size: 16px; color: var(--biru-tua); }
+  .jk .penutup p { margin: 0; font-size: 14px; color: var(--tinta-lembut); }
+}
 </style>
 </head>
 <body>
@@ -1788,6 +2016,8 @@ body.halaman-alat .kop.kop::before {
 
     <!-- ============ RINGKASAN ============ -->
     <div id="tab-ringkasan">
+      <!-- Ringkasan visual, digambar skrip (gambarSorotan). Hanya untuk layar; hasil cetak memakai susunan di bawahnya. -->
+      <div class="rs" id="rs"><section class="rs-hero"><svg class="rs-cincin" viewBox="0 0 160 160" role="img" aria-label="Realisasi 77,5 persen, target 90,0 persen"><circle class="rs-cincin-jalur" cx="80" cy="80" r="64"></circle><circle class="rs-cincin-isi kurang" cx="80" cy="80" r="64" stroke-dasharray="311.8 402.1" transform="rotate(-90 80 80)"></circle><line class="rs-cincin-target" x1="48.8" y1="37.1" x2="35.9" y2="19.3"></line><text class="rs-cincin-angka" x="80" y="80">77,5<tspan>%</tspan></text><text class="rs-cincin-ket" x="80" y="104">terserap</text></svg><div class="rs-hero-teks"><p class="rs-label">Capaian satker · Oktober 2026</p><p class="rs-chip kurang">Perlu percepatan</p><p class="rs-hero-kalimat">Realisasi <b>77,5%</b> dari pagu, <b>12,46 poin di bawah</b> target tertimbang triwulan IV sebesar 90,0%.</p><dl class="rs-tindak"><div><dt>Kurang dari target</dt><dd class="num">Rp240.713.073</dd></div><div><dt>Sisa waktu s.d. 31 Des</dt><dd class="num">10 minggu</dd></div><div><dt>Perlu per minggu</dt><dd class="num">Rp24.071.308</dd></div></dl></div></section><div class="rs-kartu-kisi"><div class="rs-kartu"><span class="rs-kartu-nama">Pagu DIPA</span><strong class="num"><small>Rp</small>1.931.485.000</strong><div class="rs-tumpuk" aria-hidden="true"><i class="w0" style="width:86.74%"></i><i class="w1" style="width:13.26%"></i></div><span class="rs-kartu-ket"><span class="rs-leg"><i class="w0"></i>Barang (52) 86,7%</span><span class="rs-leg"><i class="w1"></i>Modal (53) 13,3%</span></span></div><div class="rs-kartu"><span class="rs-kartu-nama">Realisasi s.d. periode</span><strong class="num"><small>Rp</small>1.497.623.427</strong><div class="rs-rel besar"><i class="kurang" style="width:77.54%"></i><b style="left:90.00%"></b></div><span class="rs-kartu-ket">77,5% dari pagu · target 90,0%</span></div><div class="rs-kartu"><span class="rs-kartu-nama">Realisasi bulan berjalan</span><strong class="num"><small>Rp</small>98.775.891</strong><div class="rs-tumpuk" aria-hidden="true"><i class="lalu" style="width:72.42%"></i><i class="ini" style="width:5.11%"></i><i class="kosong" style="width:22.46%"></i></div><span class="rs-kartu-ket"><span class="rs-leg"><i class="lalu"></i>s.d. bulan lalu 72,4%</span><span class="rs-leg"><i class="ini"></i>Oktober +5,1%</span></span></div><div class="rs-kartu"><span class="rs-kartu-nama">Sisa anggaran</span><strong class="num"><small>Rp</small>393.869.573</strong><div class="rs-tumpuk" aria-hidden="true"><i class="pakai" style="width:77.54%"></i><i class="blokir" style="width:2.07%"></i><i class="sisa" style="width:20.39%"></i></div><span class="rs-kartu-ket"><span class="rs-leg"><i class="sisa"></i>sisa 20,4%</span><span class="rs-leg"><i class="blokir"></i>blokir Rp39.992.000</span></span></div></div><section class="rs-peta"><div class="rs-peta-kepala"><h2>Peta capaian</h2><div class="rs-saklar" role="group" aria-label="Kelompokkan menurut"><button type="button" data-rs="kelompok" aria-pressed="true">Kelompok belanja</button><button type="button" data-rs="unit" aria-pressed="false">Unit pengampu</button><button type="button" data-rs="jenis" aria-pressed="false">Jenis belanja</button><button type="button" data-rs="output" aria-pressed="false">Rincian output</button></div></div><ul class="rs-daftar"><li class="rs-baris"><span class="rs-baris-nama">Belanja Barang (52)<small>pagu 1,7 M</small></span><span class="rs-baris-rel"><span class="rs-rel"><i class="kurang" style="width:74.17%"></i><b style="left:90.00%"></b></span></span><span class="rs-baris-persen num kurang">74,2%</span><span class="rs-baris-sisa num">sisa 392,8 jt</span></li><li class="rs-baris"><span class="rs-baris-nama">Belanja Modal (53)<small>pagu 256,2 jt</small></span><span class="rs-baris-rel"><span class="rs-rel"><i class="capai" style="width:99.58%"></i><b style="left:90.00%"></b></span></span><span class="rs-baris-persen num capai">99,6%</span><span class="rs-baris-sisa num">sisa 1,1 jt</span></li></ul><div class="rs-peta-kaki"><p>Penanda emas adalah target triwulan tiap kelompok belanja.</p><button type="button" class="sunyi" id="rsLengkap" aria-expanded="false">Tampilkan tabel rinci</button></div></section></div>
       <section class="pembuka" aria-labelledby="judulPembuka">
         <div class="pembuka-cerita">
           <p class="pembuka-label">Ringkasan <span>/</span> Capaian satker</p>
@@ -2509,6 +2739,7 @@ function gambarRingkasan(){
     t1.style.display=t0.style.display; t1.style.left=t0.style.left;
   }
 
+  gambarSorotan();
   el('nPagu').textContent=rp.format(H.total.pagu);
   el('nReal').textContent=rp.format(H.total.sd);
   el('nBulan').textContent=rp.format(H.total.ini);
@@ -2566,6 +2797,107 @@ function gambarRingkasan(){
     ['','Jumlah','',rp.format(H.total.pagu),rp.format(H.total.sd),ps1.format(H.persenTotal*100)+'%',
       rp.format(H.sisaTotal),sel(H.statusSatker)]
   );
+}
+
+
+/* ============================================================
+   Ringkasan visual (layar)
+   Kartu capaian dengan cincin dan kebutuhan realisasi, empat kartu
+   angka bergrafik mini, dan satu grafik peta capaian yang bisa
+   dipilih per kelompok belanja, unit pengampu, jenis belanja, atau RO.
+   Tabel rekap lama tetap ada dan bisa dibuka lewat tombol.
+   ============================================================ */
+let RS_PILIH='kelompok';
+const rsJt=v=>{ const a=Math.abs(v);
+  if(a>=1e9) return ps1.format(v/1e9)+' M'; if(a>=1e6) return ps1.format(v/1e6)+' jt'; if(a>=1e3) return rp.format(Math.round(v/1e3))+' rb'; return rp.format(v); };
+function rsCincin(p,target,st){
+  const R=64,K=2*Math.PI*R, isi=Math.max(0,Math.min(1,p)), sudutT=Math.min(1,target)*2*Math.PI-Math.PI/2;
+  const tx1=80+(R-11)*Math.cos(sudutT), ty1=80+(R-11)*Math.sin(sudutT), tx2=80+(R+11)*Math.cos(sudutT), ty2=80+(R+11)*Math.sin(sudutT);
+  return '<svg class="rs-cincin" viewBox="0 0 160 160" role="img" aria-label="Realisasi '+ps1.format(p*100)+' persen, target '+ps1.format(target*100)+' persen">'+
+    '<circle class="rs-cincin-jalur" cx="80" cy="80" r="'+R+'"/>'+
+    '<circle class="rs-cincin-isi '+kelasStatus(st)+'" cx="80" cy="80" r="'+R+'" stroke-dasharray="'+(K*isi).toFixed(1)+' '+K.toFixed(1)+'" transform="rotate(-90 80 80)"/>'+
+    (target>0?'<line class="rs-cincin-target" x1="'+tx1.toFixed(1)+'" y1="'+ty1.toFixed(1)+'" x2="'+tx2.toFixed(1)+'" y2="'+ty2.toFixed(1)+'"/>':'')+
+    '<text class="rs-cincin-angka" x="80" y="80">'+ps1.format(p*100)+'<tspan>%</tspan></text>'+
+    '<text class="rs-cincin-ket" x="80" y="104">terserap</text></svg>';
+}
+function rsBilah(bagian){ /* bagian: [{nilai,kelas,nama}] dari satu total */
+  const total=bagian.reduce((a,b)=>a+Math.max(0,b.nilai),0)||1;
+  return '<div class="rs-tumpuk" aria-hidden="true">'+bagian.map(b=>'<i class="'+b.kelas+'" style="width:'+(Math.max(0,b.nilai)/total*100).toFixed(2)+'%"></i>').join('')+'</div>';
+}
+function rsKartu(nama,nilai,grafik,ket){
+  return '<div class="rs-kartu"><span class="rs-kartu-nama">'+nama+'</span><strong class="num"><small>Rp</small>'+rp.format(nilai)+'</strong>'+grafik+'<span class="rs-kartu-ket">'+ket+'</span></div>';
+}
+function rsBaris(x,target,klik){
+  const p=x.pagu>0?x.sd/x.pagu:0, st=x.status||'';
+  const atr=klik?' role="button" tabindex="0" data-ro="'+aman(x.kode)+'" title="Buka di Monitoring per RO"':'';
+  return '<li class="rs-baris'+(klik?' bisa':'')+'"'+atr+'>'+
+    '<span class="rs-baris-nama">'+(x.kode&&klik?'<b>'+aman(x.kode)+'</b> ':'')+aman(x.nama)+'<small>'+(x.unit&&klik?aman(x.unit)+' · ':'')+'pagu '+rsJt(x.pagu)+'</small></span>'+
+    '<span class="rs-baris-rel"><span class="rs-rel"><i class="'+kelasStatus(st)+'" style="width:'+(Math.max(0,Math.min(1,p))*100).toFixed(2)+'%"></i>'+
+      (target>0?'<b style="left:'+(Math.min(1,target)*100).toFixed(2)+'%"></b>':'')+'</span></span>'+
+    '<span class="rs-baris-persen num '+kelasStatus(st)+'">'+ps1.format(p*100)+'%</span>'+
+    '<span class="rs-baris-sisa num">sisa '+rsJt(Math.max(0,x.pagu-(x.blokir||0)-x.sd))+'</span></li>';
+}
+function gambarSorotan(){
+  const H=HASIL, w=el('rs'); if(!w||!H) return;
+  const T=H.total, tahun=Number(MENTAH&&MENTAH.tahun)||TANGGAL.getFullYear();
+  const kurang=Math.max(0,H.targetTertimbang*T.pagu-T.sd);
+  const akhir=new Date(tahun,11,31), hari=Math.max(0,Math.ceil((akhir-TANGGAL)/864e5)), minggu=Math.max(1,Math.ceil(hari/7));
+  const kelas=kelasStatus(H.statusSatker);
+  const paguKel=H.kelompok.filter(k=>k.pagu>0);
+  const lalu=T.lalu||Math.max(0,T.sd-T.ini);
+
+  const hero='<section class="rs-hero">'+rsCincin(H.persenTotal,H.targetTertimbang,H.statusSatker)+
+    '<div class="rs-hero-teks"><p class="rs-label">Capaian satker · '+aman(BULAN[H.bulan-1])+' '+tahun+'</p>'+
+    '<p class="rs-chip '+kelas+'">'+aman(H.statusSatker)+'</p>'+
+    '<p class="rs-hero-kalimat">Realisasi <b>'+ps1.format(H.persenTotal*100)+'%</b> dari pagu, '+
+      (H.deviasi>=0?'<b>'+ps2.format(H.deviasi*100)+' poin di atas</b>':'<b>'+ps2.format(-H.deviasi*100)+' poin di bawah</b>')+
+      ' target tertimbang triwulan '+['I','II','III','IV'][H.tw-1]+' sebesar '+ps1.format(H.targetTertimbang*100)+'%.</p>'+
+    '<dl class="rs-tindak">'+
+      '<div><dt>'+(kurang>0?'Kurang dari target':'Target terpenuhi')+'</dt><dd class="num">'+(kurang>0?'Rp'+rp.format(kurang):'Rp0')+'</dd></div>'+
+      '<div><dt>Sisa waktu s.d. 31 Des</dt><dd class="num">'+minggu+' minggu</dd></div>'+
+      '<div><dt>Perlu per minggu</dt><dd class="num">'+(kurang>0?'Rp'+rp.format(Math.ceil(kurang/minggu)):'Rp0')+'</dd></div>'+
+    '</dl></div></section>';
+
+  const kartu='<div class="rs-kartu-kisi">'+
+    rsKartu('Pagu DIPA',T.pagu,
+      rsBilah(paguKel.map((k,i)=>({nilai:k.pagu,kelas:'w'+i}))),
+      paguKel.map((k,i)=>'<span class="rs-leg"><i class="w'+i+'"></i>'+aman(k.nama.replace(/^Belanja\s+/i,''))+' '+ps1.format(k.pagu/T.pagu*100)+'%</span>').join(''))+
+    rsKartu('Realisasi s.d. periode',T.sd,
+      '<div class="rs-rel besar"><i class="'+kelas+'" style="width:'+(Math.min(1,H.persenTotal)*100).toFixed(2)+'%"></i><b style="left:'+(Math.min(1,H.targetTertimbang)*100).toFixed(2)+'%"></b></div>',
+      ps1.format(H.persenTotal*100)+'% dari pagu · target '+ps1.format(H.targetTertimbang*100)+'%')+
+    rsKartu('Realisasi bulan berjalan',T.ini,
+      rsBilah([{nilai:lalu,kelas:'lalu'},{nilai:T.ini,kelas:'ini'},{nilai:Math.max(0,T.pagu-T.sd),kelas:'kosong'}]),
+      '<span class="rs-leg"><i class="lalu"></i>s.d. bulan lalu '+ps1.format(T.pagu>0?lalu/T.pagu*100:0)+'%</span><span class="rs-leg"><i class="ini"></i>'+aman(BULAN[H.bulan-1])+' +'+ps1.format(T.pagu>0?T.ini/T.pagu*100:0)+'%</span>')+
+    rsKartu('Sisa anggaran',H.sisaTotal,
+      rsBilah([{nilai:T.sd,kelas:'pakai'},{nilai:T.blokir,kelas:'blokir'},{nilai:H.sisaTotal,kelas:'sisa'}]),
+      '<span class="rs-leg"><i class="sisa"></i>sisa '+ps1.format(T.pagu>0?H.sisaTotal/T.pagu*100:0)+'%</span><span class="rs-leg"><i class="blokir"></i>blokir Rp'+rp.format(T.blokir)+'</span>')+
+    '</div>';
+
+  const pilihan=[['kelompok','Kelompok belanja'],['unit','Unit pengampu'],['jenis','Jenis belanja'],['output','Rincian output']];
+  let isi='', catatan='';
+  if(RS_PILIH==='kelompok') isi=H.kelompok.filter(k=>k.pagu>0).map(k=>rsBaris(k,k.target)).join(''), catatan='Penanda emas adalah target triwulan tiap kelompok belanja.';
+  else if(RS_PILIH==='unit') isi=H.unit.filter(u=>u.pagu>0).map(u=>rsBaris(u,H.targetTertimbang)).join(''), catatan='Penanda emas adalah target tertimbang satker.';
+  else if(RS_PILIH==='jenis') isi=H.jenis.filter(j=>j.pagu>0).slice().sort((a,b)=>b.pagu-a.pagu).map(j=>rsBaris(j,H.targetTertimbang)).join(''), catatan='Diurutkan dari pagu terbesar. Penanda emas adalah target tertimbang satker.';
+  else {
+    const ro=H.output.filter(o=>o.pagu>0).slice().sort((a,b)=>(a.persen-H.targetTertimbang)-(b.persen-H.targetTertimbang)||b.sisa-a.sisa);
+    isi=ro.slice(0,8).map(o=>rsBaris(o,H.targetTertimbang,true)).join('');
+    catatan='Delapan RO paling jauh dari target. Klik salah satu untuk membuka rinciannya di Monitoring per RO.';
+  }
+  const peta='<section class="rs-peta"><div class="rs-peta-kepala"><h2>Peta capaian</h2>'+
+    '<div class="rs-saklar" role="group" aria-label="Kelompokkan menurut">'+pilihan.map(([k,n])=>
+      '<button type="button" data-rs="'+k+'" aria-pressed="'+(RS_PILIH===k)+'">'+n+'</button>').join('')+'</div></div>'+
+    '<ul class="rs-daftar">'+isi+'</ul>'+
+    '<div class="rs-peta-kaki"><p>'+catatan+'</p>'+
+    '<button type="button" class="sunyi" id="rsLengkap" aria-expanded="'+el('tab-ringkasan').classList.contains('rs-lengkap')+'">'+
+      (el('tab-ringkasan').classList.contains('rs-lengkap')?'Sembunyikan tabel rinci':'Tampilkan tabel rinci')+'</button></div></section>';
+
+  w.innerHTML=hero+kartu+peta;
+
+  w.querySelectorAll('[data-rs]').forEach(b=>b.addEventListener('click',()=>{ RS_PILIH=b.dataset.rs; gambarSorotan(); const n=el('rs').querySelector('[data-rs="'+RS_PILIH+'"]'); if(n) n.focus(); }));
+  const buka=n=>{ const s=el('pilihRo'); if(!s) return; s.value=n.dataset.ro; s.dispatchEvent(new Event('change'));
+    const t=document.querySelector('nav.tab button[data-tab="telusur"]'); if(t) t.click(); window.scrollTo({top:0}); };
+  w.querySelectorAll('.rs-baris.bisa').forEach(n=>{ n.addEventListener('click',()=>buka(n)); n.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); buka(n);} }); });
+  el('rsLengkap').addEventListener('click',()=>{ el('tab-ringkasan').classList.toggle('rs-lengkap'); gambarSorotan(); el('rsLengkap').focus(); });
 }
 
 /* ---- telusur output ---- */
@@ -2825,7 +3157,7 @@ function buatBerkasPajang(){
   /* panduan Quick Report kembali tertutup; dibuka otomatis hanya pada kunjungan pertama pembaca */
   const panduan=klon.querySelector('#tqTutor'); if(panduan) panduan.removeAttribute('open');
   const tabR=klon.querySelector('#tab-ringkasan');
-  if(tabR) tabR.classList.remove('sembunyi');
+  if(tabR) tabR.classList.remove('sembunyi','rs-lengkap');
   const isi=klon.querySelector('#isi');
   if(isi) isi.classList.remove('sembunyi');
   const cetak=klon.querySelector('#tombolCetak');
