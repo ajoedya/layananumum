@@ -515,27 +515,60 @@ h1 .judul-utama { display: inline; margin: 0; color: inherit; font-size: inherit
     if (!tujuan) return;
     e.preventDefault();
     if (input.value) { input.value = ""; segarkan(); }
+    if (a.closest(".kelompok")) kunciSorotan(tujuan.id, tandaiAktif);
     tujuan.scrollIntoView({ behavior: halus ? "smooth" : "auto", block: "start" });
   });
 
-  /* ---------- Penanda bagian aktif pada menu kelompok ----------
-     Bagian yang melewati sepertiga atas layar dianggap sedang dilihat. */
-  var pengamat = null;
+  /* ---------- Penanda bagian aktif pada menu kelompok ---------- */
+  /* Bagian aktif dihitung dari posisi gulir: bagian terakhir yang judulnya sudah melewati sepertiga atas layar.
+     Bagian pendek di ujung halaman yang tidak pernah bisa naik sampai sepertiga atas mendapat giliran
+     pada sisa jarak gulir, jadi saat halaman mentok di bawah, bagian terakhirlah yang tersorot.
+     Menu yang diklik langsung disorot dan dipertahankan sampai guliran halus selesai, jadi sorotan tidak
+     melompat ke bagian lain ketika tujuan tidak bisa digulir sampai ke atas. */
+  function bagianAktif(daftar) {
+    if (!daftar.length) return null;
+    // Titik gulir tempat tiap bagian mulai aktif: saat judulnya tiba di sepertiga atas layar.
+    var y = window.scrollY, batas = window.innerHeight / 3;
+    var maks = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    var titik = daftar.map(function (b) { return b.getBoundingClientRect().top + y - batas; });
+    // Bagian di ujung halaman yang titiknya melewati batas gulir dibagi rata pada sisa jarak gulir,
+    // jadi sorotan tetap berpindah satu per satu walau halaman sudah hampir mentok.
+    var k = titik.findIndex(function (t) { return t > maks; });
+    if (k > 0) {
+      var mulai = Math.min(titik[k - 1], maks), sisa = titik.length - k;
+      for (var i = k; i < titik.length; i++) titik[i] = mulai + (maks - mulai) * (i - k + 1) / sisa;
+    }
+    var aktif = daftar[0];
+    titik.forEach(function (t, i) { if (y >= t - 1) aktif = daftar[i]; });
+    return aktif;
+  }
+  var kunciKlik = null, pewaktuKlik = null;
+  function kunciSorotan(id, tandai) {
+    kunciKlik = id; tandai(id);
+    clearTimeout(pewaktuKlik);
+    pewaktuKlik = setTimeout(function () { kunciKlik = null; }, 1200);
+  }
   function tandaiAktif(id) {
     Array.prototype.forEach.call(document.querySelectorAll(".kelompok a"), function (a) {
       if (a.getAttribute("href") === "#" + id) a.setAttribute("aria-current", "true"); else a.removeAttribute("aria-current");
     });
   }
-  function amatiBagian() {
-    if (!("IntersectionObserver" in window)) return;
-    if (pengamat) pengamat.disconnect();
-    pengamat = new IntersectionObserver(function (entri) {
-      entri.forEach(function (e) { if (e.isIntersecting) tandaiAktif(e.target.id); });
-    }, { rootMargin: "-25% 0px -65% 0px" });
-    Array.prototype.forEach.call(document.querySelectorAll(".bagian"), function (b) { pengamat.observe(b); });
-    var pertama = document.querySelector(".bagian");
-    if (pertama) tandaiAktif(pertama.id);
+  function hitungAktif() {
+    if (kunciKlik) return;
+    var daftar = Array.prototype.filter.call(document.querySelectorAll(".bagian"), function (b) { return !b.hidden && b.offsetParent !== null; });
+    var b = bagianAktif(daftar);
+    if (b) tandaiAktif(b.id);
   }
+  var antreGulir = false;
+  window.addEventListener("scroll", function () {
+    // Selama guliran dari klik masih berjalan, kunci diperpanjang sampai guliran berhenti.
+    if (kunciKlik) { clearTimeout(pewaktuKlik); pewaktuKlik = setTimeout(function () { kunciKlik = null; }, 200); return; }
+    if (antreGulir) return;
+    antreGulir = true;
+    requestAnimationFrame(function () { antreGulir = false; hitungAktif(); });
+  }, { passive: true });
+  window.addEventListener("resize", hitungAktif);
+  function amatiBagian() { hitungAktif(); }
 
   /* ---------- Kotak informasi bergeser dari bawah ke atas ----------
      Pergeseran berhenti sementara saat kotak disorot tetikus atau difokus papan ketik, dan bisa dihentikan lewat tombol Jeda. */

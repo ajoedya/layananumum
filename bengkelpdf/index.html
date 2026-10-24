@@ -141,19 +141,57 @@ body { margin: 0; }
   var halus = !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   var tautan = Array.prototype.slice.call(document.querySelectorAll(".rk-kelompok a"));
   function tandai(id) { tautan.forEach(function (a) { if (a.getAttribute("href") === "#" + id) a.setAttribute("aria-current", "true"); else a.removeAttribute("aria-current"); }); }
+  /* Bagian aktif dihitung dari posisi gulir: bagian terakhir yang judulnya sudah melewati sepertiga atas layar.
+     Bagian pendek di ujung halaman yang tidak pernah bisa naik sampai sepertiga atas mendapat giliran
+     pada sisa jarak gulir, jadi saat halaman mentok di bawah, bagian terakhirlah yang tersorot.
+     Menu yang diklik langsung disorot dan dipertahankan sampai guliran halus selesai, jadi sorotan tidak
+     melompat ke bagian lain ketika tujuan tidak bisa digulir sampai ke atas. */
+  function bagianAktif(daftar) {
+    if (!daftar.length) return null;
+    // Titik gulir tempat tiap bagian mulai aktif: saat judulnya tiba di sepertiga atas layar.
+    var y = window.scrollY, batas = window.innerHeight / 3;
+    var maks = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    var titik = daftar.map(function (b) { return b.getBoundingClientRect().top + y - batas; });
+    // Bagian di ujung halaman yang titiknya melewati batas gulir dibagi rata pada sisa jarak gulir,
+    // jadi sorotan tetap berpindah satu per satu walau halaman sudah hampir mentok.
+    var k = titik.findIndex(function (t) { return t > maks; });
+    if (k > 0) {
+      var mulai = Math.min(titik[k - 1], maks), sisa = titik.length - k;
+      for (var i = k; i < titik.length; i++) titik[i] = mulai + (maks - mulai) * (i - k + 1) / sisa;
+    }
+    var aktif = daftar[0];
+    titik.forEach(function (t, i) { if (y >= t - 1) aktif = daftar[i]; });
+    return aktif;
+  }
+  var kunciKlik = null, pewaktuKlik = null;
+  function kunciSorotan(id, tandai) {
+    kunciKlik = id; tandai(id);
+    clearTimeout(pewaktuKlik);
+    pewaktuKlik = setTimeout(function () { kunciKlik = null; }, 1200);
+  }
   tautan.forEach(function (a) {
     a.addEventListener("click", function (e) {
       var t = document.getElementById(a.getAttribute("href").slice(1));
       if (!t) return;
       e.preventDefault();
       if (input.value) { input.value = ""; cari(); }
+      kunciSorotan(t.id, tandai);
       t.scrollIntoView({ behavior: halus ? "smooth" : "auto", block: "start" });
     });
   });
-  if ("IntersectionObserver" in window) {
-    var pengamat = new IntersectionObserver(function (entri) { entri.forEach(function (e) { if (e.isIntersecting) tandai(e.target.id); }); }, { rootMargin: "-25% 0px -65% 0px" });
-    bagian.forEach(function (b) { pengamat.observe(b); });
+  function hitungAktif() {
+    if (kunciKlik) return;
+    var b = bagianAktif(bagian.filter(function (x) { return !x.hidden && x.offsetParent !== null; }));
+    if (b) tandai(b.id);
   }
+  var antreGulir = false;
+  window.addEventListener("scroll", function () {
+    if (kunciKlik) { clearTimeout(pewaktuKlik); pewaktuKlik = setTimeout(function () { kunciKlik = null; }, 200); return; }
+    if (antreGulir) return;
+    antreGulir = true;
+    requestAnimationFrame(function () { antreGulir = false; hitungAktif(); });
+  }, { passive: true });
+  window.addEventListener("resize", hitungAktif);
   if (bagian[0]) tandai(bagian[0].id);
   cari();
 })();
