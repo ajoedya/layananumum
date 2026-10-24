@@ -14,7 +14,10 @@
     { berkas: "penanda",     nama: "Penanda TTE" },
     { berkas: "pengubah-uk", nama: "Ubah Ukuran Kertas" },
     { berkas: "kompres",     nama: "Kompres PDF" },
-    { berkas: "kunci",       nama: "Kunci PDF" }
+    { berkas: "kunci",       nama: "Kunci PDF" },
+    { berkas: "rapikan-ocr", nama: "Rapikan & OCR PDF" },
+    { berkas: "pdf-excel",  nama: "PDF ke Excel" },
+    { berkas: "metadata",   nama: "Pembersih Metadata" }
   ];
 
   // Memasang favicon secara otomatis jika belum ada di tag <head>

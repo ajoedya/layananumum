@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="id"><head>
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' blob: data: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Periksa dan bersihkan informasi pembuat serta metadata XMP dari dokumen PDF langsung di peramban.">
+<title>Pembersih Metadata · Olah PDF</title>
+<script src="tema.js"></script><script src="../konten.js"></script><script src="../banner.js"></script><script src="banner-bengkel.js"></script>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="gaya.css"><link rel="stylesheet" href="alat-baru.css"><link rel="stylesheet" href="../dasar.css">
+</head><body class="halaman-alat">
+<a class="lewati-konten" href="#konten">Lewati navigasi</a>
+<header class="kop"><div class="kop-isi"><p class="kop-label"><a href="./">Olah PDF</a> / 12</p><h1>Pembersih Metadata</h1><p>Lihat informasi tersembunyi dalam PDF dan bersihkan metadata pembuat, judul, serta XMP tanpa mengunggah dokumen.</p></div></header><div class="rk-alat-atas"></div>
+<main class="bungkus" id="konten">
+<section><p class="nomor">Langkah 1</p><h2>Pilih berkas PDF</h2><div class="jatuhan" id="jatuhan" role="button" tabindex="0" aria-label="Pilih berkas PDF"><strong>Seret satu berkas PDF ke sini</strong><span>atau klik untuk memilih dari komputer</span></div><input id="berkas" type="file" accept="application/pdf,.pdf" class="sembunyi"><p class="keterangan-berkas" id="namaBerkas"></p><div class="kabar" id="kabar" role="alert" hidden></div></section>
+<section id="periksa" hidden><p class="nomor">Langkah 2</p><h2>Periksa metadata</h2><p class="ab-muted" id="infoDokumen"></p><dl id="daftarMetadata" class="ab-meta"></dl></section>
+<section id="opsi" hidden><p class="nomor">Langkah 3</p><h2>Pilih informasi yang akan dibersihkan</h2>
+<label class="ab-check"><input type="checkbox" id="infoStandar" checked><span>Hapus properti dokumen<small class="ab-muted" style="display:block">Judul, penulis, subjek, kata kunci, pembuat, perangkat lunak, tanggal, dan entri Info lainnya.</small></span></label>
+<label class="ab-check"><input type="checkbox" id="infoXmp" checked><span>Hapus metadata XMP<small class="ab-muted" style="display:block">Mencopot rujukan metadata XMP beserta objek stream metadata yang dikenali.</small></span></label>
+<div class="ab-warning">Pembersihan menulis ulang struktur PDF dan dapat membatalkan tanda tangan digital. Dokumen bertanda tangan diblokir secara otomatis. Isi halaman, lampiran, anotasi, dan informasi di dalam gambar tidak disensor. Untuk sanitasi forensik, lakukan pemeriksaan tambahan.</div>
+<div class="baris-tombol"><button id="proses" class="tombol" type="button">Bersihkan metadata</button></div>
+<div class="ab-busy" id="progresArea" hidden><progress id="kemajuan" value="0" max="100"></progress><span id="statusProses" role="status" aria-live="polite"></span></div>
+</section>
+<section id="hasil" hidden><h2>Hasil pembersihan</h2><p id="rincian" class="ab-muted"></p><div class="ab-result" id="unduhan" hidden></div></section>
+<footer><span>Metadata yang terlihat pada PDF bukan jaminan semua jejak informasi pribadi sudah terhapus.</span><span>KPKNL Balikpapan · Berintegritas dalam Tugas, Prima dalam Pelayanan.</span><span class="kredit">Dibuat dengan Claude dan GPT</span></footer>
+</main>
+<script src="pustaka/pdf-lib.min.js"></script><script src="bersama.js"></script><script src="alat-baru.js"></script>
+<script>
+"use strict";
+(function(){
+const A=window.AlatBaru,$=A.$;
+let file=null,bytes=null,terttd=false;
+const LABELS={Title:"Judul",Author:"Penulis",Subject:"Subjek",Keywords:"Kata kunci",Creator:"Aplikasi pembuat",Producer:"Produsen PDF",CreationDate:"Tanggal dibuat",ModDate:"Tanggal diubah",Trapped:"Trapped"};
+const STANDAR=Object.keys(LABELS);
+const pn=PDFLib.PDFName;
+function isiProperti(pdf){
+  const getters={Title:"getTitle",Author:"getAuthor",Subject:"getSubject",Keywords:"getKeywords",Creator:"getCreator",Producer:"getProducer",CreationDate:"getCreationDate",ModDate:"getModificationDate"};
+  const obj={};
+  for(const key of Object.keys(getters)){
+    try{const val=pdf[getters[key]]();if(val!==undefined&&val!==null&&val!=="")obj[key]=String(val instanceof Date?val.toLocaleString("id-ID"):val);}catch(e){}
+  }
+  const infoRef=pdf.context.trailerInfo.Info;
+  if(infoRef){
+    try{
+      const dict=pdf.context.lookup(infoRef,PDFLib.PDFDict);
+      for(const key of dict.keys())if(!STANDAR.includes(key.decodeText?key.decodeText():key.toString().replace(/^\//,""))){
+        obj[key.toString()]="(Properti tambahan)";
+      }
+    }catch(e){}
+  }
+  let xmp=0;
+  for(const pair of pdf.context.enumerateIndirectObjects()){
+    const node=pair[1],dict=node instanceof PDFLib.PDFDict?node:node&&node.dict instanceof PDFLib.PDFDict?node.dict:null;
+    if(dict&&dict.get(pn.of("Type"))&&dict.get(pn.of("Type")).toString()==="/Metadata")xmp++;
+  }
+  obj.XMP=xmp+" aliran metadata XMP terdeteksi";
+  return obj;
+}
+function renderInfo(props){
+  const dl=$("daftarMetadata");dl.replaceChildren();
+  for(const [key,val] of Object.entries(props)){
+    const dt=document.createElement("dt"),dd=document.createElement("dd");
+    dt.textContent=LABELS[key]||key;dd.textContent=String(val);
+    dl.append(dt,dd);
+  }
+}
+async function periksa(f){
+  file=f;bytes=null;$("periksa").hidden=true;$("opsi").hidden=true;$("hasil").hidden=true;$("unduhan").hidden=true;
+  A.pesan("Membaca metadata...");
+  try{
+    bytes=new Uint8Array(await f.arrayBuffer());
+    terttd=A.cekTandaTangan(bytes);
+    const pdf=await PDFLib.PDFDocument.load(bytes,{updateMetadata:false});
+    renderInfo(isiProperti(pdf));
+    $("infoDokumen").textContent=pdf.getPageCount()+" halaman · "+Bersama.ukuran(f.size)+(terttd?" · terindikasi bertanda tangan digital":"");
+    $("periksa").hidden=false;$("opsi").hidden=terttd;
+    if(terttd)A.pesan("PDF ini terindikasi memiliki tanda tangan digital. Pemeriksaan diperbolehkan, tetapi perubahan diblokir untuk menjaga keabsahannya.","galat");
+    else A.pesan("Metadata berhasil dibaca.","sukses");
+  }catch(e){bytes=null;A.pesan("Tidak dapat memeriksa PDF: "+e.message,"galat");}
+}
+A.pilihBerkas(f=>{periksa(f);});
+function bersihkan(pdf,standar,xmp){
+  let hapus=0;
+  if(standar){
+    const info=pdf.context.trailerInfo.Info;
+    if(info){
+      try{
+        const dict=pdf.context.lookup(info,PDFLib.PDFDict);
+        for(const key of Array.from(dict.keys())){dict.delete(key);hapus++;}
+      }catch(e){}
+    }
+  }
+  if(xmp){
+    const refs=[];
+    for(const [ref,node] of pdf.context.enumerateIndirectObjects()){
+      const dict=node instanceof PDFLib.PDFDict?node:node&&node.dict instanceof PDFLib.PDFDict?node.dict:null;
+      if(!dict)continue;
+      // Hapus rujukan katalog/halaman/objek lain, bukan hanya field dokumen.
+      if(dict.has(pn.of("Metadata"))){dict.delete(pn.of("Metadata"));hapus++;}
+      const type=dict.get(pn.of("Type"));
+      if(type&&type.toString()==="/Metadata")refs.push(ref);
+    }
+    for(const ref of refs){pdf.context.delete(ref);hapus++;}
+  }
+  return hapus;
+}
+async function jalankan(){
+  if(!bytes||!file||terttd)return;
+  if(!$("infoStandar").checked&&!$("infoXmp").checked){A.pesan("Pilih paling sedikit satu kategori metadata yang akan dibersihkan.","galat");return;}
+  if(!window.confirm("Buat salinan PDF tanpa metadata yang dipilih? Tindakan ini akan menulis ulang struktur dokumen."))return;
+  $("proses").disabled=true;$("progresArea").hidden=false;A.progress(0,100,"Membersihkan metadata...");
+  try{
+    const pdf=await PDFLib.PDFDocument.load(bytes.slice(),{updateMetadata:false});
+    const count=bersihkan(pdf,$("infoStandar").checked,$("infoXmp").checked);
+    A.progress(55,100,"Menyimpan PDF...");
+    const hasil=await pdf.save({useObjectStreams:false});
+    // Baca ulang keluaran untuk memeriksa bahwa struktur PDF tetap valid.
+    const cek=await PDFLib.PDFDocument.load(hasil,{updateMetadata:false});
+    if(cek.getPageCount()!==pdf.getPageCount())throw Error("Jumlah halaman berubah setelah disimpan.");
+    A.progress(100,100,"Selesai");
+    A.unduh(hasil,A.namaHasil(file,"bersih-metadata","pdf"),"application/pdf");
+    $("rincian").textContent=count+" entri atau rujukan metadata dibersihkan. "+cek.getPageCount()+" halaman dipertahankan. Periksa PDF hasil sebelum dibagikan.";
+    $("hasil").hidden=false;A.pesan("Salinan PDF selesai dibuat.","sukses");
+  }catch(e){A.pesan("Pembersihan gagal: "+e.message,"galat");}
+  finally{$("proses").disabled=false;$("progresArea").hidden=true;}
+}
+$("proses").addEventListener("click",jalankan);
+})();
+</script></body></html>
