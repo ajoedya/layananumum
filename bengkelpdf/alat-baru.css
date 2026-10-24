@@ -11,6 +11,7 @@
 .ab-preview figcaption {font-size:13px;font-weight:600;color:var(--tinta-lembut);margin-bottom:8px;}
 .ab-preview canvas {display:block;max-width:100%;height:auto;max-height:400px;margin:auto;border:1px solid var(--garis-fokus);background:var(--kertas);}
 .ab-muted {font-size:14px;color:var(--tinta-lembut);line-height:1.55;}
+.ab-busy[hidden]{display:none;}
 .ab-busy {display:grid;gap:8px;margin:16px 0;}
 .ab-busy progress {width:100%;height:12px;accent-color:var(--biru);}
 .ab-busy [role=status] {font-size:14px;color:var(--tinta-lembut);}
