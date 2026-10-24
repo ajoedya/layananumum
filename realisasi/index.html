@@ -1038,6 +1038,7 @@ button.qr-lipat:hover{background:var(--biru-muda);transform:none}
 :root[data-mode="gelap"] 
 :root[data-mode="gelap"] 
 :root[data-mode="gelap"] 
+
 </style>
 <style id="rangka-layanan">
 /* Salinan dasar.css milik situs layananumum, supaya file induk tetap rapi saat dibuka langsung dari komputer. */
@@ -2104,6 +2105,16 @@ body.halaman-alat .kop.kop::before {
 }
 @media (prefers-reduced-motion: reduce) { .jk .jk-panel .latar-foto .jk-banner { transition: none; } }
 @media print { .jk-banner, .jk-banner-tabir { display: none !important; } }
+
+/* Peringatan pagu perjalanan dinas per rincian output */
+#tab-telusur .peringatan-perjadin{box-sizing:border-box;display:flex;gap:12px;align-items:flex-start;margin:0 0 16px;padding:14px 16px;border:1px solid var(--emas-garis);border-left:4px solid var(--emas-tua);border-radius:12px;background:var(--emas-muda);color:inherit;line-height:1.55}
+#tab-telusur .peringatan-perjadin[hidden]{display:none}
+#tab-telusur .peringatan-perjadin.habis{border-color:var(--bahaya);border-left-color:var(--bahaya);background:var(--bahaya-muda)}
+#tab-telusur .peringatan-perjadin svg{flex:0 0 22px;width:22px;height:22px;margin-top:1px;color:var(--emas-tua)}
+#tab-telusur .peringatan-perjadin.habis svg{color:var(--bahaya)}
+#tab-telusur .peringatan-perjadin b.judul{display:block;margin-bottom:2px}
+#tab-telusur .peringatan-perjadin p{margin:0}
+@media print{#tab-telusur .peringatan-perjadin{display:none!important}}
 </style>
 </head>
 <body>
@@ -2291,6 +2302,11 @@ body.halaman-alat .kop.kop::before {
           </div>
         </div>
       </section>
+
+      <div class="peringatan-perjadin" id="roPerjadin" role="status" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+        <div id="roPerjadinIsi"></div>
+      </div>
 
       <section class="panel">
         <div class="hero">
@@ -2661,6 +2677,8 @@ const KONFIG_BAWAAN={
     '524111':'Perjalanan Dinas','524113':'Perjalanan Dinas',
     '532111':'Belanja Modal','536121':'Belanja Modal'
   },
+  /* Peringatan pagu perjalanan dinas di tab Monitoring per RO, dalam pecahan (0,9 = 90%). */
+  perjadin:{ambang:0.90},
   urutanJenis:['Belanja Operasional Kantor','Honorarium','Bahan dan Konsumsi Rapat',
     'Belanja Non Operasional Lainnya','Persediaan (ATK)','Pemeliharaan','Perjalanan Dinas','Belanja Modal']
 };
@@ -3074,6 +3092,34 @@ function gambarSorotan(){
   el('rsLengkap').addEventListener('click',()=>{ el('tab-ringkasan').classList.toggle('rs-lengkap'); gambarSorotan(); el('rsLengkap').focus(); });
 }
 
+/* ---- peringatan pagu perjalanan dinas ----
+   Dihitung dari item berjenis belanja Perjalanan Dinas (pemetaan akun di tab Parameter);
+   akun 5241xx yang belum dipetakan tetap ikut dihitung. */
+function ambangPerjadin(){
+  const a=KONFIG.perjadin&&Number(KONFIG.perjadin.ambang);
+  return a>0&&a<=1?a:0.9;
+}
+function perjadinRo(kodeRo){
+  const x=kosong();
+  HASIL.baris.forEach(b=>{ if(b.kodeRo===kodeRo&&(b.jenis==='Perjalanan Dinas'||/^5241/.test(String(b.kodeAkun||'')))) tambah(x,b); });
+  x.persen=persen(x); x.sisa=sisa(x);
+  x.waspada=x.pagu>0&&x.persen>=ambangPerjadin();
+  return x;
+}
+function gambarPeringatanPerjadin(kodeRo){
+  const kotak=el('roPerjadin'); if(!kotak) return;
+  const p=perjadinRo(kodeRo);
+  if(!p.waspada){ kotak.hidden=true; return; }
+  const habis=p.sisa<=0;
+  kotak.classList.toggle('habis',habis);
+  el('roPerjadinIsi').innerHTML='<b class="judul">'+(habis?'Pagu perjalanan dinas output ini sudah habis':'Pagu perjalanan dinas output ini hampir habis')+'</b>'+
+    '<p>Realisasi perjalanan dinas sudah <b>'+ps1.format(p.persen*100)+'%</b> dari pagunya, yaitu Rp'+rp.format(p.sd)+' dari Rp'+rp.format(p.pagu)+
+    ', sehingga sisanya tinggal <b>Rp'+rp.format(Math.max(0,p.sisa))+'</b>. '+
+    'Perhatikan rencana perjalanan dinas yang akan dibuat dan pastikan biayanya masih tertampung sebelum surat tugas diterbitkan. '+
+    'Bila sisa pagu tidak mencukupi, koordinasikan dengan PPK dan bendahara pengeluaran terlebih dahulu.</p>';
+  kotak.hidden=false;
+}
+
 /* ---- telusur output ---- */
 function aturLangkahRo(){
   const pilih=el('pilihRo');
@@ -3105,7 +3151,7 @@ function isiPilihanRo(){
   });
   pilih.innerHTML=[...grup.entries()].map(([u,arr])=>
     '<optgroup label="'+aman(u)+'">'+arr.map(o=>
-      '<option value="'+aman(o.kode)+'">'+aman(o.kode+' · '+o.nama)+'</option>').join('')+'</optgroup>').join('');
+      '<option value="'+aman(o.kode)+'">'+aman((perjadinRo(o.kode).waspada?'⚠ ':'')+o.kode+' · '+o.nama)+'</option>').join('')+'</optgroup>').join('');
   if(sebelum&&HASIL.output.some(o=>o.kode===sebelum)) pilih.value=sebelum;
   const lencana=el('jmlOutput');
   if(lencana) lencana.textContent=HASIL.output.length;
@@ -3167,6 +3213,7 @@ function gambarTelusur(){
   el('roSisa').textContent=rp.format(ro.sisa);
   el('roItem').textContent=rp.format(ro.jumlahItem);
   el('roBelum').textContent=rp.format(ro.belumRealisasi);
+  gambarPeringatanPerjadin(kode);
 
   aturLangkahRo();
 
