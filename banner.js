@@ -4,7 +4,7 @@
    Aturannya sama dengan beranda (index.html, bagian "Banner berganti"):
    - daftar foto diambil dari isi beranda yang terakhir tersimpan di peramban ini
      (kunci "layanan-konten", diisi beranda dari dasbor admin), atau dari KONTEN_BAWAAN di konten.js;
-   - foto berganti tiap `menit` menit mengikuti jam perangkat, jadi semua halaman
+   - foto berganti tiap `menit` menit (bawaan 360 menit atau 6 jam) mengikuti jam perangkat, jadi semua halaman
      menampilkan foto yang sama pada waktu yang sama;
    - di mode gelap dipakai daftar malam.
    Nama berkas relatif dihitung dari folder beranda (DASAR), lalu diubah menjadi alamat lengkap,
@@ -45,8 +45,10 @@
     try { var t = localStorage.getItem(KUNCI_SIMPAN); simpan = t ? JSON.parse(t) : null; } catch (e) { simpan = null; }
     var bawaan = (window.KONTEN_BAWAAN && window.KONTEN_BAWAAN.banner) || window.BANNER_CADANGAN || {};
     var b = (simpan && simpan.banner) || {};
+    // Simpanan untuk koleksi banner lama diabaikan, supaya foto lama tidak muncul lagi.
+    if (b.koleksi !== bawaan.koleksi) b = {};
     return {
-      menit: b.menit || bawaan.menit || 10,
+      menit: b.menit || bawaan.menit || 360,
       siang: Array.isArray(b.siang) ? b.siang : (bawaan.siang || []),
       malam: Array.isArray(b.malam) ? b.malam : (bawaan.malam || [])
     };
@@ -63,7 +65,7 @@
 
   function mulai(pasang) {
     var terpasang = "", pewaktu = null;
-    function jeda() { return Math.max(1, Number(konfigurasi().menit) || 10) * 60000; }
+    function jeda() { return Math.max(1, Number(konfigurasi().menit) || 360) * 60000; }
     function sekarang() {
       var k = konfigurasi(), d = daftarAktif(k);
       if (!d.length) return null;

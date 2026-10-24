@@ -4660,7 +4660,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 /* Banner bersama Layanan Subbagian Umum, disisipkan langsung supaya berkas tetap mandiri.
    Sumbernya banner.js dan daftar banner di konten.js milik repo layananumum; bila daftar banner
    di dasbor admin diubah, peramban yang pernah membuka beranda otomatis memakai daftar terbaru. */
-window.BANNER_CADANGAN = {"menit":10,"siang":[{"tampil":true,"berkas":"banner-balikpapan.jpg","posisi":72,"uraian":"Pemandangan Teluk Balikpapan saat matahari terbit dengan gedung kota, pelabuhan, kapal, dan hutan mangrove"},{"tampil":true,"berkas":"banner-masjid.jpg","posisi":70,"uraian":"Masjid berkubah biru dengan empat menara di tengah kota, berlatar teluk dan perbukitan"},{"tampil":true,"berkas":"banner-taman.jpg","posisi":51,"uraian":"Taman kota dengan air mancur di tengah, dikelilingi pohon palem dan gedung perkantoran"},{"tampil":true,"berkas":"banner-pantai.jpg","posisi":24,"uraian":"Jalur pejalan kaki di tepi pantai dengan pohon palem, bebatuan, dan gedung kota di kejauhan"},{"tampil":true,"berkas":"banner-enggang.jpg","posisi":19,"uraian":"Burung enggang terbang di atas hutan hujan berkabut dengan kota dan teluk saat matahari terbit"},{"tampil":true,"berkas":"banner-beruang.jpg","posisi":94,"uraian":"Beruang madu di lereng hutan hujan memandang kota dan teluk saat matahari terbit"}],"malam":[{"tampil":true,"berkas":"banner-malam-teluk.jpg","posisi":28,"uraian":"Teluk Balikpapan pada malam hari dengan lampu kota di perbukitan dan pantulan cahaya di air"},{"tampil":true,"berkas":"banner-malam-tepian.jpg","posisi":22,"uraian":"Jalur pejalan kaki tepi laut pada malam hari dengan pohon palem, lampu taman, dan gedung kota di kejauhan"},{"tampil":true,"berkas":"banner-malam-pelabuhan.jpg","posisi":72,"uraian":"Pelabuhan dan kilang di teluk pada malam hari dengan kapal-kapal berlampu"},{"tampil":true,"berkas":"banner-malam-jalan.jpg","posisi":20,"uraian":"Jalan tepi pantai yang basah sehabis hujan pada malam hari dengan lampu jalan dan pohon palem"}]};
+window.BANNER_CADANGAN = {"koleksi":"2026-10-kaltim","menit":360,"siang":[{"tampil":true,"berkas":"banner-teluk-senja.jpg","posisi":48,"uraian":"Teluk Balikpapan saat senja dengan hutan hujan di kiri, gedung kota di tengah, kapal tanker di laut, dan burung enggang terbang"},{"tampil":true,"berkas":"banner-jembatan-pagi.jpg","posisi":50,"uraian":"Jembatan Pulau Balang pada pagi hari membentang di atas teluk, dikelilingi hutan bakau dan perbukitan berkabut"},{"tampil":true,"berkas":"banner-speedboat-pagi.jpg","posisi":60,"uraian":"Speedboat penyeberangan Balikpapan ke Penajam melaju di teluk pada pagi hari, dengan dermaga kayu di kiri"}],"malam":[{"tampil":true,"berkas":"banner-teluk-malam.jpg","posisi":45,"uraian":"Teluk Balikpapan pada malam hari dengan lampu kota dan kilang yang terpantul di air, berlatar bulan sabit"},{"tampil":true,"berkas":"banner-jembatan-malam.jpg","posisi":50,"uraian":"Jembatan Pulau Balang pada malam hari dengan menara dan lampu jalan berwarna keemasan terpantul di teluk"},{"tampil":true,"berkas":"banner-speedboat-malam.jpg","posisi":60,"uraian":"Speedboat penyeberangan Balikpapan ke Penajam melaju di teluk pada malam hari, dengan dermaga berlampu di kiri"}]};
 window.BANNER_DASAR = location.protocol === "file:" ? "" : new URL("../", location.href).href;
 /* ============================================================
    Banner bersama Layanan Subbagian Umum
@@ -4668,7 +4668,7 @@ window.BANNER_DASAR = location.protocol === "file:" ? "" : new URL("../", locati
    Aturannya sama dengan beranda (index.html, bagian "Banner berganti"):
    - daftar foto diambil dari isi beranda yang terakhir tersimpan di peramban ini
      (kunci "layanan-konten", diisi beranda dari dasbor admin), atau dari KONTEN_BAWAAN di konten.js;
-   - foto berganti tiap `menit` menit mengikuti jam perangkat, jadi semua halaman
+   - foto berganti tiap `menit` menit (bawaan 360 menit atau 6 jam) mengikuti jam perangkat, jadi semua halaman
      menampilkan foto yang sama pada waktu yang sama;
    - di mode gelap dipakai daftar malam.
    Nama berkas relatif dihitung dari folder beranda (DASAR), lalu diubah menjadi alamat lengkap,
@@ -4709,8 +4709,10 @@ window.BANNER_DASAR = location.protocol === "file:" ? "" : new URL("../", locati
     try { var t = localStorage.getItem(KUNCI_SIMPAN); simpan = t ? JSON.parse(t) : null; } catch (e) { simpan = null; }
     var bawaan = (window.KONTEN_BAWAAN && window.KONTEN_BAWAAN.banner) || window.BANNER_CADANGAN || {};
     var b = (simpan && simpan.banner) || {};
+    // Simpanan untuk koleksi banner lama diabaikan, supaya foto lama tidak muncul lagi.
+    if (b.koleksi !== bawaan.koleksi) b = {};
     return {
-      menit: b.menit || bawaan.menit || 10,
+      menit: b.menit || bawaan.menit || 360,
       siang: Array.isArray(b.siang) ? b.siang : (bawaan.siang || []),
       malam: Array.isArray(b.malam) ? b.malam : (bawaan.malam || [])
     };
@@ -4727,7 +4729,7 @@ window.BANNER_DASAR = location.protocol === "file:" ? "" : new URL("../", locati
 
   function mulai(pasang) {
     var terpasang = "", pewaktu = null;
-    function jeda() { return Math.max(1, Number(konfigurasi().menit) || 10) * 60000; }
+    function jeda() { return Math.max(1, Number(konfigurasi().menit) || 360) * 60000; }
     function sekarang() {
       var k = konfigurasi(), d = daftarAktif(k);
       if (!d.length) return null;

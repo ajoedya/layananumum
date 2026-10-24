@@ -107,7 +107,7 @@ i { font-style: italic; }
 .panel-foto { height: 58%; }
 .panel-tabir { height: 64%; }
 .panel-foto {
-  z-index: -2; background: url("banner-balikpapan.jpg") 72% center / cover no-repeat;
+  z-index: -2; background: url("banner-teluk-senja.jpg") 48% center / cover no-repeat;
   transition: opacity .5s ease;
 }
 .panel-foto.memudar { opacity: 0; }
@@ -447,7 +447,7 @@ h1 .judul-utama { display: inline; margin: 0; color: inherit; font-size: inherit
     var d = pilih(gelap ? b.malam : b.siang);
     return d.length ? d : pilih(gelap ? b.siang : b.malam);
   }
-  function jeda() { return Math.max(1, Number(konten.banner.menit) || 10) * 60000; }
+  function jeda() { return Math.max(1, Number(konten.banner.menit) || 360) * 60000; }
   function waktuSetempat(kini) { return kini.getTime() - kini.getTimezoneOffset() * 60000; }
   function nomorBanner(kini, jumlah) { return Math.floor(waktuSetempat(kini) / jeda()) % jumlah; }
   function sisaWaktu(kini) { return jeda() - (waktuSetempat(kini) % jeda()); }

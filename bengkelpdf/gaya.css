@@ -110,10 +110,10 @@
   --rgb-semburat-2: 226, 214, 194;
 
   /* Banner: satu gambar dipakai di beranda dan di kop halaman alat. */
-  --banner: url("../banner-balikpapan.jpg");
+  --banner: url("../banner-teluk-senja.jpg");
   /* Titik fokus banner pada latar kolom kiri beranda (bentuknya tegak, jadi
      hanya sebagian foto yang tampak). */
-  --banner-latar-posisi: 72% 100%;
+  --banner-latar-posisi: 48% 100%;
   --banner-kop-posisi: right 46%;
   --banner-pita-posisi: center 52%;
   /* Kepekatan lapisan gelap di bawah keterangan banner beranda. */
@@ -216,8 +216,8 @@
 
 /* Banner malam cadangan bila skrip tidak berjalan; biasanya ditimpa banner bersama. */
 :root[data-mode="gelap"]:not([data-tema]) {
-  --banner: url("../banner-malam-teluk.jpg");
-  --banner-latar-posisi: 24% 100%;
+  --banner: url("../banner-teluk-malam.jpg");
+  --banner-latar-posisi: 45% 100%;
   --banner-kop-posisi: right 60%;
   --banner-pita-posisi: center 62%;
 }

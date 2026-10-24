@@ -79,20 +79,17 @@ window.KONTEN_BAWAAN = {
       "alamat": "https://forms.gle/MLRRTcoCkZ9Mc31AA", "kunci": "arsip perjadin perjalanan dinas formulir form lama versi 1" }
   ],
   "banner": {
-    "menit": 10,
+    "koleksi": "2026-10-kaltim",
+    "menit": 360,
     "siang": [
-      { "tampil": true, "berkas": "banner-balikpapan.jpg", "posisi": 72, "uraian": "Pemandangan Teluk Balikpapan saat matahari terbit dengan gedung kota, pelabuhan, kapal, dan hutan mangrove" },
-      { "tampil": true, "berkas": "banner-masjid.jpg", "posisi": 70, "uraian": "Masjid berkubah biru dengan empat menara di tengah kota, berlatar teluk dan perbukitan" },
-      { "tampil": true, "berkas": "banner-taman.jpg", "posisi": 51, "uraian": "Taman kota dengan air mancur di tengah, dikelilingi pohon palem dan gedung perkantoran" },
-      { "tampil": true, "berkas": "banner-pantai.jpg", "posisi": 24, "uraian": "Jalur pejalan kaki di tepi pantai dengan pohon palem, bebatuan, dan gedung kota di kejauhan" },
-      { "tampil": true, "berkas": "banner-enggang.jpg", "posisi": 19, "uraian": "Burung enggang terbang di atas hutan hujan berkabut dengan kota dan teluk saat matahari terbit" },
-      { "tampil": true, "berkas": "banner-beruang.jpg", "posisi": 94, "uraian": "Beruang madu di lereng hutan hujan memandang kota dan teluk saat matahari terbit" }
+      {"tampil": true, "berkas": "banner-teluk-senja.jpg", "posisi": 48, "uraian": "Teluk Balikpapan saat senja dengan hutan hujan di kiri, gedung kota di tengah, kapal tanker di laut, dan burung enggang terbang"},
+      {"tampil": true, "berkas": "banner-jembatan-pagi.jpg", "posisi": 50, "uraian": "Jembatan Pulau Balang pada pagi hari membentang di atas teluk, dikelilingi hutan bakau dan perbukitan berkabut"},
+      {"tampil": true, "berkas": "banner-speedboat-pagi.jpg", "posisi": 60, "uraian": "Speedboat penyeberangan Balikpapan ke Penajam melaju di teluk pada pagi hari, dengan dermaga kayu di kiri"}
     ],
     "malam": [
-      { "tampil": true, "berkas": "banner-malam-teluk.jpg", "posisi": 28, "uraian": "Teluk Balikpapan pada malam hari dengan lampu kota di perbukitan dan pantulan cahaya di air" },
-      { "tampil": true, "berkas": "banner-malam-tepian.jpg", "posisi": 22, "uraian": "Jalur pejalan kaki tepi laut pada malam hari dengan pohon palem, lampu taman, dan gedung kota di kejauhan" },
-      { "tampil": true, "berkas": "banner-malam-pelabuhan.jpg", "posisi": 72, "uraian": "Pelabuhan dan kilang di teluk pada malam hari dengan kapal-kapal berlampu" },
-      { "tampil": true, "berkas": "banner-malam-jalan.jpg", "posisi": 20, "uraian": "Jalan tepi pantai yang basah sehabis hujan pada malam hari dengan lampu jalan dan pohon palem" }
+      {"tampil": true, "berkas": "banner-teluk-malam.jpg", "posisi": 45, "uraian": "Teluk Balikpapan pada malam hari dengan lampu kota dan kilang yang terpantul di air, berlatar bulan sabit"},
+      {"tampil": true, "berkas": "banner-jembatan-malam.jpg", "posisi": 50, "uraian": "Jembatan Pulau Balang pada malam hari dengan menara dan lampu jalan berwarna keemasan terpantul di teluk"},
+      {"tampil": true, "berkas": "banner-speedboat-malam.jpg", "posisi": 60, "uraian": "Speedboat penyeberangan Balikpapan ke Penajam melaju di teluk pada malam hari, dengan dermaga berlampu di kiri"}
     ]
   }
 };
@@ -136,7 +133,10 @@ window.Konten = (function () {
     hasil.umum = Object.assign({}, salin(b.umum), hasil.umum || {});
     hasil.umum.gerbang = Object.assign({}, b.umum.gerbang, (k.umum && k.umum.gerbang) || {});
     ["info", "kelompok", "tautan"].forEach(function (n) { if (!Array.isArray(hasil[n])) hasil[n] = salin(b[n]); });
-    hasil.banner = Object.assign({}, salin(b.banner), hasil.banner || {});
+    // Simpanan yang dibuat untuk koleksi banner lama diganti koleksi bawaan, supaya foto lama tidak muncul lagi.
+    hasil.banner = (k.banner && k.banner.koleksi === b.banner.koleksi)
+      ? Object.assign({}, salin(b.banner), hasil.banner)
+      : salin(b.banner);
     ["siang", "malam"].forEach(function (n) { if (!Array.isArray(hasil.banner[n])) hasil.banner[n] = salin(b.banner[n]); });
     return hasil;
   }

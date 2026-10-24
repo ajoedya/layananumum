@@ -585,7 +585,7 @@ table.riwayat th { color: var(--lembut); font-size: 12px; text-transform: upperc
   function panelBanner(p) {
     var b = keadaan.konten.banner;
     p.appendChild(judulBagian("Banner panel kiri"));
-    p.appendChild(el("p", { kelas: "petunjuk", teks: "Banner berganti mengikuti jam, jadi semua pegawai melihat banner yang sama. Banner malam dipakai saat tampilan gelap. Berkas bisa berupa nama berkas di repo (misalnya banner-masjid.jpg, unggah manual ke repo) atau alamat gambar https. Untuk gambar dari Google Drive, bagikan berkasnya ke siapa saja lalu pakai alamat https://lh3.googleusercontent.com/d/ID_BERKAS." }));
+    p.appendChild(el("p", { kelas: "petunjuk", teks: "Banner berganti mengikuti jam, jadi semua pegawai melihat banner yang sama. Banner malam dipakai saat tampilan gelap. Berkas bisa berupa nama berkas di repo (misalnya banner-jembatan-pagi.jpg, unggah manual ke repo) atau alamat gambar https. Untuk gambar dari Google Drive, bagikan berkasnya ke siapa saja lalu pakai alamat https://lh3.googleusercontent.com/d/ID_BERKAS." }));
     p.appendChild(el("div", { kelas: "kotak kisi", style: "margin-bottom:18px" }, [kolom("Lama satu banner tampil (menit)", b, "menit", { jenis: "number" })]));
     [["siang", "Banner siang (tampilan terang)"], ["malam", "Banner malam (tampilan gelap)"]].forEach(function (w) {
       var d = b[w[0]];

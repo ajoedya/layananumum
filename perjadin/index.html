@@ -102,7 +102,7 @@ body {
   display: flex; flex-direction: column; gap: 18px;
 }
 .panel-foto, .panel-tabir { position: absolute; left: 0; right: 0; bottom: 0; }
-.panel-foto { height: 50%; z-index: -2; background: url("../banner-balikpapan.jpg") 72% center / cover no-repeat; transition: opacity .5s ease; }
+.panel-foto { height: 50%; z-index: -2; background: url("../banner-teluk-senja.jpg") 48% center / cover no-repeat; transition: opacity .5s ease; }
 .panel-foto.memudar { opacity: 0; }
 .panel-tabir {
   height: 56%; z-index: -1;
@@ -472,26 +472,18 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
   var URUTAN_GOLONGAN = { tertahan: 0, belum: 1, proses: 2, dibayar: 3 };
 
   /* ---------- Banner berganti (sama dengan index.html) ---------- */
-  var MENIT_PER_BANNER = 10;
+  var MENIT_PER_BANNER = 360; // 6 jam
   var DAFTAR_BANNER = [
-    { berkas: "banner-balikpapan.jpg", posisi: "72% center", uraian: "Pemandangan Teluk Balikpapan saat matahari terbit dengan gedung kota, pelabuhan, kapal, dan hutan mangrove" },
-    { berkas: "banner-masjid.jpg", posisi: "70% center", uraian: "Masjid berkubah biru dengan empat menara di tengah kota, berlatar teluk dan perbukitan" },
-    { berkas: "banner-taman.jpg", posisi: "51% center", uraian: "Taman kota dengan air mancur di tengah, dikelilingi pohon palem dan gedung perkantoran" },
-    { berkas: "banner-pantai.jpg", posisi: "24% center", uraian: "Jalur pejalan kaki di tepi pantai dengan pohon palem, bebatuan, dan gedung kota di kejauhan" },
-    { berkas: "banner-enggang.jpg", posisi: "19% center", uraian: "Burung enggang terbang di atas hutan hujan berkabut dengan kota dan teluk saat matahari terbit" },
-    { berkas: "banner-beruang.jpg", posisi: "94% center", uraian: "Beruang madu di lereng hutan hujan memandang kota dan teluk saat matahari terbit" }
+    { berkas: "banner-teluk-senja.jpg", posisi: "48% center", uraian: "Teluk Balikpapan saat senja dengan hutan hujan di kiri, gedung kota di tengah, kapal tanker di laut, dan burung enggang terbang" },
+    { berkas: "banner-jembatan-pagi.jpg", posisi: "50% center", uraian: "Jembatan Pulau Balang pada pagi hari membentang di atas teluk, dikelilingi hutan bakau dan perbukitan berkabut" },
+    { berkas: "banner-speedboat-pagi.jpg", posisi: "60% center", uraian: "Speedboat penyeberangan Balikpapan ke Penajam melaju di teluk pada pagi hari, dengan dermaga kayu di kiri" }
   ];
-  /* Banner mode gelap: foto malam Balikpapan (sama dengan Dashboard Anggaran/jagakas), berganti dengan jadwal yang sama.
+  /* Banner mode gelap: versi malam dari tiga pemandangan siang, berganti dengan jadwal yang sama.
      Saat mode berganti lewat saklar tema, banner langsung ikut berganti. */
   var DAFTAR_MALAM = [
-    { berkas: "banner-malam-teluk.jpg", posisi: "28% center",
-      uraian: "Teluk Balikpapan pada malam hari dengan lampu kota di perbukitan dan pantulan cahaya di air" },
-    { berkas: "banner-malam-tepian.jpg", posisi: "22% center",
-      uraian: "Jalur pejalan kaki tepi laut pada malam hari dengan pohon palem, lampu taman, dan gedung kota di kejauhan" },
-    { berkas: "banner-malam-pelabuhan.jpg", posisi: "72% center",
-      uraian: "Pelabuhan dan kilang di teluk pada malam hari dengan kapal-kapal berlampu" },
-    { berkas: "banner-malam-jalan.jpg", posisi: "20% center",
-      uraian: "Jalan tepi pantai yang basah sehabis hujan pada malam hari dengan lampu jalan dan pohon palem" }
+    { berkas: "banner-teluk-malam.jpg", posisi: "45% center", uraian: "Teluk Balikpapan pada malam hari dengan lampu kota dan kilang yang terpantul di air, berlatar bulan sabit" },
+    { berkas: "banner-jembatan-malam.jpg", posisi: "50% center", uraian: "Jembatan Pulau Balang pada malam hari dengan menara dan lampu jalan berwarna keemasan terpantul di teluk" },
+    { berkas: "banner-speedboat-malam.jpg", posisi: "60% center", uraian: "Speedboat penyeberangan Balikpapan ke Penajam melaju di teluk pada malam hari, dengan dermaga berlampu di kiri" }
   ];
   function daftarAktif() { return document.documentElement.getAttribute("data-mode") === "gelap" ? DAFTAR_MALAM : DAFTAR_BANNER; }
 
