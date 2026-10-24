@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="id"><head>
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' blob: data: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Ubah tabel PDF digital atau scan menjadi berkas Excel XLSX langsung di peramban.">
+<title>PDF ke Excel · Olah PDF</title>
+<script src="tema.js"></script><script src="../konten.js"></script><script src="../banner.js"></script><script src="banner-bengkel.js"></script>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="gaya.css"><link rel="stylesheet" href="alat-baru.css"><link rel="stylesheet" href="../dasar.css">
+</head><body class="halaman-alat">
+<a class="lewati-konten" href="#konten">Lewati navigasi</a>
+<header class="kop"><div class="kop-isi"><p class="kop-label"><a href="./">Olah PDF</a> / 10</p><h1>PDF ke Excel</h1><p>Ekstrak tabel dari PDF digital atau pindaian menjadi berkas .xlsx yang bisa disunting. Pemrosesan berlangsung di peramban.</p></div></header><div class="rk-alat-atas"></div>
+<main class="bungkus" id="konten">
+<section><p class="nomor">Langkah 1</p><h2>Pilih berkas PDF</h2><div class="jatuhan" id="jatuhan" tabindex="0" role="button" aria-label="Pilih berkas PDF"><strong>Seret satu berkas PDF ke sini</strong><span>atau klik untuk memilih dari komputer</span></div><input type="file" id="berkas" accept="application/pdf,.pdf" class="sembunyi"><p class="keterangan-berkas" id="namaBerkas"></p><div class="kabar" id="kabar" role="alert" hidden></div></section>
+<section><p class="nomor">Langkah 2</p><h2>Atur ekstraksi tabel</h2>
+<div class="ab-grid">
+<label class="ab-field" for="jarak">Pemisah antarkolom<select id="jarak"><option value="12">Rapat</option><option value="18" selected>Normal</option><option value="28">Lebar</option></select></label>
+<label class="ab-field" for="halaman">Halaman<select id="halaman"><option value="semua">Semua halaman</option><option value="pertama">Halaman pertama saja</option></select></label>
+</div>
+<label class="ab-check"><input type="checkbox" id="paksaOcr"><span>Paksa OCR seluruh halaman<small class="ab-muted" style="display:block">Biasanya OCR hanya dijalankan pada halaman tanpa lapisan teks. Aktifkan jika teks PDF rusak atau tak terbaca.</small></span></label>
+<p class="ab-muted">Setiap halaman menjadi satu sheet Excel. Kolom diperkirakan dari posisi teks, sehingga tabel dengan sel gabungan, tata letak kompleks, dan pemindaian buram mungkin perlu diperbaiki di Excel. Nilai disimpan sebagai teks agar nomor panjang dan angka nol di depan tidak berubah.</p>
+<div class="baris-tombol"><button class="tombol" id="proses" type="button" disabled>Konversi ke Excel</button></div>
+<div class="ab-busy" id="progresArea" hidden><progress id="kemajuan" max="100" value="0"></progress><span id="statusProses" role="status" aria-live="polite"></span></div>
+</section>
+<section id="hasil" hidden><p class="nomor">Langkah 3</p><h2>Periksa hasil</h2><p id="rincian" class="ab-muted"></p><div class="ab-scroll" id="pratinjau"></div><p class="ab-muted">Pratinjau menampilkan hingga 12 baris dan 8 kolom sheet pertama. Periksa angka serta posisi kolom sebelum menggunakan hasil untuk perhitungan.</p><div id="unduhan" class="ab-result" hidden></div></section>
+<footer><span>Berkas tidak dikirim ke server aplikasi. Mesin OCR diunduh jika diperlukan.</span><span>KPKNL Balikpapan · Berintegritas dalam Tugas, Prima dalam Pelayanan.</span></footer>
+</main>
+<script src="pustaka/pdfjs/pdf.min.js"></script><script src="pustaka/tesseract/tesseract.min.js"></script><script src="bersama.js"></script><script src="alat-baru.js"></script>
+<script>
+"use strict";
+(function(){
+const A=window.AlatBaru,$=A.$;
+let file=null;
+A.pilihBerkas(f=>{file=f;$("proses").disabled=false;$("hasil").hidden=true;$("unduhan").hidden=true;});
+// Urutan baca dinormalisasi ke koordinat halaman: kiri ke kanan, atas ke bawah.
+function tokenDigital(page,text){
+  const vp=page.getViewport({scale:1}),list=[];
+  for(const it of text.items){
+    if(!it.str||!it.str.trim())continue;
+    const tf=pdfjsLib.Util.transform(vp.transform,it.transform);
+    const h=Math.max(5,Math.min(45,Math.hypot(tf[2],tf[3])));
+    const start=tf[4],y=tf[5]-h*0.54,raw=it.str;
+    const width=Math.max(2,it.width||raw.length*h*0.5);
+    const re=/\S+/g;let match;
+    while((match=re.exec(raw))){
+      const x0=start+width*(match.index/raw.length);
+      const x1=start+width*((match.index+match[0].length)/raw.length);
+      list.push({text:match[0],x0,x1,y0:y-h*.4,y1:y+h*.6});
+    }
+  }
+  return list;
+}
+function tokenOcr(data,scale){
+  return A.semuaKata(data).map(t=>({text:t.text,x0:t.x0/scale,x1:t.x1/scale,y0:t.y0/scale,y1:t.y1/scale}));
+}
+function susunTabel(tokens,jeda){
+  if(!tokens.length)return [];
+  const words=tokens.filter(t=>t.text&&Number.isFinite(t.x0)&&Number.isFinite(t.y0)).sort((a,b)=>((a.y0+a.y1)-(b.y0+b.y1))||a.x0-b.x0);
+  const rows=[];
+  for(const t of words){
+    const mid=(t.y0+t.y1)/2,height=Math.max(4,t.y1-t.y0);
+    // Pilih baris terdekat yang sejajar; toleransi mengikuti tinggi karakter.
+    let candidate=null,dist=Infinity;
+    for(let k=Math.max(0,rows.length-4);k<rows.length;k++){
+      const row=rows[k],d=Math.abs(row.y-mid);
+      if(d<Math.max(3,Math.min(row.height,height)*0.65)&&d<dist){candidate=row;dist=d;}
+    }
+    if(!candidate){candidate={y:mid,height,tokens:[]};rows.push(candidate);}
+    candidate.tokens.push(t);
+    candidate.y=(candidate.y*(candidate.tokens.length-1)+mid)/candidate.tokens.length;
+  }
+  rows.sort((a,b)=>a.y-b.y);
+  for(const r of rows){
+    r.tokens.sort((a,b)=>a.x0-b.x0);
+    r.cells=[];
+    for(const t of r.tokens){
+      const last=r.cells[r.cells.length-1],gap=last?t.x0-last.x1:Infinity;
+      const tolerance=Math.min(jeda,Math.max(7,(t.y1-t.y0)*0.85));
+      if(last&&gap<=tolerance&&gap>=-25){last.text+=" "+t.text;last.x1=Math.max(last.x1,t.x1);}
+      else r.cells.push({x0:t.x0,x1:t.x1,text:t.text});
+    }
+  }
+  // Perkirakan jangkar kolom dari posisi yang berulang di beberapa baris.
+  const anchors=[];
+  rows.forEach(r=>r.cells.forEach((c)=>{
+    let a=anchors.find(a=>Math.abs(a.x-c.x0)<16);
+    if(a){a.x=(a.x*a.count+c.x0)/(a.count+1);a.count++;a.rows.add(r);}
+    else anchors.push({x:c.x0,count:1,rows:new Set([r])});
+  }));
+  const valid=anchors.filter(a=>a.rows.size>=Math.max(2,Math.ceil(rows.length*0.16))).sort((a,b)=>a.x-b.x).slice(0,80);
+  if(valid.length<2)return rows.map(r=>[r.cells.map(c=>c.text).join("  ")]);
+  return rows.map(r=>{
+    const out=[];
+    r.cells.forEach(c=>{
+      let idx=0,best=Infinity;
+      valid.forEach((a,i)=>{const delta=Math.abs(a.x-c.x0);if(delta<best){best=delta;idx=i;}});
+      out[idx]=(out[idx]?out[idx]+" ":"")+c.text;
+    });
+    return out;
+  });
+}
+function pratinjau(rows){
+  const wrapper=$("pratinjau");wrapper.replaceChildren();
+  const table=document.createElement("table"),thead=document.createElement("thead"),hrow=document.createElement("tr");
+  const n=Math.min(8,Math.max(1,...rows.map(r=>r.length)));
+  for(let c=0;c<n;c++){const th=document.createElement("th");th.textContent="Kolom "+(c+1);hrow.appendChild(th);}
+  thead.appendChild(hrow);table.appendChild(thead);
+  const tbody=document.createElement("tbody");
+  rows.slice(0,12).forEach(r=>{const tr=document.createElement("tr");
+    for(let c=0;c<n;c++){const td=document.createElement("td");td.textContent=r[c]||"";tr.appendChild(td);}
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);wrapper.appendChild(table);
+}
+async function jalankan(){
+  if(!file)return;
+  $("proses").disabled=true;$("progresArea").hidden=false;$("hasil").hidden=true;A.pesan("");
+  let pdf=null;
+  try {
+    pdf=await A.bukaPdf(new Uint8Array(await file.arrayBuffer()));
+    const total=$("halaman").value==="pertama"?1:pdf.numPages;
+    if(total>150)throw Error("Untuk menjaga memori peramban, batasi pemrosesan hingga 150 halaman.");
+    const sheets=[];let ocrPages=0;
+    for(let n=1;n<=total;n++){
+      A.progress(n-1,total,"Membaca halaman "+n+" dari "+total);
+      const page=await pdf.getPage(n);
+      const text=await page.getTextContent({disableCombineTextItems:false});
+      let tokens=tokenDigital(page,text);
+      const readable=tokens.map(t=>t.text).join("").length;
+      if($("paksaOcr").checked||readable<60){
+        A.progress(n-1,total,"OCR halaman "+n+" dari "+total);
+        const render=await A.kanvasPdf(page,2100);
+        const data=await A.ocr(render.kanvas,m=>{
+          if(m.status==="recognizing text")A.progress((n-1)+(m.progress||0)*0.85,total,"OCR halaman "+n+": "+Math.round((m.progress||0)*100)+"%");
+        });
+        tokens=tokenOcr(data,render.skala);ocrPages++;
+      }
+      const rows=susunTabel(tokens,Number($("jarak").value));
+      sheets.push({nama:"Halaman "+n,baris:rows.length?rows:[["Tidak ada teks terbaca pada halaman ini."]]});
+      A.progress(n,total,"Halaman "+n+" selesai");
+      await new Promise(r=>setTimeout(r,0));
+    }
+    const blob=A.buatXlsx(sheets);
+    A.unduh(blob,A.namaHasil(file,"tabel","xlsx"),blob.type);
+    pratinjau(sheets[0].baris);
+    $("rincian").textContent=total+" sheet dibuat, "+ocrPages+" halaman dibaca melalui OCR. Ukuran berkas "+Bersama.ukuran(blob.size)+".";
+    $("hasil").hidden=false;A.pesan("Konversi selesai. Silakan periksa hasil ekstraksi tabel.","sukses");
+  }catch(e){A.pesan("Konversi gagal: "+e.message,"galat");}
+  finally{$("proses").disabled=false;$("progresArea").hidden=true;if(pdf)try{await pdf.destroy();}catch(e){}}
+}
+$("proses").addEventListener("click",jalankan);
+})();
+</script>
+</body></html>
