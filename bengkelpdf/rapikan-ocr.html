@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' blob: data: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Luruskan, bersihkan, potong tepi hasil pindaian, lalu buat PDF yang teksnya bisa dicari. Seluruh proses berlangsung di peramban.">
+<title>Rapikan &amp; OCR PDF · Olah PDF</title>
+<script src="tema.js"></script><script src="../konten.js"></script><script src="../banner.js"></script><script src="banner-bengkel.js"></script>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="gaya.css"><link rel="stylesheet" href="alat-baru.css"><link rel="stylesheet" href="../dasar.css">
+</head>
+<body class="halaman-alat">
+<a class="lewati-konten" href="#konten">Lewati navigasi</a>
+<header class="kop"><div class="kop-isi"><p class="kop-label"><a href="./">Olah PDF</a> / 09</p><h1>Rapikan &amp; OCR PDF</h1><p>Rapikan halaman pindaian dan tambahkan teks yang dapat dicari, diseleksi, dan disalin. Seluruh pengolahan berlangsung di peramban.</p></div></header>
+<div class="rk-alat-atas"></div>
+<main class="bungkus" id="konten">
+<section aria-labelledby="pilih"><p class="nomor">Langkah 1</p><h2 id="pilih">Pilih berkas PDF hasil pindaian</h2>
+<div id="jatuhan" class="jatuhan" role="button" tabindex="0" aria-label="Pilih berkas PDF"><strong>Seret satu berkas PDF ke sini</strong><span>atau klik untuk memilih dari komputer</span></div>
+<input id="berkas" type="file" accept="application/pdf,.pdf" class="sembunyi">
+<p class="keterangan-berkas" id="namaBerkas"></p><div id="kabar" class="kabar" role="alert" hidden></div>
+</section>
+<section aria-labelledby="atur"><p class="nomor">Langkah 2</p><h2 id="atur">Atur perapian</h2>
+<div class="ab-grid">
+<label class="ab-field" for="putar">Rotasi halaman<select id="putar"><option value="0">Tidak diputar</option><option value="90">90° searah jarum jam</option><option value="180">180°</option><option value="270">270° searah jarum jam</option></select></label>
+<label class="ab-field" for="kontras">Kontras<select id="kontras"><option value="1">Normal</option><option value="1.2" selected>Tingkatkan sedang</option><option value="1.45">Tingkatkan kuat</option></select></label>
+</div>
+<div class="ab-grid">
+<div><label class="ab-check"><input id="lurus" type="checkbox" checked><span>Luruskan otomatis<small class="ab-muted" style="display:block">Mendeteksi kemiringan baris tulisan, lalu memperbaikinya.</small></span></label>
+<label class="ab-check"><input id="tepi" type="checkbox" checked><span>Potong tepi kosong otomatis</span></label></div>
+<div><label class="ab-check"><input id="bintik" type="checkbox" checked><span>Bersihkan bintik kecil pada pindaian</span></label>
+<label class="ab-check"><input id="teksOcr" type="checkbox" checked><span>Tambahkan lapisan teks OCR</span></label></div>
+</div>
+<div class="ab-warning">Halaman disimpan ulang sebagai gambar beserta lapisan teks OCR. Tautan, formulir interaktif, dan objek vektor dari dokumen asal tidak dipertahankan. Jangan gunakan pada PDF yang sudah ditandatangani secara elektronik.</div>
+<div class="baris-tombol"><button class="tombol" id="proses" type="button" disabled>Rapikan dokumen</button></div>
+<div class="ab-busy" id="progresArea" hidden><progress id="kemajuan" value="0" max="100"></progress><span id="statusProses" role="status" aria-live="polite"></span></div>
+</section>
+<section id="hasil" hidden aria-labelledby="hasilJudul"><p class="nomor">Langkah 3</p><h2 id="hasilJudul">Periksa hasil</h2>
+<p class="ab-muted" id="rincian"></p><div class="ab-area ab-preview"><figure><figcaption>Halaman 1, sebelum</figcaption><div id="sebelum"></div></figure><figure><figcaption>Halaman 1, sesudah</figcaption><div id="sesudah"></div></figure></div>
+<div class="ab-result" id="unduhan" hidden></div>
+</section>
+<footer><span>Dokumen tidak diunggah ke server aplikasi. Mesin OCR dan bahasa dimuat saat diperlukan.</span><span>KPKNL Balikpapan · Berintegritas dalam Tugas, Prima dalam Pelayanan.</span></footer>
+</main>
+<script src="pustaka/pdfjs/pdf.min.js"></script><script src="pustaka/pdf-lib.min.js"></script><script src="pustaka/tesseract/tesseract.min.js"></script><script src="bersama.js"></script><script src="alat-baru.js"></script>
+<script>
+"use strict";
+(function(){
+const A=window.AlatBaru,$=A.$;
+let file=null;
+A.pilihBerkas(f=>{file=f;$("proses").disabled=false;$("hasil").hidden=true;$("unduhan").hidden=true;});
+function rotasi(cv,deg) {
+  if(!deg)return cv;
+  const a=deg*Math.PI/180, si=Math.abs(Math.sin(a)),co=Math.abs(Math.cos(a));
+  const out=document.createElement("canvas");
+  out.width=Math.ceil(cv.width*co+cv.height*si);out.height=Math.ceil(cv.width*si+cv.height*co);
+  const c=out.getContext("2d");c.fillStyle="#fff";c.fillRect(0,0,out.width,out.height);
+  c.translate(out.width/2,out.height/2);c.rotate(a);c.drawImage(cv,-cv.width/2,-cv.height/2);
+  return out;
+}
+function autoSudut(data) {
+  const vals=[];
+  for(const b of data.blocks||[])for(const p of b.paragraphs||[])for(const l of p.lines||[]){
+    const base=l.baseline;
+    if(!base||!(base.x1-base.x0>120))continue;
+    const deg=Math.atan2(base.y1-base.y0,base.x1-base.x0)*180/Math.PI;
+    if(Math.abs(deg)<=7)vals.push(deg);
+  }
+  if(vals.length<2)return 0;
+  vals.sort((a,b)=>a-b);
+  const mid=vals[Math.floor(vals.length/2)];
+  return Math.abs(mid)<0.15?0:-mid;
+}
+function aturPiksel(cv,contrast,noise){
+  if(contrast===1&&!noise)return;
+  const cx=cv.getContext("2d",{willReadFrequently:true});
+  const image=cx.getImageData(0,0,cv.width,cv.height),d=image.data;
+  for(let i=0;i<d.length;i+=4)for(let k=0;k<3;k++)d[i+k]=Math.max(0,Math.min(255,(d[i+k]-128)*contrast+128));
+  if(noise){
+    const old=new Uint8ClampedArray(d),w=cv.width,h=cv.height;
+    // Hapus hanya piksel gelap hampir netral yang terisolasi; hindari pengaburan huruf.
+    for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){
+      const z=(y*w+x)*4;
+      if(old[z]>105||Math.max(old[z],old[z+1],old[z+2])-Math.min(old[z],old[z+1],old[z+2])>18)continue;
+      let neighbors=0;
+      for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)if(dx||dy){
+        const p=((y+dy)*w+x+dx)*4;if(old[p]<140)neighbors++;
+      }
+      if(neighbors<=1){d[z]=d[z+1]=d[z+2]=255;}
+    }
+  }
+  cx.putImageData(image,0,0);
+}
+function pangkas(cv){
+  const small=document.createElement("canvas");
+  const sc=Math.min(1,500/Math.max(cv.width,cv.height));
+  small.width=Math.max(1,Math.round(cv.width*sc));small.height=Math.max(1,Math.round(cv.height*sc));
+  const ctx=small.getContext("2d",{willReadFrequently:true});ctx.drawImage(cv,0,0,small.width,small.height);
+  const d=ctx.getImageData(0,0,small.width,small.height).data;
+  let left=small.width,top=small.height,right=-1,bottom=-1;
+  for(let y=0;y<small.height;y++)for(let x=0;x<small.width;x++){
+    const i=(y*small.width+x)*4;
+    if((d[i]+d[i+1]+d[i+2])/3<215){left=Math.min(left,x);top=Math.min(top,y);right=Math.max(right,x);bottom=Math.max(bottom,y);}
+  }
+  if(right<0)return cv;
+  const m=Math.max(6,Math.round(Math.min(small.width,small.height)*0.016));
+  const maxX=Math.floor(small.width*0.12),maxY=Math.floor(small.height*0.12);
+  const x0=Math.min(maxX,Math.max(0,left-m)),y0=Math.min(maxY,Math.max(0,top-m));
+  const x1=Math.max(small.width-maxX,Math.min(small.width,right+m+1)),y1=Math.max(small.height-maxY,Math.min(small.height,bottom+m+1));
+  if(x0===0&&y0===0&&x1===small.width&&y1===small.height)return cv;
+  const sx=Math.round(x0/sc),sy=Math.round(y0/sc),sw=Math.min(cv.width-sx,Math.round((x1-x0)/sc)),sh=Math.min(cv.height-sy,Math.round((y1-y0)/sc));
+  const out=document.createElement("canvas");out.width=sw;out.height=sh;
+  out.getContext("2d").drawImage(cv,sx,sy,sw,sh,0,0,sw,sh);
+  return out;
+}
+async function jpegBytes(cv) {
+  const blob=await new Promise(r=>cv.toBlob(r,"image/jpeg",0.88));
+  if(!blob)throw Error("Gagal membuat gambar halaman.");
+  return new Uint8Array(await blob.arrayBuffer());
+}
+function tampilCanvas(target,cv){
+  const view=document.createElement("canvas");view.width=cv.width;view.height=cv.height;
+  view.getContext("2d").drawImage(cv,0,0);target.replaceChildren(view);
+}
+async function jalankan(){
+  if(!file)return;
+  const button=$("proses");button.disabled=true;$("progresArea").hidden=false;$("hasil").hidden=true;A.pesan("");
+  let pdf=null;
+  try{
+    const bytes=new Uint8Array(await file.arrayBuffer());
+    if(A.cekTandaTangan(bytes))throw Error("Dokumen terindikasi memiliki tanda tangan digital. Pengolahan dihentikan agar keabsahan tanda tangan tidak rusak.");
+    pdf=await A.bukaPdf(bytes);
+    const output=await PDFLib.PDFDocument.create();
+    const font=await output.embedFont(PDFLib.StandardFonts.Helvetica);
+    let totalKata=0;
+    for(let n=1;n<=pdf.numPages;n++){
+      A.progress(n-1,pdf.numPages,"Mengolah halaman "+n+" dari "+pdf.numPages);
+      const p=await pdf.getPage(n),render=await A.kanvasPdf(p,2200);
+      let canvas=rotasi(render.kanvas,Number($("putar").value));
+      if(n===1)tampilCanvas($("sebelum"),render.kanvas);
+      if($("lurus").checked){
+        const awal=await A.ocr(canvas);
+        const sudut=autoSudut(awal);
+        if(sudut)canvas=rotasi(canvas,sudut);
+      }
+      aturPiksel(canvas,Number($("kontras").value),$("bintik").checked);
+      if($("tepi").checked)canvas=pangkas(canvas);
+      let words=[];
+      if($("teksOcr").checked){
+        const data=await A.ocr(canvas,m=>{if(m.status==="recognizing text")A.progress((n-1)+(m.progress||0)*0.9,pdf.numPages,"OCR halaman "+n+": "+Math.round((m.progress||0)*100)+"%");});
+        words=A.semuaKata(data);
+      }
+      const w=canvas.width/render.skala,h=canvas.height/render.skala;
+      const target=output.addPage([w,h]);
+      const image=await output.embedJpg(await jpegBytes(canvas));
+      target.drawImage(image,{x:0,y:0,width:w,height:h});
+      const sx=w/canvas.width,sy=h/canvas.height;
+      for(const word of words){
+        const x=Math.max(0,word.x0*sx),y=Math.max(0,h-word.y1*sy);
+        const size=Math.max(3,Math.min(40,(word.y1-word.y0)*sy*0.85));
+        try{target.drawText(word.text,{x,y,size,font,opacity:0});totalKata++;}
+        catch(e){ /* Simbol di luar WinAnsi dilewati, citra asli tetap tersedia. */ }
+      }
+      if(n===1)tampilCanvas($("sesudah"),canvas);
+      A.progress(n,pdf.numPages,"Halaman "+n+" selesai");
+      await new Promise(r=>setTimeout(r,0));
+    }
+    A.unduh(await output.save(),A.namaHasil(file,"rapi-ocr","pdf"),"application/pdf");
+    $("rincian").textContent=pdf.numPages+" halaman dirapikan. "+totalKata+" kata berhasil ditambahkan ke lapisan teks OCR. Periksa kembali hasil pengenalan, terutama angka dan dokumen buram.";
+    $("hasil").hidden=false;A.pesan("Dokumen selesai diproses.","sukses");
+  }catch(e){A.pesan("Pengolahan gagal: "+e.message,"galat");}
+  finally{button.disabled=false;$("progresArea").hidden=true;if(pdf)try{await pdf.destroy();}catch(e){}}
+}
+$("proses").addEventListener("click",jalankan);
+})();
+</script>
+</body></html>
