@@ -1,6 +1,6 @@
 /* ============================================================
    Banner bersama Layanan Subbagian Umum
-   Dipakai Bengkel PDF dan Dashboard Anggaran supaya fotonya sama dengan beranda.
+   Dipakai Olah PDF dan Dashboard Anggaran supaya fotonya sama dengan beranda.
    Aturannya sama dengan beranda (index.html, bagian "Banner berganti"):
    - daftar foto diambil dari isi beranda yang terakhir tersimpan di peramban ini
      (kunci "layanan-konten", diisi beranda dari dasbor admin), atau dari KONTEN_BAWAAN di konten.js;

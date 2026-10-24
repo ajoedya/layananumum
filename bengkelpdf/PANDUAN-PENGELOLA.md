@@ -1,4 +1,4 @@
-# Panduan Pengelolaan Bengkel PDF
+# Panduan Pengelolaan Olah PDF
 
 Dokumen ini untuk pengelola situs, bukan untuk pengguna. Petunjuk pemakaian tiap perkakas sudah tertulis di halamannya masing-masing, jadi tidak perlu diulang di sini. Gambaran umum situs ada di `README.md`.
 
@@ -35,7 +35,7 @@ Tiga berkas `tema.js`, `gaya.css`, dan `bersama.js` adalah tulang punggungnya. K
 
 ## 2. Menerbitkan pertama kali
 
-> **Catatan per Oktober 2026.** Bengkel PDF kini menjadi folder `bengkelpdf/` di dalam repo `layananumum` dan terbit di `https://ajoedya.github.io/layananumum/bengkelpdf/`. Pembaruan cukup dilakukan dengan mengubah berkas di folder itu. Langkah di bawah hanya diperlukan bila situs ini kelak diterbitkan ulang sebagai repo tersendiri.
+> **Catatan per Oktober 2026.** Olah PDF kini menjadi folder `bengkelpdf/` di dalam repo `layananumum` dan terbit di `https://ajoedya.github.io/layananumum/bengkelpdf/`. Pembaruan cukup dilakukan dengan mengubah berkas di folder itu. Langkah di bawah hanya diperlukan bila situs ini kelak diterbitkan ulang sebagai repo tersendiri.
 
 1. Kumpulkan seluruh berkas pada tabel di atas dalam satu folder di komputer, lalu cocokkan ulang daftarnya.
 2. Buka `github.com`, buat akun bila belum punya, lalu klik tanda tambah di pojok kanan atas dan pilih **New repository**.

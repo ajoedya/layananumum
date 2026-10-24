@@ -9,7 +9,7 @@
    simpanan dihapus supaya situs kembali mengikuti perangkat.
 
    Mode dipasang lewat atribut data-mode="gelap" pada <html>. Warnanya ada di
-   gaya tiap halaman, bagian "Mode gelap". Cara kerjanya sama dengan Bengkel PDF.
+   gaya tiap halaman, bagian "Mode gelap". Cara kerjanya sama dengan Olah PDF.
    ============================================================ */
 (function () {
   "use strict";

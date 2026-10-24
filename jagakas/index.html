@@ -1043,7 +1043,7 @@ button.qr-lipat:hover{background:var(--biru-muda);transform:none}
 /* Salinan dasar.css milik situs layananumum, supaya file induk tetap rapi saat dibuka langsung dari komputer. */
 /* ============================================================
    Dasar bersama Layanan Subbagian Umum
-   Dimuat PALING AKHIR di Bengkel PDF dan Dashboard Anggaran (jagakas),
+   Dimuat PALING AKHIR di Olah PDF dan Dashboard Anggaran (jagakas),
    setelah gaya halaman masing-masing, supaya palet, bilah atas, dan
    ukuran kontrolnya sama dengan beranda.
    Ubah warna di sini, bukan di gaya.css atau di halaman jagakas.
@@ -1192,7 +1192,7 @@ button.qr-lipat:hover{background:var(--biru-muda);transform:none}
 /* ============================================================
    Rangka beranda (rk-)
    Panel navy di kiri berisi merek, judul, dan menu; kolom isi di kanan.
-   Dipakai beranda Bengkel PDF. Foto panel dipasang di gaya halaman,
+   Dipakai beranda Olah PDF. Foto panel dipasang di gaya halaman,
    karena alamat url() di dalam variabel dihitung dari berkas pemakainya.
    ============================================================ */
 .rk { display: flex; flex-wrap: wrap; align-items: stretch; min-height: 100vh; }
@@ -1304,7 +1304,7 @@ button.qr-lipat:hover{background:var(--biru-muda);transform:none}
 }
 
 /* ============================================================
-   Halaman alat Bengkel PDF
+   Halaman alat Olah PDF
    Kop menjadi panel navy di kiri berisi judul dan urutan langkah,
    foto banner di dasar panel. Bilah alat (daftar perkakas, saklar tema)
    ada di atas kolom isi. Foto tetap memakai .kop::after dari gaya.css.
@@ -1553,7 +1553,7 @@ body.halaman-alat .kop.kop::before {
    ============================================================ */
 :root { --rs-isi: #1d5a8c; --rs-w0: #0f3554; --rs-w1: #3f7fb5; --rs-w2: #d39a3a; --rs-lalu: #1d5a8c; --rs-ini: #e0a040; --rs-kosong: #e3e9ed; --rs-pakai: #9fb2c1; --rs-blokir: #c7752d; --rs-sisa: #2f8f5b; }
 :root[data-mode="gelap"] { --rs-isi: #6fa3d6; --rs-w0: #8cc3f0; --rs-w1: #3f7fb5; --rs-w2: #e0a040; --rs-lalu: #6fa3d6; --rs-ini: #f0b860; --rs-kosong: #243341; --rs-pakai: #4a5f72; --rs-blokir: #e08a46; --rs-sisa: #5cc187; }
-/* Motif anyaman ketupat yang sama dengan ornamen Bengkel PDF (ornamen-kalimantan-anyaman.svg), diwarnai emas terang untuk latar navy. */
+/* Motif anyaman ketupat yang sama dengan ornamen Olah PDF (ornamen-kalimantan-anyaman.svg), diwarnai emas terang untuk latar navy. */
 :root { --batik: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2248%22 height=%2224%22 viewBox=%220 0 48 24%22 fill=%22none%22 stroke=%22%23ffd27a%22 stroke-linejoin=%22round%22%3E %3Cpath d=%22M12 0 24 12 12 24 0 12ZM36 0 48 12 36 24 24 12Z%22 stroke-width=%221.2%22/%3E %3Cpath d=%22M12 6 18 12 12 18 6 12ZM36 6 42 12 36 18 30 12Z%22 stroke-width=%221%22/%3E %3Ccircle cx=%2212%22 cy=%2212%22 r=%221.4%22 fill=%22%23ffd27a%22 stroke=%22none%22/%3E%3Ccircle cx=%2236%22 cy=%2212%22 r=%221.4%22 fill=%22%23ffd27a%22 stroke=%22none%22/%3E %3C/svg%3E"); --batik-ukuran: 48px 24px; }
 .rs { display: none; }
 @media screen {
@@ -1878,7 +1878,7 @@ body.halaman-alat .kop.kop::before {
    ============================================================ */
 :root { --rs-isi: #1d5a8c; --rs-w0: #0f3554; --rs-w1: #3f7fb5; --rs-w2: #d39a3a; --rs-lalu: #1d5a8c; --rs-ini: #e0a040; --rs-kosong: #e3e9ed; --rs-pakai: #9fb2c1; --rs-blokir: #c7752d; --rs-sisa: #2f8f5b; }
 :root[data-mode="gelap"] { --rs-isi: #6fa3d6; --rs-w0: #8cc3f0; --rs-w1: #3f7fb5; --rs-w2: #e0a040; --rs-lalu: #6fa3d6; --rs-ini: #f0b860; --rs-kosong: #243341; --rs-pakai: #4a5f72; --rs-blokir: #e08a46; --rs-sisa: #5cc187; }
-/* Motif anyaman ketupat yang sama dengan ornamen Bengkel PDF (ornamen-kalimantan-anyaman.svg), diwarnai emas terang untuk latar navy. */
+/* Motif anyaman ketupat yang sama dengan ornamen Olah PDF (ornamen-kalimantan-anyaman.svg), diwarnai emas terang untuk latar navy. */
 :root { --batik: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2248%22 height=%2224%22 viewBox=%220 0 48 24%22 fill=%22none%22 stroke=%22%23ffd27a%22 stroke-linejoin=%22round%22%3E %3Cpath d=%22M12 0 24 12 12 24 0 12ZM36 0 48 12 36 24 24 12Z%22 stroke-width=%221.2%22/%3E %3Cpath d=%22M12 6 18 12 12 18 6 12ZM36 6 42 12 36 18 30 12Z%22 stroke-width=%221%22/%3E %3Ccircle cx=%2212%22 cy=%2212%22 r=%221.4%22 fill=%22%23ffd27a%22 stroke=%22none%22/%3E%3Ccircle cx=%2236%22 cy=%2212%22 r=%221.4%22 fill=%22%23ffd27a%22 stroke=%22none%22/%3E %3C/svg%3E"); --batik-ukuran: 48px 24px; }
 .rs { display: none; }
 @media screen {
@@ -4664,7 +4664,7 @@ window.BANNER_CADANGAN = {"menit":10,"siang":[{"tampil":true,"berkas":"banner-ba
 window.BANNER_DASAR = location.protocol === "file:" ? "" : new URL("../", location.href).href;
 /* ============================================================
    Banner bersama Layanan Subbagian Umum
-   Dipakai Bengkel PDF dan Dashboard Anggaran supaya fotonya sama dengan beranda.
+   Dipakai Olah PDF dan Dashboard Anggaran supaya fotonya sama dengan beranda.
    Aturannya sama dengan beranda (index.html, bagian "Banner berganti"):
    - daftar foto diambil dari isi beranda yang terakhir tersimpan di peramban ini
      (kunci "layanan-konten", diisi beranda dari dasbor admin), atau dari KONTEN_BAWAAN di konten.js;

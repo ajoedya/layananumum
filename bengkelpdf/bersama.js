@@ -61,7 +61,7 @@
   rapikanAlamat();
 
   function pasangMenu() {
-    // Beranda Bengkel PDF sudah memuat panel dan saklar tema sendiri.
+    // Beranda Olah PDF sudah memuat panel dan saklar tema sendiri.
     if (document.body.classList.contains("rk-beranda")) return;
     // Halaman alat memakai rangka panel navy (dasar.css).
     if (document.body.classList.contains("halaman-alat")) { pasangRangkaAlat(); return; }
@@ -88,7 +88,7 @@
     const merek = document.createElement("a");
     merek.className = "menu-nama";
     merek.href = "./";
-    merek.innerHTML = "Bengkel PDF<small>KPKNL BALIKPAPAN</small>";
+    merek.innerHTML = "Olah PDF<small>KPKNL BALIKPAPAN</small>";
     isi.appendChild(merek);
 
     const beranda = document.createElement("a");
@@ -96,7 +96,7 @@
     beranda.href = "./";
     beranda.textContent = "Beranda";
     if (kini === "index") beranda.setAttribute("aria-current", "page");
-    // Merek sudah menuju beranda Bengkel PDF, jadi tautan "Beranda" tidak dipasang lagi.
+    // Merek sudah menuju beranda Olah PDF, jadi tautan "Beranda" tidak dipasang lagi.
 
     const container = document.createElement("div");
     container.className = "menu-dropdown-wrapper";
@@ -166,9 +166,9 @@
       const kembali = document.createElement("a");
       kembali.className = "rk-kembali";
       kembali.href = "./";
-      kembali.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 18l-6-6 6-6"/></svg>Bengkel PDF';
+      kembali.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 18l-6-6 6-6"/></svg>Olah PDF';
       kopIsi.insertBefore(kembali, kopIsi.firstChild);
-      // Label "Bengkel PDF / 08" menjadi "Perkakas 08", karena tautan kembali sudah menyebut Bengkel PDF.
+      // Label "Olah PDF / 08" menjadi "Perkakas 08", karena tautan kembali sudah menyebut Olah PDF.
       const label = kopIsi.querySelector(".kop-label");
       const urut = label && label.textContent.match(/(\d+)\s*$/);
       if (urut) label.textContent = "Perkakas " + urut[1];

@@ -1,5 +1,5 @@
 /* ============================================================
-   Tema Bengkel PDF
+   Tema Olah PDF
    Berkas kecil ini dimuat di <head> setiap halaman, SEBELUM gaya.css, supaya
    tema sudah terpasang saat halaman pertama kali digambar (tidak berkedip
    dari tema bawaan).

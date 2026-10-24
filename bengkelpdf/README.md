@@ -1,10 +1,10 @@
-# Bengkel PDF
+# Olah PDF
 
 Kumpulan perkakas PDF untuk pekerjaan sehari-hari di kantor, buatan KPKNL Balikpapan. Seluruh pengolahan berjalan di peramban pengguna, jadi **berkas tidak pernah diunggah ke server mana pun**.
 
 **Buka situsnya di [ajoedya.github.io/layananumum/bengkelpdf](https://ajoedya.github.io/layananumum/bengkelpdf/)**
 
-![Beranda Bengkel PDF](dokumentasi/beranda.jpg)
+![Beranda Olah PDF](dokumentasi/beranda.jpg)
 
 ## Perkakas yang tersedia
 
@@ -23,7 +23,7 @@ Kumpulan perkakas PDF untuk pekerjaan sehari-hari di kantor, buatan KPKNL Balikp
 
 ## Privasi
 
-Bengkel PDF adalah situs statis. Pustaka pembaca dan penulis PDF dimuat ke peramban, lalu semua pekerjaan (membaca, menyunting, mengonversi, menyimpan) dikerjakan di komputer pengguna sendiri. Tidak ada server aplikasi, tidak ada akun, dan tidak ada berkas yang dikirim keluar.
+Olah PDF adalah situs statis. Pustaka pembaca dan penulis PDF dimuat ke peramban, lalu semua pekerjaan (membaca, menyunting, mengonversi, menyimpan) dikerjakan di komputer pengguna sendiri. Tidak ada server aplikasi, tidak ada akun, dan tidak ada berkas yang dikirim keluar.
 
 Pustaka utama (pdf.js, pdf-lib, fontkit, dan skrip Tesseract.js) disimpan di folder `pustaka/`, jadi situs hanya memanggil dua alamat luar.
 
@@ -36,7 +36,7 @@ Setiap halaman memasang *Content Security Policy* yang hanya mengizinkan kedua a
 
 ## Tampilan
 
-Banner Bengkel PDF sama dengan beranda Layanan Subbagian Umum. Fotonya diambil dari daftar banner beranda (diatur di dasbor admin), berganti bersamaan dengan beranda tiap beberapa menit, dan memakai foto malam di mode gelap. Pengaturnya `../banner.js` dan `banner-bengkel.js`. Warna situs dikunci ke tema navy-emas; foto tema lama (`banner-*.jpg` di folder ini) tidak dipakai lagi.
+Banner Olah PDF sama dengan beranda Layanan Subbagian Umum. Fotonya diambil dari daftar banner beranda (diatur di dasbor admin), berganti bersamaan dengan beranda tiap beberapa menit, dan memakai foto malam di mode gelap. Pengaturnya `../banner.js` dan `banner-bengkel.js`. Warna situs dikunci ke tema navy-emas; foto tema lama (`banner-*.jpg` di folder ini) tidak dipakai lagi.
 
 ## Untuk pengelola
 

@@ -1,6 +1,6 @@
 /* ============================================================
    Dasar bersama Layanan Subbagian Umum
-   Dimuat PALING AKHIR di Bengkel PDF dan Dashboard Anggaran (jagakas),
+   Dimuat PALING AKHIR di Olah PDF dan Dashboard Anggaran (jagakas),
    setelah gaya halaman masing-masing, supaya palet, bilah atas, dan
    ukuran kontrolnya sama dengan beranda.
    Ubah warna di sini, bukan di gaya.css atau di halaman jagakas.
@@ -149,7 +149,7 @@
 /* ============================================================
    Rangka beranda (rk-)
    Panel navy di kiri berisi merek, judul, dan menu; kolom isi di kanan.
-   Dipakai beranda Bengkel PDF. Foto panel dipasang di gaya halaman,
+   Dipakai beranda Olah PDF. Foto panel dipasang di gaya halaman,
    karena alamat url() di dalam variabel dihitung dari berkas pemakainya.
    ============================================================ */
 .rk { display: flex; flex-wrap: wrap; align-items: stretch; min-height: 100vh; }
@@ -284,7 +284,7 @@
 }
 
 /* ============================================================
-   Halaman alat Bengkel PDF
+   Halaman alat Olah PDF
    Kop menjadi panel navy di kiri berisi judul dan urutan langkah,
    foto banner di dasar panel. Bilah alat (daftar perkakas, saklar tema)
    ada di atas kolom isi. Foto tetap memakai .kop::after dari gaya.css.

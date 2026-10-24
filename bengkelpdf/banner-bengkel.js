@@ -1,6 +1,6 @@
-/* Banner Bengkel PDF mengikuti beranda Layanan Subbagian Umum.
+/* Banner Olah PDF mengikuti beranda Layanan Subbagian Umum.
    ../banner.js memilih foto yang sama dengan beranda pada waktu yang sama; berkas ini memasangnya
-   ke variabel --banner yang dipakai gaya.css (kop halaman perkakas) dan foto panel beranda Bengkel PDF.
+   ke variabel --banner yang dipakai gaya.css (kop halaman perkakas) dan foto panel beranda Olah PDF.
    Dimuat di <head> sesudah tema.js, jadi foto sudah benar sejak halaman pertama kali digambar. */
 (function () {
   "use strict";

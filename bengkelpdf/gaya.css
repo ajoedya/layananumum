@@ -1,5 +1,5 @@
 /* ============================================================
-   Gaya Bersama Bengkel PDF
+   Gaya Bersama Olah PDF
    Bahasa desain mengikuti beranda (editorial.css). Seluruh huruf memakai
    Public Sans, judul dibedakan lewat ketebalan dan ukuran.
    Semua alat memakai berkas ini, jadi ubah warna atau ukuran huruf
@@ -123,7 +123,7 @@
 
 /* ============================================================
    Tema
-   Sejak Oktober 2026 Bengkel PDF hanya memakai tema bawaan navy-emas,
+   Sejak Oktober 2026 Olah PDF hanya memakai tema bawaan navy-emas,
    dengan foto banner yang sama dengan beranda Layanan Subbagian Umum
    (dipasang ../banner.js dan banner-bengkel.js). Blok tema lain sudah dihapus;
    salinannya ada di riwayat git bila kelak ingin dipulihkan.
