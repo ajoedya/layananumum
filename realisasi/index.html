@@ -1520,7 +1520,7 @@ body.halaman-alat .kop.kop::before {
   :root[data-panel="lepas"] .jk .jk-panel .latar-foto { right: auto; width: 360px; }
   :root[data-panel="lepas"] .jk .jk-panel > :not(.jk-lajur) { transition: opacity .15s ease; }
   :root[data-panel="lepas"] .jk:not(.panel-terbuka) .jk-panel > :not(.jk-lajur) { visibility: hidden; opacity: 0; }
-  :root[data-panel="lepas"] .jk.panel-terbuka .jk-panel { width: 360px; overflow-y: auto; box-shadow: 10px 0 28px rgba(5,16,27,.22); }
+  :root[data-panel="lepas"] .jk.panel-terbuka .jk-panel { width: 360px; overflow-y: auto; overflow-x: hidden; overflow-x: clip; box-shadow: 10px 0 28px rgba(5,16,27,.22); }
 
   :root[data-panel="lepas"] .jk .jk-lajur {
     display: flex; flex-direction: column; align-items: center; gap: 8px;
@@ -1845,7 +1845,7 @@ body.halaman-alat .kop.kop::before {
   :root[data-panel="lepas"] .jk .jk-panel .latar-foto { right: auto; width: 360px; }
   :root[data-panel="lepas"] .jk .jk-panel > :not(.jk-lajur) { transition: opacity .15s ease; }
   :root[data-panel="lepas"] .jk:not(.panel-terbuka) .jk-panel > :not(.jk-lajur) { visibility: hidden; opacity: 0; }
-  :root[data-panel="lepas"] .jk.panel-terbuka .jk-panel { width: 360px; overflow-y: auto; box-shadow: 10px 0 28px rgba(5,16,27,.22); }
+  :root[data-panel="lepas"] .jk.panel-terbuka .jk-panel { width: 360px; overflow-y: auto; overflow-x: hidden; overflow-x: clip; box-shadow: 10px 0 28px rgba(5,16,27,.22); }
 
   :root[data-panel="lepas"] .jk .jk-lajur {
     display: flex; flex-direction: column; align-items: center; gap: 8px;
@@ -4660,7 +4660,9 @@ document.addEventListener('DOMContentLoaded',()=>{
        dan hilangnya fokus selama peralihan tidak dianggap meninggalkan panel. */
     membuka=true; setTimeout(()=>{ membuka=false; },300);
     rangka.classList.add('panel-terbuka'); tombolBuka.setAttribute('aria-expanded','true');
-    if(fokus) tombolKunci.focus();
+    /* Fokus tanpa menggulir: di iPad, fokus saat panel masih melebar membuat isinya tergeser ke kiri. */
+    if(fokus) tombolKunci.focus({preventScroll:true});
+    panel.scrollLeft=0;
   }
   function tutup(kembalikanFokus){
     clearTimeout(pewaktu);
@@ -4680,9 +4682,12 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   tombolBuka.addEventListener('click',()=>buka(true));
   tombolKunci.addEventListener('click',()=>{ pasangKunci(!terkunci()); if(!terkunci()) tombolBuka.focus(); });
-  panel.addEventListener('mouseenter',()=>{ if(!aktif()) return; clearTimeout(pewaktu); pewaktu=setTimeout(()=>buka(false),120); });
-  panel.addEventListener('mouseleave',()=>{
-    if(!aktif()) return; clearTimeout(pewaktu);
+  /* Buka-tutup dengan arahan kursor hanya untuk tetikus atau trackpad. Ketukan jari di iPad juga
+     memicu mouseenter/mouseleave tiruan, sehingga panel bisa terbuka sendiri setelah ditutup. */
+  const kursor=e=>e.pointerType==='mouse';
+  panel.addEventListener('pointerenter',e=>{ if(!aktif()||!kursor(e)) return; clearTimeout(pewaktu); pewaktu=setTimeout(()=>buka(false),120); });
+  panel.addEventListener('pointerleave',e=>{
+    if(!aktif()||!kursor(e)) return; clearTimeout(pewaktu);
     const a=document.activeElement;
     if(panel.contains(a)&&a.matches(':focus-visible')) return; /* pengguna papan ketik masih di dalam panel */
     pewaktu=setTimeout(()=>tutup(false),280);
@@ -4691,6 +4696,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   panel.addEventListener('focusout',e=>{ if(membuka) return; if(aktif()&&!panel.contains(e.relatedTarget)) tutup(false); });
   document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&rangka.classList.contains('panel-terbuka')) tutup(true); });
   document.addEventListener('pointerdown',e=>{ if(aktif()&&!panel.contains(e.target)) tutup(false); });
+  panel.addEventListener('scroll',()=>{ if(panel.scrollLeft) panel.scrollLeft=0; });
   /* Setelah memilih tab di panel, panel menutup sendiri supaya isi kembali lega. */
   if(navTab) navTab.addEventListener('click',e=>{ if(e.target.closest('button')&&aktif()) setTimeout(()=>tutup(false),150); });
   lebar.addEventListener&&lebar.addEventListener('change',()=>{ rangka.classList.remove('panel-terbuka'); });
