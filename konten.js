@@ -38,8 +38,8 @@ window.KONTEN_BAWAAN = {
       "judul": "S-708/MK.03/2026 Langkah Strategis Belanja Kementerian/Lembaga pada Triwulan IV Tahun Anggaran 2026",
       "isi": "Terdapat penyesuaian kembali pagu belanja birokrasi pada akhir Triwulan IV TA 2026, rincian perubahan akan disampaikan pada kesempatan pertama." },
     { "tampil": true, "label": "[Perubahan Alamat Layanan]",
-      "judul": "Terdapat Perubahan Alamat Dashboard Anggaran dan Olah PDF.",
-      "isi": "Alamat situs Dashboard Anggaran (**ajoedya.github.io/layananumum/jagakas**) & Alamat situs Olah PDF (**ajoedya.github.io/layananumum/bengkelpdf**)." }
+      "judul": "Terdapat Perubahan Alamat Monitoring Realisasi Anggaran dan Olah PDF.",
+      "isi": "Alamat situs Monitoring Realisasi Anggaran, sebelumnya Dashboard Anggaran (**ajoedya.github.io/layananumum/realisasi**) & Alamat situs Olah PDF (**ajoedya.github.io/layananumum/bengkelpdf**)." }
   ],
   "kelompok": [
     { "id": "perjadin", "nama": "Perjalanan dinas", "judulBagian": "Perjalanan dinas", "arsip": false, "tampil": true },
@@ -60,7 +60,7 @@ window.KONTEN_BAWAAN = {
       "kunci": "perjadin perjalanan dinas suket kehadiran presensi sktjm surat pernyataan tidak menginap data dukung" },
     { "tampil": true, "kelompok": "keuangan", "judul": "Sisa Dana",
       "uraian": "Cek dana yang masih tersedia sebelum mengusulkan kegiatan.",
-      "alamat": "jagakas/", "kunci": "keuangan saldo sisa dana pagu anggaran realisasi" },
+      "alamat": "realisasi/", "kunci": "keuangan saldo sisa dana pagu anggaran realisasi" },
     { "tampil": true, "kelompok": "keuangan", "judul": "Pemutakhiran Rekening",
       "uraian": "Perbarui rekening penerima pembayaran perjalanan dinas atau honor.",
       "alamat": "https://forms.office.com/r/1nnq1CSKEC", "kunci": "keuangan rekening bank honor pembayaran update perbarui pemutakhiran" },

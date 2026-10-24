@@ -1,8 +1,8 @@
-# Dashboard Realisasi Anggaran
+# Monitoring Realisasi Anggaran
 
 Dashboard pemantauan penyerapan anggaran KPKNL Balikpapan untuk Tahun Anggaran 2026. Halaman ini menampilkan pagu, realisasi, dan sisa anggaran satker, lalu membandingkan capaiannya dengan target penyerapan triwulanan.
 
-**Buka dashboard di [ajoedya.github.io/layananumum/jagakas](https://ajoedya.github.io/layananumum/jagakas/)**
+**Buka di [ajoedya.github.io/layananumum/realisasi](https://ajoedya.github.io/layananumum/realisasi/)** (alamat lama `/jagakas/` otomatis dialihkan ke sini).
 
 Dashboard bisa dibuka di peramban komputer maupun ponsel, tanpa perlu memasang aplikasi atau masuk dengan akun.
 
