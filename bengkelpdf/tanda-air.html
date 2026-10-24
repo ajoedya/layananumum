@@ -24,11 +24,11 @@
   .ruang-kerja > section{margin:0;padding:24px 26px 26px;background:var(--putih);
     border:1px solid var(--garis);border-radius:var(--radius-sm);box-shadow:var(--bayangan-sm);}
   .ruang-kerja > section.sembunyi{display:none;}
-  .rk-panel{position:sticky;top:96px;}
-  .rk-panel h2,.rk-pratinjau h2{font-size:20px;margin-bottom:16px;}
-  .rk-panel .isian{margin-bottom:16px;}
-  .rk-panel .tombol{width:100%;}
-  .rk-panel .petunjuk{font-size:14px;margin:4px 0 16px;}
+  .rk-atur{position:sticky;top:96px;}
+  .rk-atur h2,.rk-pratinjau h2{font-size:20px;margin-bottom:16px;}
+  .rk-atur .isian{margin-bottom:16px;}
+  .rk-atur .tombol{width:100%;}
+  .rk-atur .petunjuk{font-size:14px;margin:4px 0 16px;}
 
   /* ---------- Pratinjau ---------- */
   .pratinjau-wm{display:flex;align-items:center;justify-content:center;min-height:420px;
@@ -46,7 +46,7 @@
   /* Layar sedang dan ponsel: panel pengaturan turun ke bawah pratinjau. */
   @media (max-width: 900px){
     .ruang-kerja{grid-template-columns:1fr;}
-    .rk-panel{position:static;}
+    .rk-atur{position:static;}
     .pratinjau-wm{min-height:260px;}
   }
   @media (max-width: 640px){
@@ -93,7 +93,7 @@
       <p class="petunjuk">Pratinjau berganti sendiri setiap kali pengaturan diubah dan dibuat dengan cara yang sama seperti berkas hasilnya. Watermark dibubuhkan pada semua halaman; tombol di atas hanya untuk menengok halaman lain.</p>
     </section>
 
-    <section id="bagianAtur" class="rk-panel sembunyi" aria-labelledby="judulAtur">
+    <section id="bagianAtur" class="rk-atur sembunyi" aria-labelledby="judulAtur">
       <p class="nomor">Langkah 2</p>
       <h2 id="judulAtur">Atur lalu simpan</h2>
 

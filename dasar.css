@@ -98,6 +98,7 @@
   --kartu-garis-hover: #5a4626;
   --kartu-latar-hover: #1c2935;
   --aksen-latar: #1f5482;
+  --aksen-teks: #ffffff;   /* teks tombol utama, kontras 7,9:1 terhadap latar di atas */
   --aksen-hover: #2a5f8c;
 }
 

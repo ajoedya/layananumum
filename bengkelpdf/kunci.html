@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' blob: data: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kunci PDF · Olah PDF</title>
+<script src="tema.js"></script>
+<script src="../konten.js"></script>
+<script src="../banner.js"></script>
+<script src="banner-bengkel.js"></script>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap">
+<link rel="stylesheet" href="gaya.css">
+<style>
+  /* ============================================================
+     Tata letak: pratinjau lebar di kiri, panel pengaturan
+     di kanan yang ikut menempel saat digulir. Panel turun ke bawah
+     pratinjau di layar sempit.
+     ============================================================ */
+  .ruang-kerja{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:24px;
+    align-items:start;margin-top:24px;}
+  .ruang-kerja > section{margin:0;padding:24px 26px 26px;background:var(--putih);
+    border:1px solid var(--garis);border-radius:var(--radius-sm);box-shadow:var(--bayangan-sm);}
+  .ruang-kerja > section.sembunyi{display:none;}
+  .rk-atur{position:sticky;top:96px;}
+  .rk-atur h2,.rk-pratinjau h2{font-size:20px;margin-bottom:16px;}
+  .rk-atur .isian{margin-bottom:16px;}
+  .rk-atur .tombol{width:100%;}
+  .rk-atur .petunjuk{font-size:14px;margin:4px 0 16px;}
+
+  /* ---------- Pratinjau ---------- */
+  .pratinjau-wm{display:flex;align-items:center;justify-content:center;min-height:420px;
+    padding:20px;background:var(--biru-muda,#ebf3fc);border:1px solid var(--garis,#e2e8f0);
+    border-radius:var(--radius-sm,6px);font-size:14px;line-height:1.5;text-align:center;
+    color:var(--tinta-lembut,#475569);}
+  .pratinjau-wm canvas{display:block;max-width:100%;height:auto;background:var(--kertas,#fff);
+    box-shadow:0 2px 8px rgba(0,30,61,.25);transition:opacity .15s;}
+  .pratinjau-wm.memuat canvas{opacity:.55;}
+  .pratinjau-nav{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
+    gap:10px 14px;margin:14px 0 0;}
+  .pratinjau-nav span{min-width:150px;font-size:14px;font-weight:600;text-align:center;
+    color:var(--biru-tua,#002f5f);}
+
+  /* Layar sedang dan ponsel: panel pengaturan turun ke bawah pratinjau. */
+  @media (max-width: 900px){
+    .ruang-kerja{grid-template-columns:1fr;}
+    .rk-atur{position:static;}
+    .pratinjau-wm{min-height:260px;}
+  }
+  @media (max-width: 640px){
+    .ruang-kerja{gap:16px;margin-top:16px;}
+    .ruang-kerja > section{padding:20px 18px 22px;}
+  }
+
+  .info-dok{min-height:420px;padding:22px;background:var(--biru-muda,#ebf3fc);border:1px solid var(--garis);
+    border-radius:var(--radius-sm,6px);display:grid;grid-template-columns:150px 1fr;gap:22px;align-items:start;}
+  .info-dok canvas,.info-dok .sampul{width:150px;aspect-ratio:1/1.414;background:var(--kertas,#fff);
+    box-shadow:0 2px 8px rgba(0,30,61,.25);}
+  .sampul{padding:16px 12px;display:flex;flex-direction:column;gap:6px}
+  .sampul i{display:block;height:4px;background:#d5dde8;border-radius:2px}
+  .sampul i.p{width:60%;height:6px;background:#9fb0c6;margin-bottom:6px}
+  .info-dok dl{margin:0;display:grid;grid-template-columns:max-content 1fr;gap:10px 18px;font-size:15px}
+  .info-dok dt{color:var(--tinta-lembut,#475569)}
+  .info-dok dd{margin:0;font-weight:600;color:var(--tinta,#0f172a)}
+  .status{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:12px;font-size:13px;font-weight:700}
+  .status svg{width:14px;height:14px}
+  .status.bebas{background:#e6f4ec;color:#1d6b43}
+  .status.kunci{background:#fdeedd;color:#8a4a0b}
+  .segmen{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--garis);border-radius:var(--radius-sm,6px);
+    overflow:hidden;margin-bottom:20px}
+  .segmen label{display:flex;justify-content:center;padding:10px 8px;font-weight:600;font-size:15px;cursor:pointer;
+    color:var(--tinta-lembut,#475569);background:var(--putih)}
+  .segmen input{position:absolute;opacity:0}
+  
+  .segmen label:has(input:checked){background:var(--aksen-latar);color:var(--aksen-teks)}
+  .segmen label:has(input:focus-visible){outline:3px solid var(--fokus-lembut);outline-offset:-3px}
+  .sandi{position:relative}
+  
+  .sandi button{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:none;
+    font:600 13px "Public Sans",sans-serif;color:var(--tautan-kartu);cursor:pointer;padding:6px 8px}
+  .kekuatan{height:4px;border-radius:2px;background:var(--garis);margin-top:8px;overflow:hidden}
+  .kekuatan i{display:block;height:100%;width:70%;background:#2f8a57}
+  .kekuatan-teks{font-size:13px;line-height:19px;min-height:38px;color:var(--tinta-lembut);margin-top:4px}
+  fieldset.izin{border:1px solid var(--garis);border-radius:var(--radius-sm,6px);padding:12px 14px 6px;margin:0 0 18px}
+  fieldset.izin legend{font-weight:600;font-size:15px;padding:0 6px}
+  fieldset.izin label{display:flex;gap:10px;align-items:center;font-size:15px;margin-bottom:8px;font-weight:400}
+  details.lanjut summary{cursor:pointer;font-weight:600;font-size:15px;margin-bottom:12px;color:var(--tautan-kartu)}
+  @media (max-width:640px){.info-dok{grid-template-columns:1fr}.info-dok .sampul{width:120px}}
+
+  .sandi input[type=password],.sandi input[type=text]{width:100%;padding:11px 84px 11px 14px;font-family:inherit;font-size:16px;
+    color:var(--tinta);background:var(--putih);border:1px solid var(--garis-fokus);border-radius:5px;transition:var(--transisi)}
+  .sandi input:focus-visible{outline:3px solid var(--fokus-lembut);outline-offset:1px;border-color:var(--biru)}
+  .info-dok dl{min-width:0}
+  .info-dok dd{overflow-wrap:anywhere;min-width:0}
+  fieldset.izin legend{color:var(--tinta,#0f172a);display:block;float:none;width:auto;visibility:visible}
+  @media (max-width:900px){.info-dok{min-height:0}}
+
+  .info-dok canvas{display:block;width:150px;height:auto;aspect-ratio:auto}
+  .sampul.terkunci{align-items:center;justify-content:center;color:#8a4a0b}
+  .sampul.terkunci svg{width:42px;height:42px}
+  .status.batas{background:#fdf3d7;color:#7a5600}
+  .status.rusak{background:#fde4e2;color:#9b1c13}
+  .kekuatan i{transition:width .2s,background-color .2s}
+  .kekuatan i[data-tingkat="0"]{width:0}
+  .kekuatan i[data-tingkat="1"]{width:33%;background:#c0392b}
+  .kekuatan i[data-tingkat="2"]{width:66%;background:#b9770e}
+  .kekuatan i[data-tingkat="3"]{width:100%;background:#2f8a57}
+  /* Ruang pesan galat disediakan sejak awal supaya isian di bawahnya tidak bergeser saat pesan muncul. */
+  .galat-isian{margin:6px 0 0;min-height:21px;font-size:14px;line-height:21px;color:#b42318}
+  :root[data-mode="gelap"] .galat-isian{color:#ff9b8f}
+  :root[data-mode="gelap"] .status.bebas{background:#173a29;color:#9ee0b9}
+  :root[data-mode="gelap"] .status.kunci{background:#43290f;color:#ffc98f}
+  :root[data-mode="gelap"] .status.batas{background:#3d3210;color:#f3d77c}
+  :root[data-mode="gelap"] .status.rusak{background:#47201c;color:#ffb3ab}
+  .mode-panel[hidden]{display:none}
+</style>
+<link rel="stylesheet" href="../dasar.css">
+</head>
+<body class="halaman-alat">
+
+<header class="kop">
+  <div class="kop-isi lebar">
+    <p class="kop-label"><a href="./">Olah PDF</a> / 09</p>
+    <h1>Kunci PDF</h1>
+    <p>Memberi kata sandi dan membatasi cetak, salin, atau ubah pada PDF, atau sebaliknya membuka kunci berkas yang kata sandinya <em>sudah kamu ketahui</em>.</p>
+  </div>
+</header>
+<div class="rk-alat-atas"></div>
+
+<div class="bungkus lebar">
+
+  <section>
+    <p class="nomor">Langkah 1</p>
+    <h2>Pilih dokumen</h2>
+    <div class="jatuhan" id="jatuhan" tabindex="0" role="button" aria-label="Pilih berkas PDF">
+      <strong>Seret berkas PDF ke sini</strong>
+      <span>atau klik untuk memilih dari komputer</span>
+    </div>
+    <input type="file" id="berkas" accept="application/pdf" class="sembunyi">
+    <div id="kabar" class="kabar" role="status"></div>
+  </section>
+
+  <div class="ruang-kerja">
+    <section id="bagianInfo" class="rk-pratinjau sembunyi" aria-labelledby="judulInfo">
+      <p class="nomor">Dokumen</p>
+      <h2 id="judulInfo">Keterangan berkas</h2>
+      <div class="info-dok">
+        <div id="sampul" class="sampul" aria-hidden="true"></div>
+        <dl id="rincian"></dl>
+      </div>
+    </section>
+
+    <section id="bagianAtur" class="rk-atur sembunyi" aria-labelledby="judulAtur">
+      <p class="nomor">Langkah 2</p>
+      <h2 id="judulAtur">Atur keamanan</h2>
+      <div class="segmen" role="radiogroup" aria-label="Pilih tindakan">
+        <label><input type="radio" name="mode" value="kunci" checked><span>Kunci</span></label>
+        <label><input type="radio" name="mode" value="buka"><span>Buka kunci</span></label>
+      </div>
+
+      <div id="panelKunci" class="mode-panel">
+        <div class="isian">
+          <label for="sandi1">Kata sandi untuk membuka</label>
+          <div class="sandi"><input type="password" id="sandi1" autocomplete="new-password" aria-describedby="teksKekuatan">
+            <button type="button" class="lihat" aria-controls="sandi1" aria-pressed="false">Tampilkan</button></div>
+          <div class="kekuatan" aria-hidden="true"><i id="batangKekuatan" data-tingkat="0"></i></div>
+          <p class="kekuatan-teks" id="teksKekuatan">Minimal 8 karakter, campurkan huruf, angka, dan tanda baca.</p>
+        </div>
+        <div class="isian">
+          <label for="sandi2">Ulangi kata sandi</label>
+          <div class="sandi"><input type="password" id="sandi2" autocomplete="new-password" aria-describedby="galatUlang">
+            <button type="button" class="lihat" aria-controls="sandi2" aria-pressed="false">Tampilkan</button></div>
+          <p class="galat-isian" id="galatUlang" aria-live="polite"></p>
+        </div>
+        <fieldset class="izin">
+          <legend>Izin bagi pembaca</legend>
+          <label><input type="checkbox" id="izinCetak" checked> Boleh mencetak</label>
+          <label><input type="checkbox" id="izinSalin" checked> Boleh menyalin teks</label>
+          <label><input type="checkbox" id="izinUbah"> Boleh mengubah isi</label>
+        </fieldset>
+        <details class="lanjut">
+          <summary>Kata sandi pemilik (opsional)</summary>
+          <div class="isian">
+            <label for="sandi3">Kata sandi untuk mengubah izin</label>
+            <div class="sandi"><input type="password" id="sandi3" autocomplete="new-password" placeholder="Dibuat acak bila dikosongkan">
+              <button type="button" class="lihat" aria-controls="sandi3" aria-pressed="false">Tampilkan</button></div>
+            <p class="petunjuk">Kalau dikosongkan, dibuatkan kata sandi acak sehingga pembatasan izin tidak bisa diubah oleh siapa pun.</p>
+          </div>
+        </details>
+        <p class="petunjuk">Simpan kata sandi di tempat aman. Kalau lupa, berkas ini tidak dapat dibuka oleh siapa pun, termasuk oleh Olah PDF.</p>
+        <div id="kabarKunci" class="kabar" role="status"></div>
+        <div class="baris-tombol"><button class="tombol" id="tombolKunci">Kunci lalu simpan</button></div>
+      </div>
+
+      <div id="panelBuka" class="mode-panel" hidden>
+        <div class="isian">
+          <label for="sandiBuka">Kata sandi berkas</label>
+          <div class="sandi"><input type="password" id="sandiBuka" autocomplete="current-password">
+            <button type="button" class="lihat" aria-controls="sandiBuka" aria-pressed="false">Tampilkan</button></div>
+        </div>
+        <p class="petunjuk">Hasilnya berupa PDF tanpa kata sandi dan tanpa pembatasan cetak, salin, atau ubah. Untuk berkas yang hanya dibatasi izinnya, kolom ini boleh dikosongkan.</p>
+        <div id="kabarBuka" class="kabar" role="status"></div>
+        <div class="baris-tombol"><button class="tombol" id="tombolBuka">Buka kunci lalu simpan</button></div>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    <span>Seluruh pengolahan berjalan di peramban. Kata sandi dan berkas tidak dikirim ke server mana pun.</span>
+    <span>KPKNL Balikpapan · Berintegritas dalam Tugas, Prima dalam Pelayanan.</span>
+  </footer>
+</div>
+
+<script src="pustaka/pdfjs/pdf.min.js"></script>
+<script src="pustaka/qpdf/qpdf.js"></script>
+<script src="bersama.js"></script>
+<script>
+/* Pengamanan memakai QPDF yang dikompilasi ke WebAssembly. pdf.js hanya
+   dipakai untuk membaca keterangan berkas dan menggambar sampul halaman. */
+const adaPdfJs = (typeof pdfjsLib !== "undefined");
+if (adaPdfJs) pdfjsLib.GlobalWorkerOptions.workerSrc = "pustaka/pdfjs/pdf.worker.min.js";
+
+const el = (id) => document.getElementById(id);
+const GEMBOK = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>';
+let bytes = null, namaAsli = "dokumen.pdf", keadaan = "bebas";
+
+/* ---------- Menjalankan QPDF ----------
+   Setiap perintah memakai modul baru supaya keadaan sisa perintah
+   sebelumnya tidak terbawa. Berkas wasm cukup diunduh sekali oleh peramban. */
+async function qpdf(args) {
+  if (typeof Module !== "function") throw new Error("Pustaka QPDF gagal dimuat.");
+  // Modul ini menulis keluarannya langsung ke konsol dan mengabaikan pilihan
+  // print/printErr, jadi konsol dialihkan sementara supaya pesannya tertangkap.
+  const log = [], asli = { log: console.log, warn: console.warn, error: console.error };
+  const tangkap = (...a) => log.push(a.join(" "));
+  console.log = console.warn = console.error = tangkap;
+  let kode, q;
+  try {
+    q = await Module({ locateFile: (f) => "pustaka/qpdf/" + f, noInitialRun: true,
+                       print: tangkap, printErr: tangkap });
+    q.FS.writeFile("/masuk.pdf", new Uint8Array(bytes));
+    try { kode = q.callMain(args); } catch (e) { kode = (e && typeof e.status === "number") ? e.status : 2; }
+  } finally {
+    Object.assign(console, asli);
+  }
+  let keluar = null;
+  try { keluar = q.FS.readFile("/keluar.pdf"); } catch (e) { keluar = null; }
+  return { kode, log: log.join("\n"), keluar };
+}
+// Kode 0 berarti berhasil, 3 berarti berhasil dengan peringatan kecil.
+const berhasil = (h) => (h.kode === 0 || h.kode === 3) && h.keluar && h.keluar.length;
+const sandiSalah = (h) => /invalid password/i.test(h.log);
+
+function sandiAcak() {
+  const huruf = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+  const a = new Uint32Array(32);
+  crypto.getRandomValues(a);
+  return Array.from(a, (n) => huruf[n % huruf.length]).join("");
+}
+
+/* ---------- Membaca berkas ---------- */
+Bersama.pasangJatuhan(el("jatuhan"), el("berkas"), async (daftar) => {
+  const pdf = Bersama.pdfSaja(daftar);
+  if (!pdf.length) {
+    Bersama.pesan("kabar", "Berkas itu bukan PDF. Pilih berkas berakhiran .pdf.", "gagal");
+    return;
+  }
+  bytes = await pdf[0].arrayBuffer();
+  namaAsli = pdf[0].name;
+  ["kabarKunci", "kabarBuka"].forEach((id) => Bersama.pesan(id, "", ""));
+  el("sandiBuka").value = "";
+  await periksaBerkas(pdf[0].size);
+});
+
+async function periksaBerkas(ukuran) {
+  const sampul = el("sampul");
+  sampul.className = "sampul"; sampul.innerHTML = "";
+  let jumlah = null, izin = null;
+  keadaan = "bebas";
+  if (adaPdfJs) {
+    try {
+      const dok = await pdfjsLib.getDocument({ data: bytes.slice(0), isEvalSupported: false }).promise;
+      jumlah = dok.numPages;
+      izin = await dok.getPermissions();
+      if (izin) keadaan = "batas";
+      try {
+        const kanvas = await Bersama.halamanKeKanvas(dok, 1, 150);
+        sampul.className = ""; sampul.appendChild(kanvas);
+      } catch (e) { /* sampul tidak wajib */ }
+    } catch (err) {
+      keadaan = (err && err.name === "PasswordException") ? "kunci" : "rusak";
+    }
+  }
+  if (keadaan === "kunci") { sampul.className = "sampul terkunci"; sampul.innerHTML = GEMBOK; }
+
+  // Jenis enkripsi dibaca QPDF. Berkas yang terkunci kata sandi baru bisa
+  // dibaca keterangannya setelah dibuka, jadi barisnya dilewati.
+  let enkripsi = "";
+  if (keadaan === "batas") {
+    try {
+      const h = await qpdf(["--show-encryption", "/masuk.pdf"]);
+      const m = h.log.match(/stream encryption method:\s*(\S+)/i);
+      if (m) enkripsi = ({ AESv3: "AES-256", AESv2: "AES-128", RC4: "RC4" })[m[1]] || m[1];
+    } catch (e) { /* keterangan tambahan saja */ }
+  }
+
+  const STATUS = {
+    bebas: ["bebas", "Tidak terkunci"],
+    batas: ["batas", "Dibatasi izinnya"],
+    kunci: ["kunci", "Terkunci kata sandi"],
+    rusak: ["rusak", "Tidak terbaca"]
+  }[keadaan];
+  const baris = [
+    ["Nama", Bersama.lolos(namaAsli)],
+    ["Ukuran", ukuranMudah(ukuran)],
+    ["Halaman", jumlah ? jumlah + " halaman" : "Terlihat setelah dibuka"],
+    ["Keamanan", '<span class="status ' + STATUS[0] + '">' + GEMBOK + " " + STATUS[1] + "</span>"]
+  ];
+  if (enkripsi) baris.push(["Enkripsi", enkripsi]);
+  if (izin) baris.push(["Izin", uraiIzin(izin)]);
+  el("rincian").innerHTML = baris.map((b) => "<dt>" + b[0] + "</dt><dd>" + b[1] + "</dd>").join("");
+
+  if (keadaan === "rusak") {
+    Bersama.pesan("kabar", "Berkas tidak bisa dibaca, kemungkinan rusak. Coba berkas lain.", "gagal");
+    ["bagianInfo", "bagianAtur"].forEach((id) => el(id).classList.add("sembunyi"));
+    return;
+  }
+  const pesanMuat = {
+    bebas: " berhasil dibaca dan belum terkunci.",
+    batas: " berhasil dibaca. Berkas ini dibatasi izinnya tanpa kata sandi buka.",
+    kunci: " terkunci kata sandi. Masukkan kata sandinya untuk membuka kunci."
+  }[keadaan];
+  Bersama.pesan("kabar", Bersama.lolos(namaAsli) + pesanMuat, "");
+  ["bagianInfo", "bagianAtur"].forEach((id) => el(id).classList.remove("sembunyi"));
+  pilihMode(keadaan === "bebas" ? "kunci" : "buka");
+  el("bagianInfo").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function ukuranMudah(n) {
+  if (n < 1024) return n + " B";
+  if (n < 1048576) return Math.round(n / 1024) + " KB";
+  return (n / 1048576).toFixed(1).replace(".", ",") + " MB";
+}
+
+// Daftar izin dari pdf.js berisi bendera yang DIIZINKAN.
+function uraiIzin(daftar) {
+  const F = pdfjsLib.PermissionFlag;
+  const ada = (f) => daftar.indexOf(f) >= 0;
+  return ["Cetak " + (ada(F.PRINT) ? "boleh" : "tidak boleh"),
+          "salin " + (ada(F.COPY) ? "boleh" : "tidak boleh"),
+          "ubah " + (ada(F.MODIFY_CONTENTS) ? "boleh" : "tidak boleh")].join(", ");
+}
+
+/* ---------- Mode ---------- */
+function pilihMode(mode) {
+  document.querySelectorAll('input[name="mode"]').forEach((r) => { r.checked = (r.value === mode); });
+  el("panelKunci").hidden = (mode !== "kunci");
+  el("panelBuka").hidden = (mode !== "buka");
+}
+document.querySelectorAll('input[name="mode"]').forEach((r) =>
+  r.addEventListener("change", () => pilihMode(r.value)));
+
+/* ---------- Isian kata sandi ---------- */
+document.querySelectorAll(".sandi .lihat").forEach((t) => {
+  t.addEventListener("click", () => {
+    const isian = el(t.getAttribute("aria-controls"));
+    const lihat = isian.type === "password";
+    isian.type = lihat ? "text" : "password";
+    t.textContent = lihat ? "Sembunyikan" : "Tampilkan";
+    t.setAttribute("aria-pressed", String(lihat));
+  });
+});
+
+function nilaiKekuatan(s) {
+  if (!s) return 0;
+  let skor = 0;
+  if (s.length >= 8) skor++;
+  if (s.length >= 12) skor++;
+  if (/[a-z]/i.test(s) && /\d/.test(s)) skor++;
+  if (/[^a-z0-9]/i.test(s)) skor++;
+  return skor <= 1 ? 1 : skor <= 2 ? 2 : 3;
+}
+el("sandi1").addEventListener("input", () => {
+  const t = nilaiKekuatan(el("sandi1").value);
+  el("batangKekuatan").dataset.tingkat = t;
+  el("teksKekuatan").textContent = [
+    "Minimal 8 karakter, campurkan huruf, angka, dan tanda baca.",
+    "Lemah. Tambah panjangnya dan campurkan huruf dengan angka.",
+    "Cukup. Tambahkan tanda baca atau perpanjang supaya lebih kuat.",
+    "Kuat."][t];
+  if (el("galatUlang").textContent) cekUlang(false);
+});
+// Galat ulangan muncul setelah isian ditinggalkan, lalu hilang begitu sudah sama.
+function cekUlang(paksa) {
+  const sama = el("sandi1").value === el("sandi2").value;
+  if (sama) { el("galatUlang").textContent = ""; el("sandi2").removeAttribute("aria-invalid"); }
+  else if (paksa) { el("galatUlang").textContent = "Kata sandi belum sama."; el("sandi2").setAttribute("aria-invalid", "true"); }
+  return sama;
+}
+el("sandi2").addEventListener("blur", () => { if (el("sandi2").value) cekUlang(true); });
+el("sandi2").addEventListener("input", () => { if (el("galatUlang").textContent) cekUlang(false); });
+
+function namaHasil(akhiran) { return Bersama.tanpaAkhiran(namaAsli) + "-" + akhiran + ".pdf"; }
+
+/* ---------- Mengunci ---------- */
+el("tombolKunci").addEventListener("click", async () => {
+  if (!bytes) return;
+  const s1 = el("sandi1").value;
+  if (keadaan === "kunci") {
+    Bersama.pesan("kabarKunci", "Berkas ini sudah terkunci kata sandi. Buka kuncinya dulu lewat pilihan Buka kunci, lalu kunci ulang hasilnya.", "gagal");
+    return;
+  }
+  if (!s1) {
+    Bersama.pesan("kabarKunci", "Isi dulu kata sandi untuk membuka.", "gagal");
+    el("sandi1").focus(); return;
+  }
+  if (!cekUlang(true)) { el("sandi2").focus(); return; }
+  const pemilik = el("sandi3").value || sandiAcak();
+  const t = el("tombolKunci");
+  t.disabled = true; t.textContent = "Mengunci...";
+  try {
+    const h = await qpdf(["--encrypt", s1, pemilik, "256",
+      "--print=" + (el("izinCetak").checked ? "full" : "none"),
+      "--extract=" + (el("izinSalin").checked ? "y" : "n"),
+      "--modify=" + (el("izinUbah").checked ? "all" : "none"),
+      "--", "/masuk.pdf", "/keluar.pdf"]);
+    if (!berhasil(h)) throw new Error(h.log || "kode " + h.kode);
+    Bersama.unduh(h.keluar, namaHasil("terkunci"));
+    Bersama.pesan("kabarKunci", "Dokumen terkunci dengan AES-256 dan tersimpan di folder unduhan sebagai " +
+      Bersama.lolos(namaHasil("terkunci")) + ". Coba buka sekali untuk memastikan kata sandinya benar.", "beres");
+  } catch (err) {
+    console.error(err);
+    Bersama.pesan("kabarKunci", "Dokumen gagal dikunci. Muat ulang halaman lalu pilih berkasnya sekali lagi.", "gagal");
+  }
+  t.disabled = false; t.textContent = "Kunci lalu simpan";
+});
+
+/* ---------- Membuka kunci ---------- */
+el("tombolBuka").addEventListener("click", async () => {
+  if (!bytes) return;
+  if (keadaan === "bebas") {
+    Bersama.pesan("kabarBuka", "Berkas ini tidak terkunci, jadi tidak ada yang perlu dibuka.", "");
+    return;
+  }
+  const sandi = el("sandiBuka").value;
+  if (keadaan === "kunci" && !sandi) {
+    Bersama.pesan("kabarBuka", "Berkas ini terkunci. Isi dulu kata sandinya.", "gagal");
+    el("sandiBuka").focus(); return;
+  }
+  const t = el("tombolBuka");
+  t.disabled = true; t.textContent = "Membuka...";
+  try {
+    const args = (sandi ? ["--password=" + sandi] : []).concat(["--decrypt", "/masuk.pdf", "/keluar.pdf"]);
+    const h = await qpdf(args);
+    if (sandiSalah(h)) {
+      Bersama.pesan("kabarBuka", "Kata sandi tidak cocok. Periksa huruf besar dan kecilnya, lalu coba lagi.", "gagal");
+      el("sandiBuka").select();
+    } else if (!berhasil(h)) {
+      throw new Error(h.log || "kode " + h.kode);
+    } else {
+      Bersama.unduh(h.keluar, namaHasil("terbuka"));
+      Bersama.pesan("kabarBuka", "Kunci terlepas. Dokumen tanpa kata sandi tersimpan di folder unduhan sebagai " +
+        Bersama.lolos(namaHasil("terbuka")) + ".", "beres");
+    }
+  } catch (err) {
+    console.error(err);
+    Bersama.pesan("kabarBuka", "Dokumen gagal dibuka. Muat ulang halaman lalu pilih berkasnya sekali lagi.", "gagal");
+  }
+  t.disabled = false; t.textContent = "Buka kunci lalu simpan";
+});
+</script>
+</body>
+</html>

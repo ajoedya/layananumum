@@ -18,6 +18,7 @@ Kumpulan perkakas PDF untuk pekerjaan sehari-hari di kantor, buatan KPKNL Balikp
 | 06 | [Penanda TTE](https://ajoedya.github.io/layananumum/bengkelpdf/penanda) | Membubuhkan penanda tulisan tanda tangan elektronik |
 | 07 | [Ubah Ukuran Kertas](https://ajoedya.github.io/layananumum/bengkelpdf/pengubah-uk) | Menyesuaikan ukuran halaman, misalnya ke A4 atau F4 |
 | 08 | [Kompres PDF](https://ajoedya.github.io/layananumum/bengkelpdf/kompres) | Memperkecil ukuran berkas dengan teks tetap utuh dan bisa dicari |
+| 09 | [Kunci PDF](https://ajoedya.github.io/layananumum/bengkelpdf/kunci) | Memberi kata sandi (AES-256) dan membatasi izin cetak, salin, atau ubah, atau membuka kunci berkas yang kata sandinya diketahui |
 
 ![Edit Teks](dokumentasi/edit-teks.jpg)
 
@@ -25,7 +26,7 @@ Kumpulan perkakas PDF untuk pekerjaan sehari-hari di kantor, buatan KPKNL Balikp
 
 Olah PDF adalah situs statis. Pustaka pembaca dan penulis PDF dimuat ke peramban, lalu semua pekerjaan (membaca, menyunting, mengonversi, menyimpan) dikerjakan di komputer pengguna sendiri. Tidak ada server aplikasi, tidak ada akun, dan tidak ada berkas yang dikirim keluar.
 
-Pustaka utama (pdf.js, pdf-lib, fontkit, dan skrip Tesseract.js) disimpan di folder `pustaka/`, jadi situs hanya memanggil dua alamat luar.
+Pustaka utama (pdf.js, pdf-lib, fontkit, QPDF versi WebAssembly, dan skrip Tesseract.js) disimpan di folder `pustaka/`, jadi situs hanya memanggil dua alamat luar.
 
 | Alamat | Untuk apa |
 |---|---|

@@ -13,7 +13,8 @@
     { berkas: "word",        nama: "PDF ke Word" },
     { berkas: "penanda",     nama: "Penanda TTE" },
     { berkas: "pengubah-uk", nama: "Ubah Ukuran Kertas" },
-    { berkas: "kompres",     nama: "Kompres PDF" }
+    { berkas: "kompres",     nama: "Kompres PDF" },
+    { berkas: "kunci",       nama: "Kunci PDF" }
   ];
 
   // Memasang favicon secara otomatis jika belum ada di tag <head>

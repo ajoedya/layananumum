@@ -1,0 +1,4 @@
+qpdf.js dan qpdf.wasm berasal dari paket npm @neslinesli93/qpdf-wasm versi 0.3.0
+(https://github.com/neslinesli93/qpdf-wasm, lisensi ISC), yaitu QPDF yang
+dikompilasi ke WebAssembly. QPDF sendiri (https://github.com/qpdf/qpdf) dirilis
+dengan Apache License 2.0, https://www.apache.org/licenses/LICENSE-2.0

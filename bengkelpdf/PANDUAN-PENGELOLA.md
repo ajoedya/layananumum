@@ -19,6 +19,7 @@ Semua berkas duduk sejajar pada lapisan paling atas *repository*. Tidak boleh ad
 | `penanda.html` | Pembubuh penanda tanda tangan elektronik |
 | `pengubah-uk.html` | Pengubah ukuran kertas |
 | `kompres.html` | Pemampat ukuran berkas |
+| `kunci.html` | Pengunci dan pembuka kunci PDF berkata sandi, memakai QPDF di `pustaka/qpdf/` |
 | `gabung.html`, `pecah.html`, `susun.html`, `nomor.html` | Halaman pengalih ke `gabung-pecah.html`, supaya tautan lama tetap jalan |
 | `beta/` | Tempat uji coba tata letak; `beta/beta.js` mengarahkan menu ke halaman beta |
 | `tema.js` | Mode terang/gelap dan tema bawaan, dimuat paling awal di setiap halaman |
@@ -104,7 +105,7 @@ Di beranda, banner menjadi latar panel kiri yang bentuknya tegak, jadi hanya seb
 
 ## 5. Ketergantungan yang perlu diwaspadai
 
-Pustaka pdf.js, pdf-lib, fontkit, dan skrip Tesseract.js sudah ikut disimpan di folder `pustaka/`, sehingga fungsi utama tetap jalan walaupun jaringan kantor menyaring CDN. Tinggal dua alamat luar yang dipanggil.
+Pustaka pdf.js, pdf-lib, fontkit, QPDF (`pustaka/qpdf/`, dipakai Kunci PDF), dan skrip Tesseract.js sudah ikut disimpan di folder `pustaka/`, sehingga fungsi utama tetap jalan walaupun jaringan kantor menyaring CDN. Tinggal dua alamat luar yang dipanggil.
 
 | Alamat | Kegunaan | Akibat kalau tersaring |
 |---|---|---|

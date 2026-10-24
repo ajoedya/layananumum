@@ -70,7 +70,7 @@ window.KONTEN_BAWAAN = {
       "kunci": "keuangan caput capaian output keluaran pic seksi" },
     { "tampil": true, "kelompok": "perkakas", "judul": "Olah PDF",
       "uraian": "Edit teks, gabung, pecah, dan beri tanda air langsung di peramban tanpa mengunggah berkas.",
-      "alamat": "bengkelpdf/", "kunci": "olah bengkel perkakas pdf edit teks gabung pecah watermark tanda air kompres word naskah" },
+      "alamat": "bengkelpdf/", "kunci": "olah bengkel perkakas pdf kunci sandi password protect edit teks gabung pecah watermark tanda air kompres word naskah" },
     { "tampil": true, "kelompok": "arsip", "judul": "Monitoring E-Perjadin v1",
       "uraian": "Pemantauan SPD untuk perjalanan dinas sebelum **27 Juli 2026**.",
       "alamat": "https://sites.google.com/view/gerbanginternal/halaman-muka/monitoring-spd", "kunci": "arsip perjadin perjalanan dinas spd monitoring lama versi 1" },
