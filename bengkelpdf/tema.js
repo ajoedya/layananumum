@@ -112,6 +112,31 @@
     else if (media.addListener) media.addListener(ikuti);
   }
 
+
+  // Efek lingkaran: tema baru melebar dari tombol yang ditekan (View Transitions API).
+  // Tanpa dukungan peramban, atau bila pengguna mengurangi gerak, mode berganti langsung.
+  function lingkar(terapkan) {
+    var kurang = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!document.startViewTransition || kurang) { terapkan(); return; }
+    var t = document.activeElement && document.activeElement.closest ? document.activeElement.closest("[data-tombol-mode]") : null;
+    if (!t) { var a = document.querySelectorAll("[data-tombol-mode]"); for (var i = 0; i < a.length; i++) if (a[i].offsetParent) { t = a[i]; break; } }
+    var r = t ? t.getBoundingClientRect() : { left: window.innerWidth / 2, top: 0, width: 0, height: 0 };
+    var x = r.left + r.width / 2, y = r.top + r.height / 2;
+    var radius = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
+    var gaya = document.createElement("style");
+    gaya.textContent = "::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}::view-transition-new(root){z-index:2}";
+    document.head.appendChild(gaya);
+    var bersih = function () { gaya.remove(); };
+    var vt;
+    try { vt = document.startViewTransition(terapkan); } catch (e) { bersih(); terapkan(); return; }
+    vt.ready.then(function () {
+      document.documentElement.animate(
+        { clipPath: ["circle(0px at " + x + "px " + y + "px)", "circle(" + radius + "px at " + x + "px " + y + "px)"] },
+        { duration: 650, easing: "cubic-bezier(.22,.61,.36,1)", pseudoElement: "::view-transition-new(root)" });
+    }).catch(function () { /* abaikan */ });
+    vt.finished.then(bersih, bersih);
+  }
+
   window.Tema = {
     daftar: DAFTAR,
     kini: function () { return kini.id; },
@@ -126,7 +151,9 @@
       } else {
         tulis("localStorage", KUNCI_MODE, mode);
       }
-      return pasangMode(mode);
+      var baru = mode;
+      lingkar(function () { pasangMode(baru); });
+      return baru;
     },
     // Dipanggil sekali setelah halaman selesai dimuat, agar uraian gambar ikut terpasang.
     segarkan: function () { kini = pasang(kini.id); pasangMode(mode); }

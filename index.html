@@ -144,7 +144,8 @@ h1 .judul-utama { display: inline; margin: 0; color: inherit; font-size: inherit
 .panel-deskripsi { margin: 0; color: var(--panel-teks); font-size: calc(15px * var(--s-deskripsi, 1)); line-height: 1.6; }
 /* Tiap menu kelompok berupa kotak kaca: latar navy tembus pandang yang mengaburkan foto di belakangnya,
    dengan garis tepi terang yang jelas, jadi teks putih tetap kontras di atas bagian foto yang terang sekalipun. */
-.kelompok { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 0; }
+.kelompok { position: relative; display: flex; flex-direction: column; gap: 8px; margin: 4px 0 0; }
+.kelompok a { position: relative; z-index: 1; }
 .kelompok a {
   display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px;
   padding: 8px 12px 8px 16px; border-radius: 12px; color: var(--putih); font-size: 15px; font-weight: 600; text-decoration: none;
@@ -155,7 +156,9 @@ h1 .judul-utama { display: inline; margin: 0; color: inherit; font-size: inherit
   transition: background-color .16s ease, border-color .16s ease;
 }
 .kelompok a:hover { background: rgba(var(--rgb-laut),.78); border-color: rgba(255,255,255,.5); }
-.kelompok a[aria-current="true"] { background: rgba(var(--rgb-laut),.82); border-color: var(--emas-terang); box-shadow: 0 4px 16px rgba(var(--rgb-gelap),.32), inset 3px 0 0 var(--emas-terang); }
+.kelompok a[aria-current="true"] { background: rgba(var(--rgb-laut),.82); }
+/* Bingkai emas yang meluncur ke menu terpilih; posisinya diatur skrip (geserPilMenu). */
+.pil-menu { position: absolute; left: 0; top: 0; z-index: 2; pointer-events: none; border: 1px solid var(--emas-terang); box-shadow: inset 3px 0 0 var(--emas-terang), 0 4px 16px rgba(var(--rgb-gelap),.32); }
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .kelompok a { background: rgba(var(--rgb-laut),.88); }
 }
@@ -249,7 +252,7 @@ h1 .judul-utama { display: inline; margin: 0; color: inherit; font-size: inherit
   .panel-judul { padding-top: 6px; }
   .kelompok { flex-direction: row; flex-wrap: wrap; gap: 8px; margin: 0; }
   .kelompok a { min-height: 44px; padding: 6px 8px 6px 14px; border-radius: 999px; }
-  .kelompok a[aria-current="true"] { box-shadow: inset 0 0 0 1px var(--emas-terang); }
+  .pil-menu { box-shadow: none; }
   .panel-deskripsi { font-size: calc(14px * var(--s-deskripsi, 1)); line-height: 1.55; }
   .panel-dalam { padding-bottom: 92px; }
   .panel-keterangan { display: none; }
@@ -403,7 +406,7 @@ h1 .judul-utama { display: inline; margin: 0; color: inherit; font-size: inherit
     var kelompok = konten.kelompok.filter(function (k) { return k.tampil !== false; });
     var tautan = konten.tautan.filter(function (t) { return t.tampil !== false && K.alamatAman(t.alamat) && K.dalamJadwal(t); });
     var menu = $("menuKelompok"), wadah = $("daftarBagian"), nomor = 0;
-    menu.textContent = ""; wadah.textContent = "";
+    menu.textContent = ""; wadah.textContent = ""; pilMenu._p = null;
     kelompok.forEach(function (k) {
       var isi = tautan.filter(function (t) { return t.kelompok === k.id; });
       if (!isi.length) return;
@@ -550,10 +553,32 @@ h1 .judul-utama { display: inline; margin: 0; color: inherit; font-size: inherit
     clearTimeout(pewaktuKlik);
     pewaktuKlik = setTimeout(function () { kunciKlik = null; }, 1200);
   }
+  /* Bingkai emas meluncur dari menu lama ke menu baru. Animasinya hanya transform, lebar, dan tinggi pada satu elemen kecil;
+     bila pengguna mengurangi gerak, bingkai langsung pindah. */
+  var pilMenu = el("span", "pil-menu"); pilMenu.setAttribute("aria-hidden", "true");
+  var kurangGerak = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function geserPilMenu(tanpaGerak) {
+    var menu = $("menuKelompok"), a = menu.querySelector('a[aria-current="true"]');
+    if (!pilMenu.parentNode) menu.appendChild(pilMenu);
+    if (!a) { pilMenu.hidden = true; return; }
+    pilMenu.hidden = false;
+    var ke = { x: a.offsetLeft, y: a.offsetTop, w: a.offsetWidth, h: a.offsetHeight }, dari = pilMenu._p;
+    pilMenu.style.width = ke.w + "px"; pilMenu.style.height = ke.h + "px"; pilMenu.style.transform = "translate(" + ke.x + "px," + ke.y + "px)";
+    pilMenu.style.borderRadius = getComputedStyle(a).borderRadius;
+    if (dari && !tanpaGerak && !kurangGerak && pilMenu.animate && (dari.x !== ke.x || dari.y !== ke.y || dari.w !== ke.w)) {
+      pilMenu.animate([
+        { width: dari.w + "px", height: dari.h + "px", transform: "translate(" + dari.x + "px," + dari.y + "px)" },
+        { width: ke.w + "px", height: ke.h + "px", transform: "translate(" + ke.x + "px," + ke.y + "px)" }
+      ], { duration: 420, easing: "cubic-bezier(.22,.61,.36,1)" });
+    }
+    pilMenu._p = ke;
+  }
+  window.addEventListener("resize", function () { geserPilMenu(true); });
   function tandaiAktif(id) {
     Array.prototype.forEach.call(document.querySelectorAll(".kelompok a"), function (a) {
       if (a.getAttribute("href") === "#" + id) a.setAttribute("aria-current", "true"); else a.removeAttribute("aria-current");
     });
+    geserPilMenu();
   }
   function hitungAktif() {
     if (kunciKlik) return;
