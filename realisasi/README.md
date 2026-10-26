@@ -58,12 +58,18 @@ File induk adalah sumbernya, sedangkan `index.html` hanya hasilnya. Perubahan ta
 
 ### Memperbarui data bulanan
 
+Data diterbitkan lewat dasbor admin, tanpa mengunggah berkas ke GitHub.
+
 1. Ekspor Laporan Ketersediaan Dana Detail (Fa) 16 Segmen dari OMSPAN atau SAKTI dalam format Excel.
-2. Buka file induk di peramban, lalu seret berkas ekspor ke layar muat atau klik **Pilih file**.
-3. Periksa kotak **Rekonsiliasi**. Total pagu dan realisasi harus sama persis dengan baris JUMLAH SELURUHNYA pada laporan Fa.
-4. Kalau ada RO baru akibat revisi DIPA, lengkapi unit pengampunya di tab **Parameter**. Baris yang belum punya unit ditandai kuning.
-5. Klik **Simpan untuk pengguna**. Peramban mengunduh berkas `index.html`.
-6. Unggah `index.html` tersebut ke repo ini untuk menggantikan yang lama. Situs berubah sekitar satu sampai dua menit kemudian.
+2. Buka dasbor admin (`/admin/`), masuk dengan kunci admin, lalu pilih **Monev anggaran**.
+3. Seret berkas ekspor ke kotak **Impor laporan**.
+4. Periksa hasil pembacaan. Pesan Rekonsiliasi harus cocok dengan baris JUMLAH SELURUHNYA pada laporan.
+5. Bila ada RO atau akun baru akibat revisi DIPA, pilih unit pengampu atau jenis belanjanya di bagian **Pemetaan**. Penerbitan tertahan sampai semuanya terpetakan.
+6. Klik **Pratinjau di halaman Monitoring** untuk melihat hasilnya, lalu **Terbitkan data**. Halaman ini memakai data baru sekitar satu menit kemudian.
+
+Data terbitan disimpan di Apps Script (tab `Realisasi` dan `RiwayatRealisasi` pada spreadsheet penyimpan beranda), jadi versi lama bisa dimuat kembali dari riwayat di dasbor admin. Berkas `index.html` ini tetap memuat data tertanam, tetapi hanya sebagai cadangan bila Apps Script tidak terjangkau.
+
+Target penyerapan, ambang, dan preset Quick Report tidak diubah lewat dasbor admin. Bagian itu mengikuti data terbitan terakhir.
 
 ### Pengaturan di tab Parameter
 

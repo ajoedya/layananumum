@@ -2473,6 +2473,7 @@ body.halaman-alat .kop.kop::before {
 </div>
 
 
+<script src="../konten.js"></script>
 <script>
 /* ============================================================
    1. Pembacaan file Laporan Fa
@@ -4576,24 +4577,67 @@ if(matchMedia('(prefers-reduced-motion:reduce)').matches){ langsungKe(5); tandai
 else if(tutor.open) mulai(0);
 })();
 
-/* ---- pemuatan dari data tertanam ---- */
+/* ---- pemuatan data ----
+   Data terbitan dibaca dari Apps Script (diterbitkan lewat menu Monev anggaran di dasbor admin).
+   Urutannya: data tersimpan di peramban atau data tertanam dipasang dulu supaya halaman langsung terisi,
+   lalu data terbitan terbaru dari Apps Script menggantikannya bila lebih baru (menurut cap waktu terbit).
+   Bila Apps Script tidak terjangkau, halaman tetap memakai data yang ada. */
+const KUNCI_TERAKHIR='realisasi-terakhir', KUNCI_PRATINJAU='realisasi-pratinjau';
+function dataSahih(d){ return !!(d&&d.mentah&&Array.isArray(d.mentah.item)&&d.mentah.item.length&&d.konfig&&d.konfig.unit&&d.tanggal&&d.bulan); }
+function pasangData(d){
+  MENTAH=d.mentah; KONFIG=d.konfig; TANGGAL=new Date(d.tanggal); PAJANG=true;
+  HASIL=hitung(MENTAH.item,d.bulan,KONFIG);
+  const isi=el('isi'); if(isi) isi.classList.remove('sembunyi');
+  const cetak=el('tombolCetak'); if(cetak) cetak.classList.remove('sembunyi');
+  gambarSemua();
+}
+function kabarData(teksKabar,pita){
+  let n=document.getElementById('kabarData');
+  if(!n){
+    n=document.createElement('div'); n.id='kabarData'; n.setAttribute('role','status');
+    n.style.cssText='position:fixed;left:50%;transform:translateX(-50%);z-index:60;max-width:calc(100% - 32px);padding:9px 16px;border-radius:8px;font-weight:600;font-size:13px;line-height:1.4;box-shadow:0 6px 20px rgba(8,39,77,.25);background:#08274d;color:#fff;'+(pita?'top:0;border-radius:0 0 8px 8px;background:#fff6e1;color:#5f3d05;border:1px solid #e9d3a0;border-top:0':'bottom:20px');
+    document.body.appendChild(n);
+  }
+  n.textContent=teksKabar;
+  if(!pita){ clearTimeout(n._t); n._t=setTimeout(()=>n.remove(),5000); }
+}
 document.addEventListener('DOMContentLoaded',()=>{
   const simpul=document.getElementById('dataTertanam');
-  if(!simpul) return;
-  try{
-    const d=JSON.parse(simpul.textContent);
-    MENTAH=d.mentah;
-    KONFIG=d.konfig;
-    TANGGAL=new Date(d.tanggal);
-    PAJANG=true;
-    HASIL=hitung(MENTAH.item,d.bulan,KONFIG);
-    const isi=el('isi'); if(isi) isi.classList.remove('sembunyi');
-    const cetak=el('tombolCetak'); if(cetak) cetak.classList.remove('sembunyi');
-    gambarSemua();
-  }catch(err){
-    document.body.insertAdjacentHTML('afterbegin',
-      '<div class="bungkus"><p class="galat">Data yang tertanam pada berkas ini tidak terbaca. Minta berkas terbaru kepada bendahara pengeluaran.</p></div>');
+  let tertanam=null, tersimpan=null;
+  try{ tertanam=simpul?JSON.parse(simpul.textContent):null; }catch(err){ tertanam=null; }
+  try{ tersimpan=JSON.parse(localStorage.getItem(KUNCI_TERAKHIR)); }catch(err){ tersimpan=null; }
+
+  if(new URLSearchParams(location.search).has('pratinjau')){
+    let draf=null; try{ draf=JSON.parse(localStorage.getItem(KUNCI_PRATINJAU)); }catch(err){ draf=null; }
+    if(dataSahih(draf)){ pasangData(draf); kabarData('Pratinjau dari dasbor admin. Data ini belum diterbitkan.',true); return; }
   }
+
+  let terpasang=null;
+  [tertanam,tersimpan].forEach(d=>{ if(dataSahih(d)&&(!terpasang||new Date(d.tanggal)>new Date(terpasang.tanggal))) terpasang=d; });
+  if(terpasang){
+    try{ pasangData(terpasang); }catch(err){ terpasang=null; }
+  }
+  if(!terpasang){
+    document.body.insertAdjacentHTML('afterbegin',
+      '<div class="bungkus"><p class="galat" id="galatData">Data realisasi belum bisa dimuat. Coba muat ulang halaman ini beberapa saat lagi.</p></div>');
+  }
+
+  const alamat=window.ALAMAT_SKRIP;
+  if(!alamat) return;
+  const batas=new AbortController(), pewaktu=setTimeout(()=>batas.abort(),10000);
+  fetch(alamat+(alamat.indexOf('?')>=0?'&':'?')+'aksi=realisasi',{signal:batas.signal})
+    .then(r=>r.json())
+    .then(h=>{
+      clearTimeout(pewaktu);
+      if(!h||!h.ok||!dataSahih(h.data)) return;
+      try{ localStorage.setItem(KUNCI_TERAKHIR,JSON.stringify(h.data)); }catch(err){}
+      if(terpasang&&new Date(h.data.tanggal)<=new Date(terpasang.tanggal)) return;
+      const adaTampilan=!!terpasang;
+      pasangData(h.data); terpasang=h.data;
+      const g=document.getElementById('galatData'); if(g) g.parentNode.remove();
+      if(adaTampilan) kabarData('Data diperbarui sesuai penerbitan terbaru.');
+    })
+    .catch(()=>{ clearTimeout(pewaktu); });
 });
 </script>
 <script>

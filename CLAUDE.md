@@ -10,7 +10,7 @@ Situs statis (HTML, CSS, JS murni, tanpa *build step*) yang terbit lewat GitHub 
 | `index.html` | Beranda. Isinya dibaca dari Apps Script (`konten.js` → `ALAMAT_SKRIP`), dengan cadangan `KONTEN_BAWAAN` |
 | `admin/` | Dasbor admin untuk menyunting isi beranda. Menyimpan lewat `doPost` ke `apps-script/AdminBeranda.gs` dengan kunci admin |
 | `perjadin/` | Monitoring E-Perjadin. Datanya dibaca langsung dari CSV Google Sheet yang diterbitkan |
-| `realisasi/` | Monitoring Realisasi Anggaran (dulu jagakas). Lihat `realisasi/README.md` |
+| `realisasi/` | Monitoring Realisasi Anggaran (dulu jagakas). Datanya dibaca dari Apps Script (aksi `realisasi`), diterbitkan lewat menu Monev anggaran di `admin/`; data tertanam hanya cadangan. `pembaca-fa.js` adalah pembaca Laporan Fa untuk admin (salinan bagian 1 `index.html`), `pustaka/` berisi SheetJS. Lihat `realisasi/README.md` |
 | `bengkelpdf/` | Situs **Olah PDF**. Nama foldernya tetap `bengkelpdf`, tetapi nama yang tampil di layar adalah "Olah PDF". Lihat `bengkelpdf/README.md` dan `PANDUAN-PENGELOLA.md` |
 | `apps-script/` | Kode Google Apps Script. Kode ini **tidak** jalan dari repo, jadi setiap perubahan harus ditempel dan di-*deploy* ulang manual di Apps Script |
 | `dasar.css`, `tema.js`, `banner.js` | Dipakai bersama semua halaman: gaya dasar, mode terang/gelap (`data-mode="gelap"` di `<html>`), dan banner foto yang berganti tiap 6 jam |
@@ -21,7 +21,7 @@ Situs statis (HTML, CSS, JS murni, tanpa *build step*) yang terbit lewat GitHub 
 
 - **Jangan `git push` tanpa persetujuan eksplisit.** Tunjukkan perubahannya dulu (diff atau pratinjau), lalu tunggu kata "push" atau "final".
 - Satu sesi untuk satu tugas. Kalau menyentuh berkas bersama (`dasar.css`, `tema.js`, `banner.js`), periksa dampaknya ke semua halaman yang memuatnya.
-- **Jangan membaca utuh berkas besar.** `realisasi/index.html` berukuran sekitar 430 KB, jadi cari bagiannya dengan `grep -n` lalu baca rentang barisnya saja. Folder `bengkelpdf/pustaka/` berisi pustaka pihak ketiga (pdf.js, pdf-lib, fontkit, QPDF, Tesseract). Jangan dibaca dan jangan diubah.
+- **Jangan membaca utuh berkas besar.** `realisasi/index.html` berukuran sekitar 430 KB, jadi cari bagiannya dengan `grep -n` lalu baca rentang barisnya saja. Folder `bengkelpdf/pustaka/` dan `realisasi/pustaka/` berisi pustaka pihak ketiga (pdf.js, pdf-lib, fontkit, QPDF, Tesseract). Jangan dibaca dan jangan diubah. Aturan pembacaan Laporan Fa ada di dua tempat (`realisasi/index.html` dan `realisasi/pembaca-fa.js`), ubah keduanya sekaligus.
 - Jaga CSP di `<meta http-equiv="Content-Security-Policy">` tiap halaman. Kalau menambah sumber luar, perbarui CSP-nya dan jelaskan alasannya.
 - Alamat lama harus tetap dialihkan. Kalau memindah atau mengganti nama halaman, buat pengalih seperti `jagakas/index.html`.
 

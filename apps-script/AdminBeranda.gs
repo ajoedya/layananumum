@@ -22,6 +22,12 @@
  *
  * Isi beranda tersimpan sebagai JSON di tab "Konten". Setiap penyimpanan dicatat di tab "Riwayat",
  * dan versi lama bisa dipulihkan dari dasbor admin.
+ *
+ * Data Monitoring Realisasi Anggaran (realisasi/) tersimpan di tab "Realisasi", dengan riwayatnya di tab
+ * "RiwayatRealisasi". Bendahara mengimpor Laporan Fa lewat menu Monev anggaran di dasbor admin, lalu
+ * menerbitkannya. Halaman realisasi/ membaca data terbitan lewat doGet (aksi=realisasi), jadi tidak perlu
+ * lagi mengunggah index.html ke GitHub setiap bulan. Karena kodenya bertambah, terapkan ulang lewat
+ * Terapkan > Kelola deployment > ikon pensil > Versi: Versi baru.
  */
 
 var TAB_KONTEN = "Konten";
@@ -31,6 +37,10 @@ var BATAS_GAGAL = 10;           // jumlah kunci salah sebelum penyimpanan dikunc
 var MENIT_KUNCI = 15;           // lama penguncian setelah terlalu banyak kunci salah
 var BATAS_RIWAYAT = 200;        // baris riwayat terlama dihapus bila melewati jumlah ini
 var DETIK_CACHE = 60;           // isi beranda disimpan sementara supaya beranda cepat termuat
+var TAB_REALISASI = "Realisasi";
+var TAB_RIWAYAT_REALISASI = "RiwayatRealisasi";
+var BATAS_RIWAYAT_REALISASI = 60;   // riwayat data realisasi terlama dihapus bila melewati jumlah ini
+var BATAS_DATA_REALISASI = 450000;  // panjang maksimum JSON data realisasi
 var POTONG = 45000;             // panjang teks per sel (batas sel Google Sheets 50.000 karakter)
 
 /* ---------- Menu di spreadsheet ---------- */
@@ -59,6 +69,7 @@ function bukaKunciPenyimpanan() {
 /* ---------- Membaca isi (beranda) ---------- */
 function doGet(e) {
   var aksi = (e && e.parameter && e.parameter.aksi) || "baca";
+  if (aksi === "realisasi") return bacaRealisasiPublik_();
   if (aksi !== "baca") return balas_({ ok: false, pesan: "Aksi tidak dikenal" });
   var cache = CacheService.getScriptCache();
   var simpanan = cache.get("konten");
@@ -98,6 +109,15 @@ function doPost(e) {
         return balas_({ ok: true, riwayat: daftarRiwayat_() });
       case "ambilRiwayat":
         return balas_({ ok: true, konten: ambilRiwayat_(Number(minta.baris)) });
+      case "cekRealisasi":
+        var r = bacaRealisasi_();
+        return balas_({ ok: true, data: r.data, diperbarui: r.diperbarui, penyunting: r.penyunting });
+      case "simpanRealisasi":
+        return simpanRealisasi_(minta);
+      case "riwayatRealisasi":
+        return balas_({ ok: true, riwayat: daftarRiwayatRealisasi_() });
+      case "ambilRiwayatRealisasi":
+        return balas_({ ok: true, data: ambilRiwayatRealisasi_(Number(minta.baris)) });
       default:
         return balas_({ ok: false, pesan: "Aksi tidak dikenal" });
     }
@@ -232,6 +252,146 @@ function ambilRiwayat_(baris) {
   var t = SpreadsheetApp.getActive().getSheetByName(TAB_RIWAYAT);
   if (!t || !(baris >= 2) || baris > t.getLastRow()) throw new Error("Riwayat tidak ditemukan.");
   return JSON.parse(t.getRange(baris, 4, 1, Math.max(1, t.getLastColumn() - 3)).getValues()[0].join(""));
+}
+
+/* ---------- Data Monitoring Realisasi Anggaran ---------- */
+function bacaRealisasiPublik_() {
+  var cache = CacheService.getScriptCache();
+  var simpanan = cache.get("realisasi");
+  if (simpanan) return ContentService.createTextOutput(simpanan).setMimeType(ContentService.MimeType.JSON);
+  var r = bacaRealisasi_();
+  var teks = JSON.stringify({ ok: true, data: r.data, diperbarui: r.diperbarui });
+  if (teks.length < 95000) cache.put("realisasi", teks, DETIK_CACHE);
+  return ContentService.createTextOutput(teks).setMimeType(ContentService.MimeType.JSON);
+}
+function bacaRealisasi_() {
+  var t = SpreadsheetApp.getActive().getSheetByName(TAB_REALISASI);
+  if (!t || t.getLastRow() < 2) return { data: null, diperbarui: "", penyunting: "" };
+  var baris = t.getRange(2, 1, 1, t.getLastColumn()).getValues()[0];
+  var teks = baris.slice(2).join("");
+  var waktu = baris[0] instanceof Date ? baris[0].toISOString() : String(baris[0] || "");
+  try { return { data: teks ? JSON.parse(teks) : null, diperbarui: waktu, penyunting: String(baris[1] || "") }; }
+  catch (galat) { return { data: null, diperbarui: waktu, penyunting: "" }; }
+}
+function simpanRealisasi_(minta) {
+  var kunciTulis = LockService.getScriptLock();
+  if (!kunciTulis.tryLock(10000)) return balas_({ ok: false, pesan: "Sedang ada penyimpanan lain. Coba lagi." });
+  try {
+    var lama = bacaRealisasi_();
+    // Mencegah dua admin saling menimpa, sama seperti penyimpanan isi beranda.
+    if (lama.diperbarui && minta.dasar && minta.dasar !== lama.diperbarui) {
+      return balas_({ ok: false, bentrok: true, pesan: "Data realisasi sudah diterbitkan dari tempat lain sejak dasbor dimuat. Muat ulang dasbor dulu.", data: lama.data, diperbarui: lama.diperbarui });
+    }
+    var waktu = new Date().toISOString();
+    var bersih = periksaRealisasi_(minta.data, waktu);
+    var teks = JSON.stringify(bersih);
+    if (teks.length > BATAS_DATA_REALISASI) throw new Error("Data realisasi terlalu besar.");
+
+    var penyunting = String(minta.penyunting || "").slice(0, 60) || "(tanpa nama)";
+    var catatan = String(minta.catatan || "").slice(0, 200);
+    var t = tab_(TAB_REALISASI, ["Diperbarui", "Penyunting", "Isi (jangan diubah manual)"]);
+    var bagian = potong_(teks);
+    t.getRange(2, 1, 1, Math.max(t.getLastColumn(), 3)).clearContent();
+    t.getRange(2, 1, 1, bagian.length + 2).setValues([[waktu, penyunting].concat(bagian)]);
+
+    var periode = bersih.mentah.bulan ? BULAN_[bersih.mentah.bulan - 1] + " " + (bersih.mentah.tahun || "") : "";
+    var riwayat = tab_(TAB_RIWAYAT_REALISASI, ["Waktu", "Penyunting", "Catatan", "Periode", "Isi"]);
+    riwayat.appendRow([waktu, penyunting, catatan, periode.trim()].concat(potong_(teks)));
+    var lebih = riwayat.getLastRow() - 1 - BATAS_RIWAYAT_REALISASI;
+    if (lebih > 0) riwayat.deleteRows(2, lebih);
+
+    CacheService.getScriptCache().remove("realisasi");
+    return balas_({ ok: true, diperbarui: waktu });
+  } catch (galat) {
+    return balas_({ ok: false, pesan: galat.message });
+  } finally {
+    kunciTulis.releaseLock();
+  }
+}
+function daftarRiwayatRealisasi_() {
+  var t = SpreadsheetApp.getActive().getSheetByName(TAB_RIWAYAT_REALISASI);
+  if (!t || t.getLastRow() < 2) return [];
+  var jumlah = Math.min(30, t.getLastRow() - 1), mulai = t.getLastRow() - jumlah + 1;
+  return t.getRange(mulai, 1, jumlah, 4).getValues().map(function (r, i) {
+    return { baris: mulai + i, waktu: r[0] instanceof Date ? r[0].toISOString() : String(r[0]), penyunting: String(r[1]), catatan: String(r[2]), periode: String(r[3]) };
+  }).reverse();
+}
+function ambilRiwayatRealisasi_(baris) {
+  var t = SpreadsheetApp.getActive().getSheetByName(TAB_RIWAYAT_REALISASI);
+  if (!t || !(baris >= 2) || baris > t.getLastRow()) throw new Error("Riwayat tidak ditemukan.");
+  return JSON.parse(t.getRange(baris, 5, 1, Math.max(1, t.getLastColumn() - 4)).getValues()[0].join(""));
+}
+
+/* Pemeriksaan data realisasi: angka dihitung ulang, teks dipangkas, bentuk konfigurasi dibatasi. */
+var BULAN_ = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+function angka_(v) { var n = Number(v); return isFinite(n) ? Math.round(n * 100) / 100 : 0; }
+function peta_(o, maksKunci, maksTeks) {
+  var h = {};
+  if (!o || typeof o !== "object" || Array.isArray(o)) return h;
+  Object.keys(o).slice(0, maksKunci).forEach(function (k) { h[teks_(k, 40)] = teks_(o[k], maksTeks); });
+  return h;
+}
+function larik_(v, maks, maksTeks) {
+  return (Array.isArray(v) ? v : []).slice(0, maks).map(function (x) { return teks_(x, maksTeks); });
+}
+function pecahan_(v) { var n = Number(v); return isFinite(n) ? Math.min(1, Math.max(0, n)) : 0; }
+function empatPecahan_(v) {
+  var a = Array.isArray(v) ? v : [];
+  return [0, 1, 2, 3].map(function (i) { return pecahan_(a[i]); });
+}
+function periksaRealisasi_(d, waktu) {
+  if (!d || !d.mentah || !Array.isArray(d.mentah.item)) throw new Error("Data realisasi tidak lengkap.");
+  var m = d.mentah;
+  if (!m.item.length) throw new Error("Data realisasi tidak berisi item belanja.");
+  if (m.item.length > 3000) throw new Error("Jumlah item belanja melebihi batas 3000.");
+  var item = m.item.map(function (x) {
+    var lalu = angka_(x.lalu), ini = angka_(x.ini);
+    return {
+      kode: teks_(x.kode, 12), uraian: teks_(x.uraian, 300),
+      kodeKeg: teks_(x.kodeKeg, 20), kegiatan: teks_(x.kegiatan, 200),
+      kodeRo: teks_(x.kodeRo, 12), namaRo: teks_(x.namaRo, 200),
+      subKomponen: teks_(x.subKomponen, 250), kodeAkun: teks_(x.kodeAkun, 8), namaAkun: teks_(x.namaAkun, 150),
+      pagu: angka_(x.pagu), blokir: angka_(x.blokir), lalu: lalu, ini: ini, sd: Math.round((lalu + ini) * 100) / 100
+    };
+  });
+  var total = { pagu: 0, blokir: 0, lalu: 0, ini: 0, sd: 0 };
+  item.forEach(function (x) { Object.keys(total).forEach(function (k) { total[k] += x[k]; }); });
+  Object.keys(total).forEach(function (k) { total[k] = Math.round(total[k] * 100) / 100; });
+  var bulan = Math.round(Number(m.bulan));
+  if (!(bulan >= 1 && bulan <= 12)) throw new Error("Bulan periode tidak valid.");
+  var kontrol = null, selisih = null, cocok = null;
+  if (m.kontrol && typeof m.kontrol === "object") {
+    kontrol = { pagu: angka_(m.kontrol.pagu), blokir: angka_(m.kontrol.blokir), lalu: angka_(m.kontrol.lalu), ini: angka_(m.kontrol.ini), sd: angka_(m.kontrol.sd) };
+    selisih = { pagu: total.pagu - kontrol.pagu, sd: total.sd - kontrol.sd };
+    cocok = Math.abs(selisih.pagu) < 1 && Math.abs(selisih.sd) < 1;
+  }
+  var k = d.konfig || {};
+  var kel = {};
+  ["51", "52", "53"].forEach(function (c) { kel[c] = true; });
+  var target = {}, ambang = {}, namaKel = {};
+  Object.keys(kel).forEach(function (c) {
+    target[c] = empatPecahan_((k.target || {})[c]);
+    ambang[c] = empatPecahan_((k.ambang || {})[c]);
+    namaKel[c] = teks_((k.namaKelompok || {})[c], 60) || c;
+  });
+  var preset = Array.isArray(k.presetBersama) ? JSON.parse(JSON.stringify(k.presetBersama.slice(0, 50))) : [];
+  if (JSON.stringify(preset).length > 60000) throw new Error("Preset Quick Report terlalu besar.");
+  return {
+    mentah: {
+      item: item, total: total, kontrol: kontrol, cocok: cocok, selisih: selisih, bulan: bulan,
+      tahun: Math.round(Number(m.tahun)) || null, catatan: larik_(m.catatan, 10, 300)
+    },
+    bulan: bulan,
+    tanggal: waktu,
+    konfig: {
+      satker: { nama: teks_((k.satker || {}).nama, 100), kode: teks_((k.satker || {}).kode, 12) },
+      target: target, ambang: ambang, namaKelompok: namaKel,
+      unit: peta_(k.unit, 300, 100), urutanUnit: larik_(k.urutanUnit, 30, 100),
+      jenis: peta_(k.jenis, 300, 100), urutanJenis: larik_(k.urutanJenis, 30, 100),
+      perjadin: { ambang: pecahan_((k.perjadin || {}).ambang || 0.9) },
+      presetBersama: preset
+    }
+  };
 }
 
 /* ---------- Pembantu ---------- */

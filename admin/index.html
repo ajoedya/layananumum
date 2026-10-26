@@ -7,7 +7,7 @@
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
-<title>Dasbor Beranda | Layanan Subbagian Umum</title>
+<title>Dasbor Admin | Layanan Subbagian Umum</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap">
 <script src="../konten.js"></script>
 <style>
@@ -108,6 +108,21 @@ input[type=range] { width: 100%; accent-color: var(--emas); }
 table.riwayat { width: 100%; border-collapse: collapse; font-size: 14px; }
 table.riwayat th, table.riwayat td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--garis); vertical-align: top; }
 table.riwayat th { color: var(--lembut); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+/* ---------- Modul Monev anggaran ---------- */
+.modul { display: flex; gap: 4px; padding: 3px; border-radius: 8px; background: rgba(255,255,255,.12); }
+.modul button { border: 0; background: none; color: #dbe7f0; font-weight: 700; font-size: 14px; padding: 7px 14px; border-radius: 6px; cursor: pointer; min-height: 36px; }
+.modul button[aria-pressed="true"] { background: #fff; color: var(--laut); }
+.modul button:focus-visible { outline: 3px solid var(--emas); outline-offset: 1px; }
+h3.sub, summary.sub { margin: 0 0 12px; font-size: 16px; font-weight: 800; }
+summary.sub { cursor: pointer; margin: 0; }
+.fakta { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px 16px; }
+.fakta small { display: block; color: var(--lembut); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.fakta b { font-size: 16px; font-variant-numeric: tabular-nums; }
+.zona-impor { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 26px 16px; border: 2px dashed var(--kolom); border-radius: 10px; background: var(--latar); text-align: center; cursor: pointer; color: var(--lembut); }
+.zona-impor b { color: var(--laut); font-size: 16px; }
+.zona-impor:hover, .zona-impor.aktif { border-color: var(--emas); background: var(--emas-muda); }
+.zona-impor:focus-within { outline: 3px solid var(--emas); outline-offset: 1px; }
+select.salah { border-color: var(--merah); background: var(--merah-muda); }
 .sr-only { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
 </style>
 </head>
@@ -115,7 +130,11 @@ table.riwayat th { color: var(--lembut); font-size: 12px; text-transform: upperc
 
 <header class="kepala">
   <div class="kepala-isi">
-    <div class="merek">Dasbor Beranda<small>LAYANAN SUBBAGIAN UMUM</small></div>
+    <div class="merek">Dasbor Admin<small>LAYANAN SUBBAGIAN UMUM</small></div>
+    <nav class="modul" id="modul" aria-label="Bagian dasbor" hidden>
+      <button type="button" data-modul="beranda" aria-pressed="true">Beranda</button>
+      <button type="button" data-modul="monev" aria-pressed="false">Monev anggaran</button>
+    </nav>
     <span class="status" id="status" role="status" aria-live="polite" hidden></span>
     <button type="button" class="tombol" id="tombolPratinjau" hidden>Pratinjau</button>
     <button type="button" class="tombol utama" id="tombolTerbit" hidden>Terbitkan</button>
@@ -146,6 +165,10 @@ table.riwayat th { color: var(--lembut); font-size: 12px; text-transform: upperc
   <div class="tab-baris" role="tablist" aria-label="Bagian beranda" id="tabBaris"></div>
   <p class="pesan galat" id="pesanGalat" role="alert" hidden></p>
   <div id="panel" role="tabpanel"></div>
+</main>
+
+<main class="wadah" id="layarMonev" hidden>
+  <div id="panelMonev"></div>
 </main>
 
 <div class="kabar-singkat" id="kabarSingkat" role="status" aria-live="polite" hidden></div>
@@ -228,7 +251,7 @@ table.riwayat th { color: var(--lembut); font-size: 12px; text-transform: upperc
     });
   });
   $("tombolKeluar").addEventListener("click", function () {
-    if (adaPerubahan() && !confirm("Ada perubahan yang belum diterbitkan. Tetap keluar? Suntingan tetap tersimpan di peramban ini.")) return;
+    if ((adaPerubahan() || monev.siap) && !confirm("Ada perubahan yang belum diterbitkan. Tetap keluar? Suntingan tetap tersimpan di peramban ini.")) return;
     location.reload();
   });
 
@@ -249,6 +272,7 @@ table.riwayat th { color: var(--lembut); font-size: 12px; text-transform: upperc
     }
     $("layarMasuk").hidden = true; $("layarSunting").hidden = false;
     ["status", "tombolPratinjau", "tombolTerbit", "tombolKeluar"].forEach(function (id) { $(id).hidden = false; });
+    $("modul").hidden = keadaan.uji;
     if (keadaan.uji) $("tombolTerbit").disabled = true;
     gambarTab(); berubah(true);
   }
@@ -269,7 +293,7 @@ table.riwayat th { color: var(--lembut); font-size: 12px; text-transform: upperc
       else hapusLokal(KUNCI_DRAF);
     }, 400);
   }
-  window.addEventListener("beforeunload", function (e) { if (adaPerubahan()) { e.preventDefault(); e.returnValue = ""; } });
+  window.addEventListener("beforeunload", function (e) { if (adaPerubahan() || monev.siap) { e.preventDefault(); e.returnValue = ""; } });
   $("tombolPratinjau").addEventListener("click", function () {
     simpanLokal(KUNCI_PRATINJAU, keadaan.konten);
     window.open("../?pratinjau=1", "pratinjau-beranda");
@@ -692,6 +716,355 @@ table.riwayat th { color: var(--lembut); font-size: 12px; text-transform: upperc
       ]));
     });
   }
+  /* ============================================================
+     Modul Monev anggaran
+     Mengimpor Laporan Fa Detail, memeriksanya, lalu menerbitkannya ke Apps Script.
+     Halaman realisasi/ membaca data terbitan dari sana, jadi tidak perlu mengunggah berkas ke GitHub.
+     ============================================================ */
+  var KUNCI_PRATINJAU_REAL = "realisasi-pratinjau";
+  var monev = {
+    dimuat: false, memuat: false,
+    tayang: null, diperbarui: "", penyunting: "",   // data yang sedang tayang
+    siap: null, namaBerkas: "",                      // data hasil impor yang menunggu diterbitkan
+    setuju: false, catatan: "", riwayat: null, sibuk: false, galat: ""
+  };
+  var BULAN_ID = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+  var pustakaSiap = null;
+
+  function salin(o) { return JSON.parse(JSON.stringify(o)); }
+  function rp(n) { return "Rp" + Math.round(Number(n) || 0).toLocaleString("id-ID"); }
+  function persenTeks(a, b) { return b > 0 ? (a / b * 100).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "%" : "0%"; }
+  function periodeTeks(m) { return m && m.bulan ? BULAN_ID[m.bulan - 1] + (m.tahun ? " " + m.tahun : "") : "tidak diketahui"; }
+  function muatSkrip(src) {
+    return new Promise(function (ok, gagal) {
+      var s = el("script", { src: src });
+      s.onload = ok; s.onerror = function () { gagal(new Error("Gagal memuat " + src)); };
+      document.head.appendChild(s);
+    });
+  }
+  function siapkanPustaka() {
+    if (!pustakaSiap) {
+      pustakaSiap = Promise.all([
+        window.PembacaFa ? 1 : muatSkrip("../realisasi/pembaca-fa.js"),
+        window.XLSX ? 1 : muatSkrip("../realisasi/pustaka/xlsx.full.min.js")
+      ]).catch(function (e) { pustakaSiap = null; throw e; });
+    }
+    return pustakaSiap;
+  }
+
+  $("modul").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-modul]");
+    if (b) pilihModul(b.getAttribute("data-modul"));
+  });
+  function pilihModul(m) {
+    var monevAktif = m === "monev";
+    $("layarSunting").hidden = monevAktif;
+    $("layarMonev").hidden = !monevAktif;
+    ["status", "tombolPratinjau", "tombolTerbit"].forEach(function (id) { $(id).hidden = monevAktif; });
+    [].forEach.call($("modul").querySelectorAll("button"), function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-modul") === m)); });
+    if (monevAktif && !monev.dimuat && !monev.memuat) muatMonev();
+  }
+
+  function muatMonev() {
+    monev.memuat = true; monev.galat = "";
+    gambarMonev();
+    Promise.all([kirim({ aksi: "cekRealisasi" }), kirim({ aksi: "riwayatRealisasi" })]).then(function (h) {
+      monev.memuat = false;
+      if (!h[0].ok) { monev.galat = h[0].pesan || "Data realisasi gagal dimuat."; gambarMonev(); return; }
+      monev.dimuat = true;
+      monev.tayang = h[0].data; monev.diperbarui = h[0].diperbarui || ""; monev.penyunting = h[0].penyunting || "";
+      monev.riwayat = h[1].ok ? h[1].riwayat : [];
+      gambarMonev();
+    });
+  }
+
+  /* Konfigurasi dasar (pemetaan unit dan jenis, target, preset): dari data yang tayang di Apps Script;
+     bila belum ada, dari data tertanam di halaman realisasi/; bila itu gagal, dari bawaan pembaca. */
+  function konfigDasar() {
+    if (monev.tayang && monev.tayang.konfig) return Promise.resolve(salin(monev.tayang.konfig));
+    return fetch("../realisasi/index.html").then(function (r) { return r.text(); }).then(function (h) {
+      var m = h.match(/<script id="dataTertanam" type="application\/json">([\s\S]*?)<\/script>/);
+      if (!m) throw new Error("tidak ada data tertanam");
+      return JSON.parse(m[1].replace(/\\u003c/g, "<")).konfig;
+    }).catch(function () { return salin(window.PembacaFa.KONFIG_BAWAAN); });
+  }
+
+  function bacaBerkas(file) {
+    if (!file) return;
+    monev.sibuk = true; monev.galat = ""; gambarMonev();
+    var selesai = function (galat) { monev.sibuk = false; if (galat) monev.galat = galat; gambarMonev(); };
+    siapkanPustaka().then(function () {
+      return new Promise(function (ok, gagal) {
+        var pembaca = new FileReader();
+        pembaca.onerror = function () { gagal(new Error("Berkas tidak dapat dibaca.")); };
+        pembaca.onload = function (e) { ok(e.target.result); };
+        pembaca.readAsArrayBuffer(file);
+      });
+    }).then(function (buf) {
+      var wb = window.XLSX.read(new Uint8Array(buf), { type: "array" });
+      var ws = wb.Sheets[wb.SheetNames[0]];
+      var jangkauan = window.XLSX.utils.decode_range(ws["!ref"]);
+      jangkauan.s.c = 0; jangkauan.s.r = 0;
+      var grid = window.XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: null, blankrows: true, range: jangkauan });
+      var mentah = window.PembacaFa.bacaLaporanFa(grid);
+      return konfigDasar().then(function (konfig) {
+        var bulan = mentah.bulan;
+        if (!bulan) { bulan = new Date().getMonth() + 1; mentah.catatan.push("Periode tidak terbaca dari laporan, dipakai bulan berjalan. Periksa pilihan Periode di bawah."); }
+        monev.siap = { mentah: mentah, bulan: bulan, tanggal: new Date().toISOString(), konfig: konfig };
+        monev.namaBerkas = file.name; monev.setuju = false; monev.catatan = "";
+        selesai();
+      });
+    }).catch(function (e) { selesai(e.message || "Berkas gagal diproses."); });
+  }
+
+  /* Hal yang masih menghalangi penerbitan. */
+  function kendala() {
+    var s = monev.siap, g = [];
+    if (!s) return g;
+    var peta = pemetaanBelum();
+    if (peta.ro.length) g.push(peta.ro.length + " rincian output belum dipetakan ke unit pengampu.");
+    if (peta.akun.length) g.push(peta.akun.length + " akun belum dipetakan ke jenis belanja.");
+    if (s.mentah.cocok === false && !monev.setuju) g.push("Total hasil pembacaan tidak sama dengan baris JUMLAH SELURUHNYA pada laporan. Periksa selisihnya, atau centang bahwa selisih dapat diterima.");
+    return g;
+  }
+  function pemetaanBelum() {
+    var s = monev.siap, ro = {}, akun = {};
+    s.mentah.item.forEach(function (x) {
+      if (x.kodeRo && !s.konfig.unit[x.kodeRo]) ro[x.kodeRo] = x.namaRo;
+      if (x.kodeAkun && !s.konfig.jenis[x.kodeAkun]) akun[x.kodeAkun] = x.namaAkun;
+    });
+    return { ro: Object.keys(ro), akun: Object.keys(akun) };
+  }
+
+  function kotakFakta(pasang) {
+    return el("div", { kelas: "fakta" }, pasang.map(function (p) {
+      return el("div", null, [el("small", { teks: p[0] }), el("b", { teks: p[1] })]);
+    }));
+  }
+
+  /* Menggambar ulang panel sambil menjaga posisi gulir dan fokus, supaya memilih unit tidak melompatkan halaman. */
+  function gambarMonev() {
+    var y = window.scrollY, a = document.activeElement;
+    var penanda = a && $("panelMonev").contains(a) ? (a.id ? "#" + a.id : a.getAttribute("aria-label") ? '[aria-label="' + a.getAttribute("aria-label") + '"]' : "") : "";
+    gambarIsiMonev();
+    window.scrollTo(0, y);
+    if (penanda) { var n = $("panelMonev").querySelector(penanda); if (n) n.focus({ preventScroll: true }); }
+  }
+  function gambarIsiMonev() {
+    var p = $("panelMonev");
+    p.textContent = "";
+    p.appendChild(judulBagian("Monev anggaran"));
+    p.appendChild(el("p", { kelas: "petunjuk", teks: "Impor Laporan Ketersediaan Dana Detail (Fa) 16 Segmen dari OMSPAN atau SAKTI, periksa hasilnya, lalu terbitkan. Halaman Monitoring Realisasi Anggaran memakai data baru dalam satu menit, tanpa mengunggah berkas ke GitHub." }));
+    if (monev.galat) p.appendChild(el("p", { kelas: "pesan galat", role: "alert", teks: monev.galat, style: "margin-bottom:14px" }));
+    if (monev.memuat) { p.appendChild(el("p", { kelas: "petunjuk", teks: "Memuat data yang sedang tayang..." })); return; }
+    if (!monev.dimuat) { p.appendChild(el("button", { type: "button", kelas: "tombol", teks: "Coba muat lagi", onclick: muatMonev })); return; }
+
+    /* 1. Data yang tayang */
+    var t = monev.tayang;
+    var tayang = el("div", { kelas: "kotak", style: "margin-bottom:16px" }, [el("h3", { kelas: "sub", teks: "Data yang sedang tayang" })]);
+    if (t) {
+      var tot = t.mentah.total;
+      tayang.appendChild(kotakFakta([
+        ["Periode", periodeTeks(t.mentah)], ["Pagu", rp(tot.pagu)], ["Realisasi", rp(tot.sd)],
+        ["Penyerapan", persenTeks(tot.sd, tot.pagu)], ["Diterbitkan", waktuBaca(monev.diperbarui) + (monev.penyunting ? " oleh " + monev.penyunting : "")]
+      ]));
+      tayang.appendChild(el("div", { kelas: "bagian-judul", style: "margin:12px 0 0" }, [
+        el("button", { type: "button", kelas: "tombol kecil", teks: "Unduh data (.json)", onclick: function () {
+          var a = el("a", { href: URL.createObjectURL(new Blob([JSON.stringify(t)], { type: "application/json" })), download: "data-realisasi-" + new Date().toISOString().slice(0, 10) + ".json" });
+          document.body.appendChild(a); a.click(); a.remove();
+          setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+        } }),
+        el("a", { kelas: "tombol kecil", href: "../realisasi/", target: "_blank", rel: "noopener", teks: "Buka halaman Monitoring" })
+      ]));
+    } else {
+      tayang.appendChild(el("p", { kelas: "petunjuk", style: "margin:0", teks: "Belum ada data yang diterbitkan lewat dasbor. Halaman Monitoring masih memakai data yang tertanam di berkasnya. Impor laporan di bawah, lalu terbitkan untuk memulai." }));
+    }
+    p.appendChild(tayang);
+
+    /* 2. Impor */
+    var masukan = el("input", { type: "file", id: "berkasFa", accept: ".xlsx,.xls,.xlsm", kelas: "sr-only" });
+    masukan.addEventListener("change", function () { bacaBerkas(masukan.files[0]); });
+    var zona = el("label", { kelas: "zona-impor", "for": "berkasFa" }, [
+      el("b", { teks: monev.sibuk ? "Membaca berkas..." : "Pilih berkas Laporan Fa (.xlsx)" }),
+      el("span", { teks: "atau seret berkasnya ke kotak ini" })
+    ]);
+    ["dragover", "dragenter"].forEach(function (n) { zona.addEventListener(n, function (e) { e.preventDefault(); zona.classList.add("aktif"); }); });
+    ["dragleave", "drop"].forEach(function (n) { zona.addEventListener(n, function (e) { e.preventDefault(); zona.classList.remove("aktif"); }); });
+    zona.addEventListener("drop", function (e) { if (e.dataTransfer.files[0]) bacaBerkas(e.dataTransfer.files[0]); });
+    p.appendChild(el("div", { kelas: "kotak", style: "margin-bottom:16px" }, [el("h3", { kelas: "sub", teks: "Impor laporan" }), zona, masukan]));
+
+    if (monev.siap) gambarSiap(p);
+
+    /* 6. Riwayat */
+    gambarRiwayatMonev(p);
+  }
+
+  function gambarSiap(p) {
+    var s = monev.siap, m = s.mentah, tot = m.total;
+
+    /* 3. Hasil pembacaan */
+    var hasil = el("div", { kelas: "kotak", style: "margin-bottom:16px" }, [el("h3", { kelas: "sub", teks: "Hasil pembacaan " + monev.namaBerkas })]);
+    var pilihBulan = el("select", { id: "periodeFa", "aria-label": "Periode" });
+    BULAN_ID.forEach(function (n, i) { pilihBulan.appendChild(el("option", { value: String(i + 1), teks: n })); });
+    pilihBulan.value = String(s.bulan);
+    pilihBulan.addEventListener("change", function () { s.bulan = Number(pilihBulan.value); m.bulan = s.bulan; gambarMonev(); });
+    var ro = {};
+    m.item.forEach(function (x) { ro[x.kodeRo] = 1; });
+    hasil.appendChild(kotakFakta([
+      ["Periode laporan", periodeTeks(m)], ["Jumlah item", m.item.length.toLocaleString("id-ID")], ["Rincian output", String(Object.keys(ro).length)],
+      ["Pagu", rp(tot.pagu)], ["Blokir", rp(tot.blokir)], ["Realisasi sampai bulan ini", rp(tot.sd)], ["Penyerapan", persenTeks(tot.sd, tot.pagu)]
+    ]));
+    hasil.appendChild(el("label", { kelas: "kolom", style: "max-width:240px;margin-top:12px" }, ["Periode yang ditampilkan", pilihBulan]));
+
+    /* rekonsiliasi */
+    if (m.kontrol) {
+      var cocok = m.cocok;
+      hasil.appendChild(el("p", { kelas: "pesan " + (cocok ? "baik" : "galat"), style: "margin-top:12px", role: cocok ? "status" : "alert", teks: cocok
+        ? "Rekonsiliasi cocok: total pagu dan realisasi sama dengan baris JUMLAH SELURUHNYA pada laporan."
+        : "Rekonsiliasi tidak cocok. Selisih pagu " + rp(m.selisih.pagu) + ", selisih realisasi " + rp(m.selisih.sd) + " terhadap baris JUMLAH SELURUHNYA." }));
+    } else {
+      hasil.appendChild(el("p", { kelas: "pesan info", style: "margin-top:12px", teks: "Baris JUMLAH SELURUHNYA tidak ditemukan, jadi hasil tidak bisa dicocokkan dengan total laporan." }));
+    }
+    if (m.cocok === false) {
+      var cb = el("input", { type: "checkbox", id: "setujuSelisih" });
+      cb.checked = monev.setuju;
+      cb.addEventListener("change", function () { monev.setuju = cb.checked; gambarMonev(); });
+      hasil.appendChild(el("label", { kelas: "centang", style: "margin-top:10px", "for": "setujuSelisih" }, [cb, "Selisih sudah saya periksa dan dapat diterima"]));
+    }
+    (m.catatan || []).forEach(function (c) { hasil.appendChild(el("p", { kelas: "pesan info", style: "margin-top:8px", teks: c })); });
+
+    /* perbandingan dengan data tayang */
+    var t = monev.tayang;
+    if (t) {
+      var lama = {}, baru = {};
+      t.mentah.item.forEach(function (x) { lama[x.kodeRo] = x.namaRo; });
+      m.item.forEach(function (x) { baru[x.kodeRo] = x.namaRo; });
+      var ro_baru = Object.keys(baru).filter(function (k) { return !(k in lama); });
+      var ro_hilang = Object.keys(lama).filter(function (k) { return !(k in baru); });
+      var dSd = tot.sd - t.mentah.total.sd, dPagu = tot.pagu - t.mentah.total.pagu;
+      var teksBanding = "Dibanding data yang tayang (" + periodeTeks(t.mentah) + "): realisasi " + (dSd >= 0 ? "naik " : "turun ") + rp(Math.abs(dSd)) +
+        ", pagu " + (dPagu === 0 ? "tidak berubah" : (dPagu > 0 ? "naik " : "turun ") + rp(Math.abs(dPagu))) + ".";
+      if (ro_baru.length) teksBanding += " Rincian output baru: " + ro_baru.join(", ") + ".";
+      if (ro_hilang.length) teksBanding += " Tidak lagi ada: " + ro_hilang.join(", ") + ".";
+      hasil.appendChild(el("p", { kelas: "petunjuk", style: "margin:12px 0 0", teks: teksBanding }));
+    }
+    p.appendChild(hasil);
+
+    /* 4. Pemetaan */
+    var belum = pemetaanBelum();
+    var pemetaan = el("details", { kelas: "kotak", style: "margin-bottom:16px" });
+    if (belum.ro.length || belum.akun.length || monev.petaBuka) pemetaan.setAttribute("open", "");
+    pemetaan.addEventListener("toggle", function () { monev.petaBuka = pemetaan.open; });
+    pemetaan.appendChild(el("summary", { kelas: "sub", teks: "Pemetaan unit dan jenis belanja" + (belum.ro.length + belum.akun.length ? " (ada yang belum dipetakan)" : "") }));
+    pemetaan.appendChild(el("p", { kelas: "petunjuk", style: "margin:8px 0 12px", teks: "Rincian output baru akibat revisi DIPA harus dipetakan ke unit pengampu, dan akun baru ke jenis belanja. Target penyerapan dan ambang tidak diubah di sini." }));
+    var unitPilihan = s.konfig.urutanUnit, jenisPilihan = s.konfig.urutanJenis;
+    function tabelPeta(judul, kodeNama, petaKonfig, pilihan, kolomKode) {
+      var tb = el("tbody");
+      Object.keys(kodeNama).sort(function (x, y) {
+        var bx = petaKonfig[x] ? 1 : 0, by = petaKonfig[y] ? 1 : 0;   // yang belum dipetakan tampil paling atas
+        return bx - by || (x < y ? -1 : x > y ? 1 : 0);
+      }).forEach(function (kode) {
+        var sel = el("select", { "aria-label": judul + " " + kode, style: "min-width:220px" }, [el("option", { value: "", teks: "Pilih..." })]);
+        pilihan.forEach(function (u) { sel.appendChild(el("option", { value: u, teks: u })); });
+        sel.value = petaKonfig[kode] || "";
+        if (!sel.value) sel.classList.add("salah");
+        sel.addEventListener("change", function () {
+          if (sel.value) petaKonfig[kode] = sel.value; else delete petaKonfig[kode];
+          gambarMonev();
+        });
+        tb.appendChild(el("tr", null, [el("td", { teks: kode }), el("td", { teks: kodeNama[kode] }), el("td", null, [sel])]));
+      });
+      return el("div", { style: "overflow-x:auto;margin-bottom:12px" }, [el("table", { kelas: "riwayat" }, [
+        el("thead", null, [el("tr", null, [el("th", { teks: kolomKode }), el("th", { teks: "Nama" }), el("th", { teks: judul })])]), tb])]);
+    }
+    var daftarRo = {}, daftarAkun = {};
+    m.item.forEach(function (x) { if (x.kodeRo) daftarRo[x.kodeRo] = x.namaRo; if (x.kodeAkun) daftarAkun[x.kodeAkun] = x.namaAkun; });
+    pemetaan.appendChild(tabelPeta("Unit pengampu", daftarRo, s.konfig.unit, unitPilihan, "Kode RO"));
+    pemetaan.appendChild(tabelPeta("Jenis belanja", daftarAkun, s.konfig.jenis, jenisPilihan, "Akun"));
+    p.appendChild(pemetaan);
+
+    /* 5. Terbitkan */
+    var halang = kendala();
+    var catatan = el("input", { type: "text", id: "catatanMonev", maxlength: "200", placeholder: "Misalnya: realisasi sampai 23 Oktober" });
+    catatan.value = monev.catatan;
+    catatan.addEventListener("input", function () { monev.catatan = catatan.value; });
+    var terbit = el("button", { type: "button", kelas: "tombol utama", id: "tombolTerbitMonev", teks: "Terbitkan data", disabled: halang.length > 0 || keadaan.uji });
+    terbit.addEventListener("click", terbitkanMonev);
+    var aksi = el("div", { kelas: "kotak", style: "margin-bottom:16px" }, [
+      el("h3", { kelas: "sub", teks: "Terbitkan" }),
+      halang.length ? el("div", { kelas: "pesan galat", style: "margin-bottom:12px" }, [el("strong", { teks: "Belum bisa diterbitkan:" }),
+        el("ul", { kelas: "daftar-galat" }, halang.map(function (g) { return el("li", { teks: g }); }))]) : null,
+      el("label", { kelas: "kolom", "for": "catatanMonev", style: "margin-bottom:12px" }, ["Catatan penerbitan (boleh dikosongkan)", catatan]),
+      el("div", { kelas: "bagian-judul", style: "margin:0" }, [
+        el("button", { type: "button", kelas: "tombol", teks: "Pratinjau di halaman Monitoring", onclick: function () {
+          simpanLokal(KUNCI_PRATINJAU_REAL, monev.siap);
+          window.open("../realisasi/?pratinjau=1", "pratinjau-realisasi");
+        } }),
+        terbit,
+        el("button", { type: "button", kelas: "tombol bahaya", teks: "Batalkan impor", onclick: function () {
+          if (!confirm("Buang hasil impor ini? Data yang tayang tidak berubah.")) return;
+          monev.siap = null; gambarMonev();
+        } })
+      ])
+    ]);
+    p.appendChild(aksi);
+  }
+
+  function terbitkanMonev() {
+    var s = monev.siap;
+    if (!s || kendala().length) return;
+    var tot = s.mentah.total;
+    if (!confirm("Terbitkan data " + periodeTeks(s.mentah) + "?\n\nPagu " + rp(tot.pagu) + "\nRealisasi " + rp(tot.sd) + " (" + persenTeks(tot.sd, tot.pagu) + ")\n\nHalaman Monitoring langsung memakai data ini.")) return;
+    var tombol = $("tombolTerbitMonev");
+    tombol.disabled = true; tombol.textContent = "Menerbitkan...";
+    kirim({ aksi: "simpanRealisasi", data: s, penyunting: keadaan.nama, catatan: monev.catatan, dasar: monev.diperbarui }).then(function (h) {
+      if (h.bentrok) {
+        alert(h.pesan);
+        monev.tayang = h.data; monev.diperbarui = h.diperbarui; gambarMonev();
+        return;
+      }
+      if (!h.ok) { tombol.disabled = false; tombol.textContent = "Terbitkan data"; kabar(h.pesan || "Gagal menerbitkan.", true); return; }
+      s.tanggal = h.diperbarui;
+      monev.tayang = s; monev.diperbarui = h.diperbarui; monev.penyunting = keadaan.nama;
+      monev.siap = null; monev.setuju = false; monev.catatan = "";
+      hapusLokal(KUNCI_PRATINJAU_REAL);
+      kabar("Terbit. Halaman Monitoring memakai data baru dalam satu menit.");
+      kirim({ aksi: "riwayatRealisasi" }).then(function (r) { if (r.ok) monev.riwayat = r.riwayat; gambarMonev(); });
+      gambarMonev();
+    });
+  }
+
+  function gambarRiwayatMonev(p) {
+    var kotak = el("div", { kelas: "kotak" }, [el("h3", { kelas: "sub", teks: "Riwayat penerbitan data" })]);
+    p.appendChild(kotak);
+    var r = monev.riwayat || [];
+    if (!r.length) { kotak.appendChild(el("p", { kelas: "petunjuk", style: "margin:0", teks: "Belum ada penerbitan lewat dasbor." })); return; }
+    var tb = el("tbody");
+    r.forEach(function (x, i) {
+      tb.appendChild(el("tr", null, [
+        el("td", { teks: waktuBaca(x.waktu) + (i === 0 ? " (tayang)" : "") }),
+        el("td", { teks: x.periode || "–" }),
+        el("td", { teks: x.penyunting }),
+        el("td", { teks: x.catatan || "–" }),
+        el("td", null, [el("button", { type: "button", kelas: "tombol kecil", teks: "Muat ke pratinjau", onclick: function (e) {
+          var b = e.currentTarget; b.disabled = true;
+          kirim({ aksi: "ambilRiwayatRealisasi", baris: x.baris }).then(function (h) {
+            b.disabled = false;
+            if (!h.ok) { kabar(h.pesan || "Gagal memuat.", true); return; }
+            if (monev.siap && !confirm("Hasil impor yang belum diterbitkan akan diganti. Lanjutkan?")) return;
+            h.data.tanggal = new Date().toISOString();
+            monev.siap = h.data; monev.namaBerkas = "versi " + waktuBaca(x.waktu); monev.setuju = true; monev.catatan = "Memulihkan versi " + waktuBaca(x.waktu);
+            gambarMonev();
+            kabar("Versi lama dimuat. Periksa, lalu terbitkan bila sudah sesuai.");
+          });
+        } })])
+      ]));
+    });
+    kotak.appendChild(el("div", { style: "overflow-x:auto" }, [el("table", { kelas: "riwayat" }, [
+      el("thead", null, [el("tr", null, ["Waktu", "Periode", "Penyunting", "Catatan"].map(function (n) { return el("th", { teks: n }); }).concat([el("th", null, [el("span", { kelas: "sr-only", teks: "Aksi" })])]))]),
+      tb])]));
+  }
+
 })();
 </script>
 </body>
