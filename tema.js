@@ -74,7 +74,9 @@
     var gaya = document.createElement("style");
     gaya.textContent = "::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}::view-transition-new(root){z-index:2}";
     document.head.appendChild(gaya);
-    var bersih = function () { gaya.remove(); };
+    // Selama transisi berjalan, peramban memindahkan penunjuk ke lapisan sementara; panel yang menutup saat penunjuk keluar memakai penanda ini.
+    window.__sedangTransisi = true;
+    var bersih = function () { gaya.remove(); setTimeout(function () { window.__sedangTransisi = false; }, 400); };
     var vt;
     try { vt = document.startViewTransition(terapkan); } catch (e) { bersih(); terapkan(); return; }
     vt.ready.then(function () {

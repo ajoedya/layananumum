@@ -65,7 +65,9 @@ document.documentElement.setAttribute("data-panel",k==="kunci"?"kunci":"lepas");
     var gaya = document.createElement("style");
     gaya.textContent = "::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}::view-transition-new(root){z-index:2}";
     document.head.appendChild(gaya);
-    var bersih = function () { gaya.remove(); };
+    // Selama transisi berjalan, peramban memindahkan penunjuk ke lapisan sementara; panel yang menutup saat penunjuk keluar memakai penanda ini.
+    window.__sedangTransisi = true;
+    var bersih = function () { gaya.remove(); setTimeout(function () { window.__sedangTransisi = false; }, 400); };
     var vt;
     try { vt = document.startViewTransition(terapkan); } catch (e) { bersih(); terapkan(); return; }
     vt.ready.then(function () {
@@ -4785,6 +4787,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   function tutup(kembalikanFokus){
     clearTimeout(pewaktu);
     if(!rangka.classList.contains('panel-terbuka')) return;
+    if(window.__sedangTransisi) return; /* ganti tema sedang beranimasi, jangan tutup panel */
     const fokusDiDalam=panel.contains(document.activeElement);
     rangka.classList.remove('panel-terbuka'); tombolBuka.setAttribute('aria-expanded','false');
     if(kembalikanFokus||fokusDiDalam) tombolBuka.focus({preventScroll:true});
@@ -4811,7 +4814,12 @@ document.addEventListener('DOMContentLoaded',()=>{
     pewaktu=setTimeout(()=>tutup(false),280);
   });
   panel.addEventListener('focusin',e=>{ if(aktif()&&e.target!==tombolBuka&&!e.target.closest('.jk-lajur')) buka(false); });
-  panel.addEventListener('focusout',e=>{ if(membuka) return; if(aktif()&&!panel.contains(e.relatedTarget)) tutup(false); });
+  /* Di Safari dan Chrome iPad, mengetuk tombol tidak memindahkan fokus ke tombol itu, jadi fokus lama (tombol kunci)
+     hilang tanpa relatedTarget. Tanpa penanda ini panel dikira ditinggalkan dan menutup sebelum ketukan sampai
+     ke tombol di dalamnya. Selama jari baru saja menyentuh panel, hilangnya fokus tidak dianggap meninggalkan panel. */
+  let menyentuh=false, pewaktuSentuh=null;
+  panel.addEventListener('pointerdown',()=>{ menyentuh=true; clearTimeout(pewaktuSentuh); pewaktuSentuh=setTimeout(()=>{ menyentuh=false; },700); });
+  panel.addEventListener('focusout',e=>{ if(membuka||menyentuh) return; if(aktif()&&!panel.contains(e.relatedTarget)) tutup(false); });
   document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&rangka.classList.contains('panel-terbuka')) tutup(true); });
   document.addEventListener('pointerdown',e=>{ if(aktif()&&!panel.contains(e.target)) tutup(false); });
   panel.addEventListener('scroll',()=>{ if(panel.scrollLeft) panel.scrollLeft=0; });
