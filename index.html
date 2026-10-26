@@ -133,15 +133,15 @@ i { font-style: italic; }
 .merek { color: var(--putih); font: 800 21px/1.1 var(--huruf); letter-spacing: -.02em; text-decoration: none; align-self: flex-start; }
 .merek small { display: block; margin-top: 4px; color: var(--panel-kecil); font: 600 11px/1.4 var(--huruf); letter-spacing: .18em; }
 .panel-judul { display: flex; flex-direction: column; gap: 12px; padding-top: 6px; }
-.label { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .15em; line-height: 1.55; text-transform: uppercase; }
+.label { margin: 0; font-size: calc(12px * var(--s-label, 1)); font-weight: 700; letter-spacing: .15em; line-height: 1.55; text-transform: uppercase; }
 .panel .label { color: var(--emas-terang); }
-h1 { margin: 0; font-size: 32px; font-weight: 700; line-height: 1.1; letter-spacing: -.025em; text-wrap: balance; }
-h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size: 22px; line-height: 1.25; letter-spacing: -.02em; }
+h1 { margin: 0; font-family: var(--huruf-judul, var(--huruf)); font-size: calc(32px * var(--s-judul, 1)); font-weight: 700; line-height: 1.1; letter-spacing: -.025em; text-wrap: balance; }
+h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size: calc(22px * var(--s-subjudul, 1)); line-height: 1.25; letter-spacing: -.02em; }
 h1 .judul-utama { display: inline; margin: 0; color: inherit; font-size: inherit; line-height: inherit; letter-spacing: inherit; }
 .daftar-bagian { display: flex; flex-direction: column; gap: 22px; }
 .daftar-bagian:empty { display: none; }
 .pratinjau { margin: 0; padding: 10px 16px; border: 1px dashed var(--emas-tua); border-radius: 6px; background: var(--emas-muda); color: var(--emas-teks); font-size: 14px; font-weight: 700; }
-.panel-deskripsi { margin: 0; color: var(--panel-teks); font-size: 15px; line-height: 1.6; }
+.panel-deskripsi { margin: 0; color: var(--panel-teks); font-size: calc(15px * var(--s-deskripsi, 1)); line-height: 1.6; }
 /* Tiap menu kelompok berupa kotak kaca: latar navy tembus pandang yang mengaburkan foto di belakangnya,
    dengan garis tepi terang yang jelas, jadi teks putih tetap kontras di atas bagian foto yang terang sekalipun. */
 .kelompok { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 0; }
@@ -208,8 +208,8 @@ h1 .judul-utama { display: inline; margin: 0; color: inherit; font-size: inherit
 .info p { margin: 0; }
 .info .label { color: var(--emas-teks); letter-spacing: .13em; text-transform: none; }
 .kabar.bergeser .info .label { min-height: 44px; display: flex; align-items: center; padding-right: 220px; }
-.info strong { font-size: 17px; font-weight: 700; line-height: 1.3; }
-.info p:last-child { color: var(--tinta-lembut); font-size: 14px; line-height: 1.55; }
+.info strong { font-family: var(--huruf-judul, var(--huruf)); font-size: calc(17px * var(--s-ij, 1)); font-weight: 700; line-height: 1.3; }
+.info p:last-child { color: var(--tinta-lembut); font-size: calc(14px * var(--s-ii, 1)); line-height: 1.55; }
 .kabar-kendali { position: absolute; top: 6px; right: 8px; display: flex; align-items: center; gap: 2px; }
 .titik { width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: transparent; display: grid; place-items: center; cursor: pointer; }
 .titik::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--emas-garis); transition: background-color .2s ease, transform .2s ease; }
@@ -222,7 +222,7 @@ h1 .judul-utama { display: inline; margin: 0; color: inherit; font-size: inherit
 .jeda:hover { border-color: var(--emas-tua); }
 .titik:focus-visible, .jeda:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: 1px; }
 .bagian { display: flex; flex-direction: column; gap: 8px; scroll-margin-top: 16px; }
-.bagian h2 { margin: 0; color: var(--emas-teks); font-size: 12px; font-weight: 700; letter-spacing: .15em; line-height: 1.55; text-transform: uppercase; }
+.bagian h2 { margin: 0; color: var(--emas-teks); font-size: calc(12px * var(--s-bagian, 1)); font-weight: 700; letter-spacing: .15em; line-height: 1.55; text-transform: uppercase; }
 .bagian.arsip h2, .bagian.arsip .nomor { color: var(--arsip-teks); }
 .daftar { background: var(--putih); border: 1px solid var(--garis); border-radius: 8px; overflow: hidden; box-shadow: 0 1px 6px rgba(var(--rgb-laut),.04); }
 .baris {
@@ -235,11 +235,11 @@ h1 .judul-utama { display: inline; margin: 0; color: inherit; font-size: inherit
 .baris:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: -3px; }
 .nomor { color: var(--emas-teks); font-size: 14px; font-weight: 700; letter-spacing: .08em; font-variant-numeric: tabular-nums; }
 .uraian { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-.uraian strong { font-size: 16px; font-weight: 700; line-height: 1.3; letter-spacing: -.015em; }
-.uraian span { color: var(--tinta-lembut); font-size: 14px; line-height: 1.5; }
+.uraian strong { font-family: var(--huruf-judul, var(--huruf)); font-size: calc(16px * var(--s-tj, 1)); font-weight: 700; line-height: 1.3; letter-spacing: -.015em; }
+.uraian span { color: var(--tinta-lembut); font-size: calc(14px * var(--s-tu, 1)); line-height: 1.5; }
 .buka { color: var(--tautan); font-size: 14px; font-weight: 700; white-space: nowrap; }
 .kosong { margin: 0; background: var(--emas-muda); border-left: 3px solid var(--emas-tua); border-radius: 4px; padding: 16px 22px; color: var(--tinta-lembut); }
-.kaki { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--garis); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 5px 20px; color: var(--tinta-lembut); font-size: 14px; }
+.kaki { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--garis); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 5px 20px; color: var(--tinta-lembut); font-size: calc(14px * var(--s-kaki, 1)); }
 /* Kredit pembuat di ujung kanan footer, sama dengan Olah PDF; di layar sempit turun ke baris sendiri. */
 .kredit { font-weight: 600; color: var(--laut-tua); white-space: nowrap; }
 .kredit-hati { width: 14px; height: 14px; vertical-align: -2px; fill: #c8423b; }
@@ -250,7 +250,7 @@ h1 .judul-utama { display: inline; margin: 0; color: inherit; font-size: inherit
   .kelompok { flex-direction: row; flex-wrap: wrap; gap: 8px; margin: 0; }
   .kelompok a { min-height: 44px; padding: 6px 8px 6px 14px; border-radius: 999px; }
   .kelompok a[aria-current="true"] { box-shadow: inset 0 0 0 1px var(--emas-terang); }
-  .panel-deskripsi { font-size: 14px; line-height: 1.55; }
+  .panel-deskripsi { font-size: calc(14px * var(--s-deskripsi, 1)); line-height: 1.55; }
   .panel-dalam { padding-bottom: 92px; }
   .panel-keterangan { display: none; }
   .panel-foto { height: 120px; }
@@ -269,9 +269,9 @@ h1 .judul-utama { display: inline; margin: 0; color: inherit; font-size: inherit
   }
 }
 @media (max-width: 560px) {
-  h1 { font-size: 26px; }
+  h1 { font-size: calc(26px * var(--s-judul, 1)); }
   .panel-dalam { gap: 14px; padding-top: 22px; }
-  h1 span { font-size: 20px; }
+  h1 span { font-size: calc(20px * var(--s-subjudul, 1)); }
   .baris { grid-template-columns: 34px minmax(0, 1fr); padding: 13px 16px; }
   .buka { display: none; }
 }
@@ -401,7 +401,7 @@ h1 .judul-utama { display: inline; margin: 0; color: inherit; font-size: inherit
      Nomor tautan berurutan di semua bagian, angka di menu kelompok dihitung sendiri. */
   function gambarLayanan() {
     var kelompok = konten.kelompok.filter(function (k) { return k.tampil !== false; });
-    var tautan = konten.tautan.filter(function (t) { return t.tampil !== false && K.alamatAman(t.alamat); });
+    var tautan = konten.tautan.filter(function (t) { return t.tampil !== false && K.alamatAman(t.alamat) && K.dalamJadwal(t); });
     var menu = $("menuKelompok"), wadah = $("daftarBagian"), nomor = 0;
     menu.textContent = ""; wadah.textContent = "";
     kelompok.forEach(function (k) {
@@ -420,8 +420,10 @@ h1 .judul-utama { display: inline; margin: 0; color: inherit; font-size: inherit
         nomor += 1;
         var alamat = K.alamatAman(t.alamat);
         var r = el("a", "baris"); r.href = alamat;
+        if (K.punyaGaya(t)) r.classList.add("gx-t" + konten.tautan.indexOf(t));
         var luar = K.luar(alamat);
         if (luar) { r.target = "_blank"; r.rel = "noopener"; }
+        r.dataset.id = K.slug(K.polos(t.judul));
         r.dataset.cari = K.polos(k.nama) + " " + (t.kunci || "");
         var n = el("span", "nomor"); n.textContent = (nomor < 10 ? "0" : "") + nomor;
         var u = el("span", "uraian"), j = el("strong"), ket = el("span");
@@ -624,9 +626,10 @@ h1 .judul-utama { display: inline; margin: 0; color: inherit; font-size: inherit
     Array.prototype.forEach.call(kendali.querySelectorAll(".titik"), function (t) { t.remove(); });
     jendela.style.height = ""; jalur.style.transform = "";
     sk.aktif = 0;
-    var daftar = konten.info.filter(function (x) { return x.tampil !== false && (x.judul || x.isi); });
+    var daftar = konten.info.filter(function (x) { return x.tampil !== false && K.dalamJadwal(x) && (x.judul || x.isi); });
     sk.info = daftar.map(function (x) {
       var a = el("article", "info");
+      if (K.punyaGaya(x)) a.classList.add("gx-i" + konten.info.indexOf(x));
       if (x.label) { var l = el("p", "label"); l.textContent = x.label; a.appendChild(l); }
       if (x.judul) a.appendChild(K.isiTeks(el("strong"), x.judul));
       if (x.isi) a.appendChild(K.isiTeks(el("p"), x.isi));
@@ -653,8 +656,21 @@ h1 .judul-utama { display: inline; margin: 0; color: inherit; font-size: inherit
     mulai();
   }
 
+  /* ---------- Gaya tampilan dari dasbor admin ----------
+     Ukuran, warna, huruf, dan tema dibangun menjadi satu <style id="gayaDinamis"> yang dipasang setelah gaya bawaan.
+     Huruf selain Public Sans dimuat dari Google Fonts (sudah diizinkan CSP). Tanpa pengaturan, gaya ini kosong. */
+  var gayaEl = null, hurufEl = null;
+  function pasangGaya() {
+    if (!gayaEl) { gayaEl = document.createElement("style"); gayaEl.id = "gayaDinamis"; document.head.appendChild(gayaEl); }
+    gayaEl.textContent = K.cssGaya(konten.gaya, konten);
+    var alamat = K.alamatHuruf(konten.gaya);
+    if (alamat && !hurufEl) { hurufEl = document.createElement("link"); hurufEl.rel = "stylesheet"; document.head.appendChild(hurufEl); }
+    if (hurufEl && hurufEl.getAttribute("href") !== alamat) { if (alamat) hurufEl.href = alamat; else hurufEl.removeAttribute("href"); }
+  }
+
   /* ---------- Menggambar seluruh beranda ---------- */
   function gambar() {
+    pasangGaya();
     gambarUmum();
     gambarLayanan();
     gambarInfo();
@@ -690,6 +706,29 @@ h1 .judul-utama { display: inline; margin: 0; color: inherit; font-size: inherit
       if (p) { konten = K.rapikan(p); gambar(); }
     });
   }
+
+  /* ---------- Statistik kunjungan dan klik ----------
+     Hanya hitungan harian yang dikirim ke Apps Script (tanpa alamat IP, identitas, atau kuki). Kunjungan dihitung sekali per
+     tab peramban. Pratinjau dari dasbor admin tidak dihitung. Kegagalan mengirim diabaikan dan tidak mengganggu halaman. */
+  function catat(jenis, id) {
+    if (pratinjau || !window.ALAMAT_SKRIP || !window.fetch) return;
+    try {
+      fetch(window.ALAMAT_SKRIP, { method: "POST", mode: "no-cors", keepalive: true, headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ aksi: "catat", jenis: jenis, id: id }) }).catch(function () { /* abaikan */ });
+    } catch (e) { /* abaikan */ }
+  }
+  (function () {
+    var sudah = false;
+    try { sudah = !!sessionStorage.getItem("layanan-dihitung"); sessionStorage.setItem("layanan-dihitung", "1"); } catch (e) { /* abaikan */ }
+    if (!sudah) catat("kunjungan", "beranda");
+  })();
+  ["click", "auxclick"].forEach(function (nama) {
+    document.addEventListener(nama, function (e) {
+      if (nama === "auxclick" && e.button !== 1) return;
+      var a = e.target.closest && e.target.closest(".baris");
+      if (a && a.dataset.id) catat("klik", a.dataset.id);
+    });
+  });
 
   window.__banner = { nomorBanner: nomorBanner, sisaWaktu: sisaWaktu };
   window.__kabar = { maju: maju, keadaan: function () { return { aktif: sk.aktif, tinggi: sk.tinggi, dijeda: sk.dijeda }; } };

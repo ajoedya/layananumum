@@ -2225,6 +2225,18 @@ body.halaman-alat .kop.kop::before {
         </div>
       </section>
 
+      <section class="panel" id="panelTren" hidden>
+        <details class="lipat">
+          <summary>
+            <div><p class="nomor-bagian">Tren</p><h2>Penyerapan antarbulan</h2></div>
+            <span class="tombol-lipat" aria-hidden="true"></span>
+            <p class="lipat-ket">Persentase realisasi tiap bulan sejak data pertama diterbitkan, dengan garis target tertimbang. Buka tabel untuk melihat angkanya.</p>
+          </summary>
+          <div id="baganTren"></div>
+          <div class="gulir"><table class="data" id="tblTren"><thead><tr><th>Periode</th><th class="n">Pagu</th><th class="n">Realisasi</th><th class="n">% real.</th><th class="n">Target</th><th class="n">Selisih (poin)</th></tr></thead><tbody></tbody></table></div>
+        </details>
+      </section>
+
       <section class="panel">
         <details class="lipat">
           <summary>
@@ -2791,7 +2803,7 @@ const kelasStatus=s=>s==='Di atas target'?'capai':s==='Mendekati target'?'dekat'
 const sel=s=>'<span class="status '+kelasStatus(s)+'">'+aman(s)+'</span>';
 
 let KONFIG=JSON.parse(JSON.stringify(KONFIG_BAWAAN));
-let MENTAH=null, HASIL=null, TANGGAL=new Date(), PAJANG=false;
+let MENTAH=null, HASIL=null, TANGGAL=new Date(), PAJANG=false, TREN=[];
 
 /* bar % realisasi berisi angka, dipakai tabel Monitoring per RO */
 function barPersen(x,target,ambang){
@@ -3277,6 +3289,40 @@ function hitungUlang(){
   gambarSemua();
 }
 
+/* ---- tren penyerapan antarbulan ----
+   Data tren dikumpulkan dasbor admin tiap kali data diterbitkan (satu titik per bulan). Kartu tampil bila ada dua titik atau lebih. */
+function gambarTren(){
+  const kotak=el('panelTren'); if(!kotak) return;
+  const t=(TREN||[]).filter(x=>x&&x.pagu>0).slice(-24);
+  kotak.hidden=t.length<2;
+  if(t.length<2) return;
+  const lebar=940,tinggi=250,kiri=44,kanan=16,atas=22,bawah=34;
+  const area=tinggi-atas-bawah, w=lebar-kiri-kanan, sl=w/t.length;
+  const y=p=>atas+area*(1-Math.min(1,Math.max(0,p)));
+  let s='<svg viewBox="0 0 '+lebar+' '+tinggi+'" role="img" aria-label="Grafik batang persentase realisasi per bulan dengan garis target tertimbang">';
+  for(let g=0;g<=100;g+=25){
+    s+='<line class="sb-kisi" x1="'+kiri+'" y1="'+y(g/100)+'" x2="'+(lebar-kanan)+'" y2="'+y(g/100)+'" stroke-width="1"/>';
+    s+='<text class="sb-label" x="'+(kiri-8)+'" y="'+(y(g/100)+4)+'" font-size="12" text-anchor="end">'+g+'%</text>';
+  }
+  const titikTarget=[];
+  t.forEach((x,i)=>{
+    const p=x.sd/x.pagu, lb=Math.min(46,sl*0.62), x0=kiri+sl*i+(sl-lb)/2;
+    const st=x.target>0?(p>=x.target?'capai':(x.ambang>0&&p>=x.target-x.ambang?'dekat':'kurang')):'netral';
+    s+='<rect class="sb-bar '+st+'" x="'+x0.toFixed(1)+'" y="'+y(p).toFixed(1)+'" width="'+lb.toFixed(1)+'" height="'+Math.max(1,y(0)-y(p)).toFixed(1)+'" rx="4"/>';
+    if(t.length<=14) s+='<text class="sb-nilai" x="'+(x0+lb/2).toFixed(1)+'" y="'+(y(p)-6).toFixed(1)+'" font-size="12" font-weight="600" text-anchor="middle">'+ps1.format(p*100)+'</text>';
+    s+='<text class="sb-label" x="'+(x0+lb/2).toFixed(1)+'" y="'+(tinggi-bawah+18)+'" font-size="12" text-anchor="middle">'+aman(BULAN[x.bulan-1].slice(0,3))+(x.tahun&&(i===0||x.bulan===1)?' '+String(x.tahun).slice(2):'')+'</text>';
+    if(x.target>0) titikTarget.push((x0+lb/2).toFixed(1)+','+y(x.target).toFixed(1));
+  });
+  if(titikTarget.length>1) s+='<polyline class="sb-target" fill="none" stroke-width="2" stroke-dasharray="5 4" points="'+titikTarget.join(' ')+'"/>';
+  s+='</svg>';
+  el('baganTren').innerHTML=s;
+  el('tblTren').querySelector('tbody').innerHTML=t.slice().reverse().map(x=>{
+    const p=x.sd/x.pagu, sel=x.target>0?ps2.format((p-x.target)*100):'–';
+    return '<tr><td class="lebar">'+aman(BULAN[x.bulan-1])+' '+aman(x.tahun||'')+'</td><td class="n num">'+rp.format(x.pagu)+'</td><td class="n num">'+rp.format(x.sd)+
+      '</td><td class="n num">'+ps2.format(p*100)+'%</td><td class="n num">'+(x.target>0?ps1.format(x.target*100)+'%':'–')+'</td><td class="n num">'+sel+'</td></tr>';
+  }).join('');
+}
+
 function gambarSemua(){
   el('judulSatker').innerHTML='Monitoring Realisasi Anggaran <em>'+aman(KONFIG.satker.nama)+'</em>';
   el('subJudul').textContent='Tahun Anggaran '+(MENTAH.tahun||'')+'   •   Realisasi s.d. '+BULAN[HASIL.bulan-1]+
@@ -3284,6 +3330,7 @@ function gambarSemua(){
     '   •   Satker '+KONFIG.satker.kode;
   gambarRekon();
   gambarRingkasan();
+  gambarTren();
   el('penutupKet').textContent='Angka pada halaman ini diolah dari laporan Fa satker '+KONFIG.satker.kode+
     ' dengan realisasi sampai '+BULAN[HASIL.bulan-1]+' '+(MENTAH.tahun||'')+', diperbarui '+
     TANGGAL.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})+'.';
@@ -4585,7 +4632,7 @@ else if(tutor.open) mulai(0);
 const KUNCI_TERAKHIR='realisasi-terakhir', KUNCI_PRATINJAU='realisasi-pratinjau';
 function dataSahih(d){ return !!(d&&d.mentah&&Array.isArray(d.mentah.item)&&d.mentah.item.length&&d.konfig&&d.konfig.unit&&d.tanggal&&d.bulan); }
 function pasangData(d){
-  MENTAH=d.mentah; KONFIG=d.konfig; TANGGAL=new Date(d.tanggal); PAJANG=true;
+  MENTAH=d.mentah; KONFIG=d.konfig; TANGGAL=new Date(d.tanggal); PAJANG=true; TREN=Array.isArray(d.tren)?d.tren:[];
   HASIL=hitung(MENTAH.item,d.bulan,KONFIG);
   const isi=el('isi'); if(isi) isi.classList.remove('sembunyi');
   const cetak=el('tombolCetak'); if(cetak) cetak.classList.remove('sembunyi');

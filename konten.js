@@ -30,6 +30,7 @@ window.KONTEN_BAWAAN = {
     "gerbang": { "tampil": true, "teks": "Gerbang Internal (Old)", "alamat": "https://sites.google.com/view/gerbanginternal/halaman-muka" },
     "detikPerInfo": 7
   },
+  "gaya": { "dasar": 1, "huruf": "public-sans", "hurufJudul": "sama", "tema": { "utama": "", "aksen": "" }, "elemen": {} },
   "info": [
     { "tampil": true, "label": "[Perjalanan Dinas]",
       "judul": "Mau SPJ E-Perjadin, tapi rumah Surat Tugasnya belum ada?",
@@ -138,12 +139,192 @@ window.Konten = (function () {
       ? Object.assign({}, salin(b.banner), hasil.banner)
       : salin(b.banner);
     ["siang", "malam"].forEach(function (n) { if (!Array.isArray(hasil.banner[n])) hasil.banner[n] = salin(b.banner[n]); });
+    hasil.gaya = rapikanGaya(k.gaya);
+    ["info", "tautan"].forEach(function (n) {
+      hasil[n].forEach(function (x) {
+        if (!x) return;
+        if (x.gaya) { x.gaya = rapikanButir(x.gaya); if (!x.gaya) delete x.gaya; }
+        ["mulai", "selesai"].forEach(function (f) { if (!/^\d{4}-\d{2}-\d{2}$/.test(String(x[f] || ""))) delete x[f]; });
+      });
+    });
     return hasil;
   }
+
+  /* ---------- Jadwal tayang ----------
+     Informasi dan tautan boleh punya tanggal mulai dan selesai (yyyy-mm-dd, tanggal selesai ikut tayang).
+     Dibandingkan dengan tanggal di perangkat pembaca, jadi semua pegawai di zona waktu yang sama melihat hal yang sama. */
+  function hariIni(kini) {
+    kini = kini || new Date();
+    var b = kini.getMonth() + 1, h = kini.getDate();
+    return kini.getFullYear() + "-" + (b < 10 ? "0" : "") + b + "-" + (h < 10 ? "0" : "") + h;
+  }
+  // Mengembalikan "" bila sedang tayang, "belum" bila belum mulai, "lewat" bila sudah berakhir.
+  function statusJadwal(x, kini) {
+    var t = hariIni(kini);
+    if (x && x.mulai && t < x.mulai) return "belum";
+    if (x && x.selesai && t > x.selesai) return "lewat";
+    return "";
+  }
+  function dalamJadwal(x, kini) { return !statusJadwal(x, kini); }
 
   function slug(teks) {
     return polos(teks).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "kelompok";
   }
 
-  return { isiTeks: isiTeks, polos: polos, alamatAman: alamatAman, luar: luar, salin: salin, rapikan: rapikan, slug: slug };
+
+  /* ---------- Gaya tampilan (ukuran, warna, huruf, tema) ----------
+     Dipakai beranda untuk membangun <style id="gayaDinamis"> dan dasbor admin untuk formulir serta peringatan kontras.
+     Hanya angka dan kode warna heks yang lolos, jadi hasilnya aman dipasang sebagai CSS. */
+  var ELEMEN = [
+    { id: "judul",     nama: "Judul besar",              panel: true,  sel: "h1 .judul-utama",   wajar: "32 px" },
+    { id: "subjudul",  nama: "Subjudul emas",            panel: true,  sel: "#isiSubjudul",      wajar: "22 px" },
+    { id: "deskripsi", nama: "Deskripsi panel",          panel: true,  sel: ".panel-deskripsi",  wajar: "15 px" },
+    { id: "label",     nama: "Label kecil",              panel: true,  sel: ".panel .label",     wajar: "12 px" },
+    { id: "bagian",    nama: "Judul bagian",             panel: false, sel: ".bagian h2",        wajar: "12 px" },
+    { id: "tj",        nama: "Judul kartu tautan",       panel: false, sel: ".uraian strong",    wajar: "16 px" },
+    { id: "tu",        nama: "Uraian kartu tautan",      panel: false, sel: ".uraian span",      wajar: "14 px" },
+    { id: "ij",        nama: "Judul kotak informasi",    panel: false, sel: ".info strong",      wajar: "17 px" },
+    { id: "ii",        nama: "Isi kotak informasi",      panel: false, sel: ".info p:last-child", wajar: "14 px" },
+    { id: "kaki",      nama: "Teks kaki halaman",        panel: false, sel: ".kaki",             wajar: "14 px" }
+  ];
+  var HURUF = {
+    "public-sans": { nama: "Public Sans (bawaan)", tumpukan: '"Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif', gf: "" },
+    "inter":       { nama: "Inter", tumpukan: '"Inter", system-ui, -apple-system, "Segoe UI", sans-serif', gf: "Inter:wght@400;500;600;700;800" },
+    "source-sans": { nama: "Source Sans 3", tumpukan: '"Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif', gf: "Source+Sans+3:ital,wght@0,400;0,600;0,700;0,800;1,400" },
+    "atkinson":    { nama: "Atkinson Hyperlegible (mudah dibaca)", tumpukan: '"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif', gf: "Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400" },
+    "lora":        { nama: "Lora (berkaki)", tumpukan: '"Lora", Georgia, "Times New Roman", serif', gf: "Lora:ital,wght@0,400;0,600;0,700;1,400" },
+    "sistem":      { nama: "Huruf bawaan perangkat", tumpukan: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif', gf: "" }
+  };
+  var PRESET_TEMA = [
+    { nama: "Navy dan emas (bawaan)", utama: "", aksen: "" },
+    { nama: "Hijau zamrud", utama: "#0b4a3c", aksen: "#c28a1a" },
+    { nama: "Marun", utama: "#5b1a2b", aksen: "#c9953a" },
+    { nama: "Ungu tua", utama: "#3b2a6b", aksen: "#d19a2f" },
+    { nama: "Biru baja", utama: "#263544", aksen: "#d58a1f" }
+  ];
+  var TEBAL = ["", "400", "500", "600", "700", "800"];
+  var TERANG = ':root:not([data-mode="gelap"])';
+  var UTAMA_BAWAAN = "#0f3554", AKSEN_BAWAAN = "#b8700f";
+
+  function angka(v, min, maks, awal) { v = Number(v); return isFinite(v) ? Math.min(maks, Math.max(min, Math.round(v * 100) / 100)) : awal; }
+  function heks(v) { v = String(v || "").trim().toLowerCase(); return /^#[0-9a-f]{6}$/.test(v) ? v : ""; }
+
+  function rapikanGaya(g) {
+    g = (g && typeof g === "object") ? g : {};
+    var hasil = { dasar: angka(g.dasar, 0.85, 1.3, 1), huruf: HURUF[g.huruf] ? g.huruf : "public-sans", hurufJudul: (g.hurufJudul === "sama" || HURUF[g.hurufJudul]) ? g.hurufJudul : "sama",
+      tema: { utama: heks(g.tema && g.tema.utama), aksen: heks(g.tema && g.tema.aksen) }, elemen: {} };
+    ELEMEN.forEach(function (e) {
+      var x = g.elemen && g.elemen[e.id];
+      if (!x || typeof x !== "object") return;
+      var o = { skala: angka(x.skala, 0.7, 1.6, 1), tebal: TEBAL.indexOf(String(x.tebal || "")) > 0 ? String(x.tebal) : "", warna: heks(x.warna), warnaGelap: e.panel ? "" : heks(x.warnaGelap) };
+      if (o.skala !== 1 || o.tebal || o.warna || o.warnaGelap) hasil.elemen[e.id] = o;
+    });
+    return hasil;
+  }
+  // Gaya satu kartu atau satu informasi: skala dan warna judul. Mengembalikan null bila tidak ada yang diubah.
+  function rapikanButir(x) {
+    if (!x || typeof x !== "object") return null;
+    var o = { skala: angka(x.skala, 0.7, 1.6, 1), warna: heks(x.warna), warnaGelap: heks(x.warnaGelap) };
+    return (o.skala !== 1 || o.warna || o.warnaGelap) ? o : null;
+  }
+  function punyaGaya(x) { return !!(x && x.gaya && rapikanButir(x.gaya)); }
+
+  // Alat warna.
+  function rgb(h) { h = heks(h); return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]; }
+  function dariRgb(a) { return "#" + a.map(function (n) { n = Math.max(0, Math.min(255, Math.round(n))); return (n < 16 ? "0" : "") + n.toString(16); }).join(""); }
+  function campur(a, b, t) { var x = rgb(a), y = rgb(b); return dariRgb(x.map(function (n, i) { return n + (y[i] - n) * t; })); }
+  function luminans(h) {
+    return rgb(h).map(function (n) { n /= 255; return n <= 0.03928 ? n / 12.92 : Math.pow((n + 0.055) / 1.055, 2.4); })
+      .reduce(function (s, n, i) { return s + n * [0.2126, 0.7152, 0.0722][i]; }, 0);
+  }
+  function kontras(a, b) { var p = luminans(a), q = luminans(b); return (Math.max(p, q) + 0.05) / (Math.min(p, q) + 0.05); }
+  // Menggeser warna ke hitam (arah "gelap") atau putih (arah "terang") sampai cukup kontras terhadap latar.
+  function sesuaikan(w, latar, min, arah) {
+    var ujung = arah === "gelap" ? "#000000" : "#ffffff";
+    for (var t = 0; t <= 1.001; t += 0.04) { var c = campur(w, ujung, t); if (kontras(c, latar) >= min) return c; }
+    return ujung;
+  }
+  function skalaRgb(h, f) { return dariRgb(rgb(h).map(function (n) { return n * f; })); }
+  function tigaRgb(h) { return rgb(h).join(", "); }
+
+  // Peringatan lunak untuk dasbor: warna yang sulit dibaca. Tidak memblokir penyimpanan.
+  function periksaGaya(g) {
+    g = rapikanGaya(g);
+    var p = [];
+    if (g.tema.utama && kontras(g.tema.utama, "#ffffff") < 4.5) p.push("Warna utama terlalu terang: teks putih di panel samping sulit dibaca (kontras " + kontras(g.tema.utama, "#ffffff").toFixed(1).replace(".", ",") + ", minimal 4,5).");
+    ELEMEN.forEach(function (e) {
+      var x = g.elemen[e.id]; if (!x) return;
+      var latarTerang = e.panel ? (g.tema.utama || UTAMA_BAWAAN) : "#ffffff";
+      if (x.warna) {
+        var k = kontras(x.warna, latarTerang);
+        if (k < 4.5) p.push(e.nama + ": warna terlalu dekat dengan latarnya (kontras " + k.toFixed(1).replace(".", ",") + ", minimal 4,5).");
+      }
+      if (x.warnaGelap) {
+        var k2 = kontras(x.warnaGelap, "#16212c");
+        if (k2 < 4.5) p.push(e.nama + " (mode gelap): kontras " + k2.toFixed(1).replace(".", ",") + ", minimal 4,5.");
+      }
+    });
+    return p;
+  }
+
+  // Membangun CSS dari gaya dan butir. Hasilnya hanya berisi nilai yang sudah disaring.
+  function cssGaya(gaya, konten) {
+    var g = rapikanGaya(gaya), v = [], aturan = [], gelap = [], mutlak = [];
+    var tumpuk = function (kunci) { return HURUF[kunci].tumpukan; };
+    if (g.huruf !== "public-sans") v.push("--huruf:" + tumpuk(g.huruf));
+    if (g.hurufJudul !== "sama") v.push("--huruf-judul:" + tumpuk(g.hurufJudul));
+    ELEMEN.forEach(function (e) {
+      var x = g.elemen[e.id], s = Math.round(g.dasar * (x ? x.skala : 1) * 1000) / 1000;
+      if (s !== 1) v.push("--s-" + e.id + ":" + s);
+      if (!x) return;
+      // Ketebalan berlaku di kedua mode; warna elemen di luar panel berlaku di mode terang saja (mode gelap punya warnanya sendiri).
+      if (x.tebal) aturan.push(e.sel + "{font-weight:" + x.tebal + "}");
+      if (x.warna) aturan.push((e.panel ? "" : TERANG + " ") + e.sel + "{color:" + x.warna + "}");
+      if (x.warnaGelap) gelap.push(':root[data-mode="gelap"] ' + e.sel + "{color:" + x.warnaGelap + "}");
+    });
+    // Tema warna: hanya dibuat bila diubah dari bawaan.
+    var u = g.tema.utama, a = g.tema.aksen, t = [], tg = [];
+    if (u) {
+      var panelTerang = u, panelGelap = skalaRgb(u, 0.62);
+      t.push("--laut-tua:" + u, "--laut-hover:" + campur(u, "#ffffff", 0.14), "--tautan:" + campur(u, "#ffffff", 0.08),
+        "--rgb-laut:" + tigaRgb(panelTerang), "--rgb-gelap:" + tigaRgb(skalaRgb(u, 0.78)), "--bayang-teks:" + skalaRgb(u, 0.65));
+      tg.push("--laut-hover:" + campur(u, "#ffffff", 0.25), "--rgb-laut:" + tigaRgb(panelGelap), "--rgb-gelap:" + tigaRgb(skalaRgb(u, 0.32)));
+    }
+    if (a) {
+      t.push("--emas-tua:" + a, "--emas-teks:" + sesuaikan(a, "#ffffff", 4.5, "gelap"), "--emas-muda:" + campur(a, "#ffffff", 0.9), "--emas-garis:" + campur(a, "#ffffff", 0.62));
+      tg.push("--emas-tua:" + sesuaikan(a, "#16212c", 3, "terang"), "--emas-teks:" + sesuaikan(a, "#16212c", 4.5, "terang"), "--emas-muda:" + campur(a, "#0e1620", 0.88), "--emas-garis:" + campur(a, "#0e1620", 0.65));
+    }
+    if (u || a) {
+      var navi = u || UTAMA_BAWAAN, kotak = sesuaikan(a || "#ffd27a", navi, 4.5, "terang");
+      t.push("--emas-terang:" + kotak);
+      var teksKotak = kontras(navi, kotak) >= kontras("#0a0a0a", kotak) ? navi : "#0a0a0a";
+      aturan.push('.kelompok a[aria-current="true"] b{color:' + teksKotak + "}");
+    }
+    var css = "";
+    if (v.length || t.length) css += ":root{" + v.concat(t).join(";") + "}\n";
+    if (tg.length) css += ':root[data-mode="gelap"]{' + tg.join(";") + "}\n";
+    css += aturan.join("\n") + (aturan.length ? "\n" : "") + gelap.join("\n") + (gelap.length ? "\n" : "");
+    // Gaya per butir. Kelas gx-t<n> untuk tautan dan gx-i<n> untuk informasi (n = urutan di daftar penuh).
+    var butir = function (daftar, awalan, varJ, varU, selJ) {
+      (daftar || []).forEach(function (x, n) {
+        var b = x && rapikanButir(x.gaya); if (!b) return;
+        var s = Math.round(g.dasar * b.skala * 1000) / 1000, k = "." + awalan + n;
+        if (b.skala !== 1) css += k + "{--s-" + varJ + ":" + s + ";--s-" + varU + ":" + s + "}\n";
+        if (b.warna) css += TERANG + " " + k + " " + selJ + "{color:" + b.warna + "}\n";
+        if (b.warnaGelap) css += ':root[data-mode="gelap"] ' + k + " " + selJ + "{color:" + b.warnaGelap + "}\n";
+      });
+    };
+    if (konten) { butir(konten.tautan, "gx-t", "tj", "tu", ".uraian strong"); butir(konten.info, "gx-i", "ij", "ii", "strong"); }
+    return css;
+  }
+  // Alamat lembar gaya Google Fonts untuk huruf yang dipilih (kosong bila tidak perlu).
+  function alamatHuruf(gaya) {
+    var g = rapikanGaya(gaya), daftar = [];
+    [g.huruf, g.hurufJudul].forEach(function (k) { if (HURUF[k] && HURUF[k].gf && daftar.indexOf(HURUF[k].gf) < 0) daftar.push(HURUF[k].gf); });
+    return daftar.length ? "https://fonts.googleapis.com/css2?" + daftar.map(function (f) { return "family=" + f; }).join("&") + "&display=swap" : "";
+  }
+
+  return { ELEMEN: ELEMEN, HURUF: HURUF, PRESET_TEMA: PRESET_TEMA, TEBAL: TEBAL, UTAMA_BAWAAN: UTAMA_BAWAAN, AKSEN_BAWAAN: AKSEN_BAWAAN,
+    rapikanGaya: rapikanGaya, rapikanButir: rapikanButir, punyaGaya: punyaGaya, periksaGaya: periksaGaya, cssGaya: cssGaya, alamatHuruf: alamatHuruf, kontras: kontras,
+    isiTeks: isiTeks, polos: polos, alamatAman: alamatAman, luar: luar, salin: salin, rapikan: rapikan, slug: slug, statusJadwal: statusJadwal, dalamJadwal: dalamJadwal, hariIni: hariIni };
 })();

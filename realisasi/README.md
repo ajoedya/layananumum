@@ -80,3 +80,10 @@ Tab Parameter hanya ada di file induk. Di sana tersimpan pemetaan 22 rincian out
 - Satu berkas HTML mandiri, termasuk gambar, ikon, dan foto kop.
 - Pustaka [SheetJS](https://sheetjs.com/) dimuat dari cdnjs untuk membaca ekspor Excel di file induk dan untuk tombol Ekspor ke Excel di Quick Report. Tanpa internet, ekspor Quick Report beralih ke CSV.
 - Diterbitkan lewat GitHub Pages dari cabang `main`.
+
+## Tren, target, dan ekspor (dasbor admin)
+
+- Tiap penerbitan menambah satu titik tren (`tren` di data) untuk bulan itu. Kartu "Penyerapan antarbulan" tampil di rekap lengkap setelah ada dua titik.
+- Target dan ambang per kelompok belanja dan triwulan bisa diubah di menu Monev anggaran, lalu diterbitkan tanpa impor ulang.
+- Tombol "Unduh ringkasan (.xlsx)" membuat ringkasan bulanan (empat lembar).
+- Pengingat impor: bilah di dasbor muncul mulai tanggal 5 bila data belum memuat bulan lalu. Surel pengingat dipasang lewat menu Dasbor Beranda di spreadsheet.
