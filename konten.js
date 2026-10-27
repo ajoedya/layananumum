@@ -30,6 +30,7 @@ window.KONTEN_BAWAAN = {
     "gerbang": { "tampil": true, "teks": "Gerbang Internal (Old)", "alamat": "https://sites.google.com/view/gerbanginternal/halaman-muka" },
     "detikPerInfo": 7
   },
+  "popup": { "tampil": false, "judul": "", "isi": "", "detik": 60 },
   "gaya": { "dasar": 1, "huruf": "public-sans", "hurufJudul": "sama", "tema": { "utama": "", "aksen": "" }, "elemen": {} },
   "info": [
     { "tampil": true, "label": "[Perjalanan Dinas]",
@@ -133,6 +134,8 @@ window.Konten = (function () {
     var hasil = salin(k);
     hasil.umum = Object.assign({}, salin(b.umum), hasil.umum || {});
     hasil.umum.gerbang = Object.assign({}, b.umum.gerbang, (k.umum && k.umum.gerbang) || {});
+    // Isi lama dari Apps Script belum punya pop up, jadi dilengkapi dari bawaan (mati).
+    hasil.popup = Object.assign({}, salin(b.popup), (k.popup && typeof k.popup === "object") ? k.popup : {});
     ["info", "kelompok", "tautan"].forEach(function (n) { if (!Array.isArray(hasil[n])) hasil[n] = salin(b[n]); });
     // Simpanan yang dibuat untuk koleksi banner lama diganti koleksi bawaan, supaya foto lama tidak muncul lagi.
     hasil.banner = (k.banner && k.banner.koleksi === b.banner.koleksi)

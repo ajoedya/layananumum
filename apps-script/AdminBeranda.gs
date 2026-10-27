@@ -351,6 +351,14 @@ function alamat_(v) {
   return a;
 }
 function daftar_(v, maks) { if (!Array.isArray(v)) return []; return v.slice(0, maks); }
+function popup_(v) {
+  v = (v && typeof v === "object") ? v : {};
+  var d = Number(v.detik);
+  var o = { tampil: v.tampil === true, judul: teks_(v.judul, 80), isi: teks_(v.isi, 300),
+            detik: Math.min(600, Math.max(5, isFinite(d) && d > 0 ? Math.round(d) : 60)) };
+  jadwal_(o, v);
+  return o;
+}
 function periksa_(k) {
   if (!k || typeof k !== "object") throw new Error("Isi beranda kosong.");
   var u = k.umum || {}, g = u.gerbang || {}, b = k.banner || {};
@@ -381,6 +389,8 @@ function periksa_(k) {
       jadwal_(o, x);
       return o;
     }),
+    // Pop up pemberitahuan di pojok beranda. Lama tampil dibatasi 5 detik sampai 10 menit.
+    popup: popup_(k.popup),
     gaya: gaya_(k.gaya),
     banner: {
       menit: Math.min(240, Math.max(1, Number(b.menit) || 10)),

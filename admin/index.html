@@ -360,6 +360,12 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
     }
     if (!k.umum.judul.trim()) galat.push("Umum: judul beranda masih kosong.");
     if (k.umum.gerbang.tampil) cekAlamat(k.umum.gerbang.alamat, "Tombol Gerbang");
+    if (k.popup.tampil) {
+      if (!String(k.popup.judul || "").trim() && !String(k.popup.isi || "").trim()) galat.push("Pop up: judul dan isi masih kosong.");
+      var dp = Number(k.popup.detik);
+      if (!(dp >= 5 && dp <= 600)) galat.push("Pop up: lama tampil harus antara 5 dan 600 detik.");
+      if (k.popup.mulai && k.popup.selesai && k.popup.selesai < k.popup.mulai) galat.push("Pop up: tanggal selesai lebih awal daripada tanggal mulai.");
+    }
     var kode = {};
     k.kelompok.forEach(function (g, i) {
       if (!g.nama.trim()) galat.push("Kelompok " + (i + 1) + ": nama masih kosong.");
@@ -569,6 +575,15 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
       kolom("Teks tombol", u.gerbang, "teks", { maks: 60 }),
       kolom("Alamat", u.gerbang, "alamat", { alamat: true, contoh: "https://..." })
     ]));
+    var pop = keadaan.konten.popup;
+    p.appendChild(judulBagian("Pop up pemberitahuan"));
+    p.appendChild(el("p", { kelas: "petunjuk", teks: "Kotak kecil di pojok kanan bawah beranda. Muncul sekali setiap pengunjung membuka beranda, hilang sendiri setelah beberapa detik, dan bisa ditutup dengan tombol silang. Teks berubah berarti pop up muncul lagi. " + KET_PENANDA }));
+    p.appendChild(el("div", { kelas: "kotak kisi" }, [
+      el("div", { kelas: "penuh" }, [centang("Tampilkan pop up", pop, "tampil")]),
+      kolom("Judul", pop, "judul", { maks: 80, penuh: true }),
+      kolom("Isi", pop, "isi", { jenis: "area", maks: 300, penuh: true }),
+      kolom("Lama tampil (detik)", pop, "detik", { jenis: "number", ket: "Antara 5 dan 600. Bawaan 60 detik (1 menit)." })
+    ].concat(kolomJadwal(pop))));
   }
 
   /* ---------- Tab Informasi ---------- */

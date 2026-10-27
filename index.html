@@ -247,6 +247,37 @@ h1 .judul-utama { display: inline; margin: 0; color: inherit; font-size: inherit
 .kredit { font-weight: 600; color: var(--laut-tua); white-space: nowrap; }
 .kredit-hati { width: 14px; height: 14px; vertical-align: -2px; fill: #c8423b; }
 
+/* Pop up pemberitahuan: kotak kecil di pojok kanan bawah, isinya diatur dari dasbor admin (tab Umum).
+   Garis di dasar kotak menyusut selama pop up tampil, tanda sisa waktu sebelum hilang sendiri. */
+.popup {
+  position: fixed; z-index: 60; right: 20px; bottom: max(20px, env(safe-area-inset-bottom)); width: min(340px, calc(100vw - 40px));
+  padding: 14px 52px 18px 16px; background: var(--putih); color: var(--laut-tua);
+  border: 1px solid var(--emas-garis); border-left: 4px solid var(--emas-tua); border-radius: 8px;
+  box-shadow: 0 8px 28px rgba(var(--rgb-laut), .22); overflow: hidden;
+  animation: popup-masuk .28s ease-out;
+}
+.popup[hidden] { display: none; }
+.popup strong { display: block; font-size: 15px; font-weight: 700; line-height: 1.35; letter-spacing: -.01em; }
+.popup p { margin: 4px 0 0; color: var(--tinta-lembut); font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+.popup strong + p { margin-top: 4px; }
+.popup-tutup {
+  position: absolute; top: 2px; right: 2px; width: 44px; height: 44px; padding: 0; display: grid; place-items: center;
+  border: 0; border-radius: 50%; background: transparent; color: var(--tinta-lembut); cursor: pointer;
+}
+.popup-tutup:hover { background: var(--emas-muda); color: var(--laut-tua); }
+.popup-tutup:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: -3px; }
+.popup-tutup svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.popup-waktu { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--emas-tua); transform-origin: left center; animation: popup-surut linear forwards; }
+@keyframes popup-masuk { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes popup-surut { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+@media (max-width: 560px) {
+  .popup { left: 12px; right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); width: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .popup { animation: none; }
+  .popup-waktu { display: none; }
+}
+
 @media (max-width: 920px) {
   .panel-dalam { padding: 26px var(--tepi) 24px; gap: 18px; }
   .panel-judul { padding-top: 6px; }
@@ -350,6 +381,15 @@ h1 .judul-utama { display: inline; margin: 0; color: inherit; font-size: inherit
     </footer>
   </main>
 </div>
+
+<!-- POP UP PEMBERITAHUAN: isinya diatur dari dasbor admin, tab Umum. Tidak menahan fokus papan ketik. -->
+<aside class="popup" id="popup" role="status" aria-label="Pemberitahuan" hidden>
+  <div id="popupIsi"></div>
+  <button type="button" class="popup-tutup" id="popupTutup" aria-label="Tutup pemberitahuan" title="Tutup">
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18"/></svg>
+  </button>
+  <span class="popup-waktu" id="popupWaktu" aria-hidden="true"></span>
+</aside>
 
 <script>
 (function () {
@@ -693,12 +733,74 @@ h1 .judul-utama { display: inline; margin: 0; color: inherit; font-size: inherit
     if (hurufEl && hurufEl.getAttribute("href") !== alamat) { if (alamat) hurufEl.href = alamat; else hurufEl.removeAttribute("href"); }
   }
 
+  /* ---------- Pop up pemberitahuan ----------
+     Muncul sekali per sesi peramban (sessionStorage), dicatat berdasarkan isinya, jadi teks yang diubah admin muncul lagi.
+     Hilang sendiri setelah `detik`; hitung mundur berhenti saat disorot atau difokus. Tombol silang menutupnya.
+     Dalam pratinjau dari dasbor, pop up selalu muncul dan tidak dicatat. */
+  var KUNCI_POPUP = "layanan-popup";
+  var popup = $("popup"), popupIsi = $("popupIsi"), popupWaktu = $("popupWaktu");
+  var pp = { tanda: "", pewaktu: null, sisa: 0, sejak: 0 };
+
+  function tandaSesi(tanda) {
+    try {
+      if (tanda === undefined) return sessionStorage.getItem(KUNCI_POPUP);
+      sessionStorage.setItem(KUNCI_POPUP, tanda);
+    } catch (e) { return null; }
+  }
+  function popupTutup() {
+    clearTimeout(pp.pewaktu); pp.pewaktu = null;
+    popup.hidden = true;
+  }
+  function popupJalan() {
+    if (pp.pewaktu || popup.hidden) return;
+    pp.sejak = Date.now();
+    pp.pewaktu = setTimeout(popupTutup, pp.sisa);
+    popupWaktu.style.animationPlayState = "running";
+  }
+  function popupJeda() {
+    if (!pp.pewaktu) return;
+    clearTimeout(pp.pewaktu); pp.pewaktu = null;
+    pp.sisa = Math.max(1000, pp.sisa - (Date.now() - pp.sejak));
+    popupWaktu.style.animationPlayState = "paused";
+  }
+  function gambarPopup() {
+    var p = konten.popup || {};
+    var aktif = p.tampil === true && (p.judul || p.isi) && K.dalamJadwal(p);
+    if (!aktif) { pp.tanda = ""; popupTutup(); return; }
+    var detik = Math.min(600, Math.max(5, Number(p.detik) || 60));
+    var tanda = [p.judul, p.isi, detik].join("|");
+    // Gambar ulang dengan isi yang sama (setelah isi terbaru dari Apps Script tiba) tidak boleh memunculkan atau mengulang pop up.
+    if (tanda === pp.tanda) return;
+    pp.tanda = tanda;
+    if (!pratinjau && tandaSesi() === tanda) { popupTutup(); return; }
+    if (!pratinjau) tandaSesi(tanda);
+    popupIsi.textContent = "";
+    if (p.judul) popupIsi.appendChild(K.isiTeks(el("strong"), p.judul));
+    if (p.isi) popupIsi.appendChild(K.isiTeks(el("p"), p.isi));
+    clearTimeout(pp.pewaktu); pp.pewaktu = null;
+    pp.sisa = detik * 1000;
+    popupWaktu.style.animation = "none";
+    void popupWaktu.offsetWidth;
+    popupWaktu.style.animation = "";
+    popupWaktu.style.animationDuration = detik + "s";
+    popupWaktu.style.animationPlayState = "running";
+    popup.hidden = false;
+    popupJalan();
+  }
+  $("popupTutup").addEventListener("click", popupTutup);
+  popup.addEventListener("mouseenter", popupJeda);
+  popup.addEventListener("mouseleave", function () { if (!popup.contains(document.activeElement)) popupJalan(); });
+  popup.addEventListener("focusin", popupJeda);
+  popup.addEventListener("focusout", function (e) { if (!popup.contains(e.relatedTarget)) popupJalan(); });
+  popup.addEventListener("keydown", function (e) { if (e.key === "Escape") popupTutup(); });
+
   /* ---------- Menggambar seluruh beranda ---------- */
   function gambar() {
     pasangGaya();
     gambarUmum();
     gambarLayanan();
     gambarInfo();
+    gambarPopup();
     terpasang = "";
     pasangBanner();
     jadwalkan();
