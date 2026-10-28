@@ -338,10 +338,15 @@ body.halaman-alat .kop.kop::before {
 .rk-langkah button[aria-current="step"]::before { background: var(--emas-terang); color: #0f3554; box-shadow: none; }
 .rk-alat-atas { display: flex; justify-content: flex-end; align-items: center; gap: 12px; padding: 24px clamp(18px, 4vw, 48px) 0; }
 .rk-alat-atas .menu-dropdown-btn { min-height: 48px; }
-/* Keterangan perkakas di kiri bilah atas, sejajar dengan tombol daftar perkakas. Warna mengikuti mode terang/gelap. */
-.rk-alat-atas { align-items: flex-start; }
-.rk-keterangan { flex: 1 1 0; min-width: 0; max-width: 70ch; margin-right: auto; min-height: 48px; display: flex; flex-direction: column; justify-content: center; gap: 6px; }
-.rk-keterangan p { margin: 0; color: var(--tinta-lembut); font-size: 15px; line-height: 1.6; }
+/* Keterangan perkakas: kotak tersendiri di atas langkah pertama, selebar kotak langkah, dengan batang emas di kiri.
+   Warna mengikuti mode terang/gelap lewat token. */
+.rk-keterangan {
+  display: flex; flex-direction: column; gap: 8px; margin-top: 12px; padding: 20px 28px 22px;
+  background: var(--putih); border: 1px solid var(--garis); border-left: 4px solid var(--emas);
+  border-radius: var(--radius-sm, 10px); box-shadow: var(--bayangan-sm);
+}
+.rk-keterangan p { margin: 0; max-width: 78ch; color: var(--tinta-lembut); font-size: 15px; line-height: 1.65; }
+.rk-keterangan p.rk-keterangan-label { color: var(--emas); font-size: 12px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; }
 .rk-keterangan em { font-style: normal; font-weight: 700; color: var(--biru-tua); }
 
 @media (min-width: 921px) {
@@ -372,9 +377,8 @@ body.halaman-alat .kop.kop::before {
   .rk-langkah li { flex: none; }
   .rk-langkah button { width: auto; min-height: 44px; padding: 6px 14px 6px 8px; border-radius: 999px; font-size: 14px; }
   .rk-langkah button[aria-current="step"] { box-shadow: inset 0 0 0 1px var(--emas-terang); }
-  .rk-alat-atas { padding-top: 16px; flex-wrap: wrap; }
-  /* Di layar sempit keterangan turun ke baris sendiri di bawah tombol. */
-  .rk-keterangan { order: 2; flex-basis: 100%; max-width: none; min-height: 0; margin-top: 4px; }
+  .rk-alat-atas { padding-top: 16px; }
+  .rk-keterangan { padding: 16px 18px 18px; margin-top: 8px; }
   .rk-keterangan p { font-size: 14px; }
 }
 @media (prefers-reduced-motion: reduce) {
