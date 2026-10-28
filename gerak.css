@@ -1,0 +1,29 @@
+/* ============================================================
+   Gerak bersama (lihat gerak.js)
+   Pil emas yang bergeser antar menu, sama dengan beranda. Penanda aktif statis tiap halaman diganti pil ini,
+   tetapi hanya setelah gerak.js memasangnya (kelas .pil-aktif), jadi tanpa JavaScript tampilan lama tetap berlaku.
+   ============================================================ */
+.pil-aktif { position: relative; }
+.pil-aktif > a, .pil-aktif > button { position: relative; z-index: 1; }
+.pil-menu {
+  position: absolute; left: 0; top: 0; z-index: 2; pointer-events: none;
+  border: 1px solid var(--emas-terang, #ffd27a);
+  box-shadow: inset 3px 0 0 var(--emas-terang, #ffd27a), 0 4px 16px rgba(var(--rgb-gelap, 10, 40, 66), .32);
+}
+
+/* Menu kelompok Olah PDF (.rk-kelompok): garis emas dan batang kiri dipindahkan ke pil. */
+.rk-kelompok.pil-aktif a[aria-current="true"] {
+  border-color: rgba(255, 255, 255, .30);
+  box-shadow: 0 4px 16px rgba(var(--rgb-gelap, 10, 40, 66), .28), inset 0 1px 0 rgba(255, 255, 255, .12);
+}
+/* Tab panel Monitoring Realisasi Anggaran. */
+.jk .jk-panel nav.tab.pil-aktif button[aria-selected="true"] { box-shadow: none; }
+
+@media (max-width: 920px) {
+  /* Di layar sempit menu berupa chip bulat; pil hanya garis tipis. */
+  .pil-menu { box-shadow: none; }
+  .rk-kelompok.pil-aktif a[aria-current="true"] { box-shadow: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pil-menu { transition: none; }
+}

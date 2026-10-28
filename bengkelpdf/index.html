@@ -22,6 +22,8 @@ body { margin: 0; }
 .rk-foto { background: var(--banner) var(--banner-latar-posisi, center) / cover no-repeat; }
 </style>
 <link rel="stylesheet" href="../dasar.css">
+<link rel="stylesheet" href="../gerak.css">
+<script src="../gerak.js"></script>
 </head>
 <body class="rk-beranda">
 <a class="lewati-konten" href="#konten">Lewati navigasi</a>
@@ -150,6 +152,8 @@ body { margin: 0; }
   // Menu kelompok: gulir ke bagian dan tandai bagian yang sedang dilihat.
   var halus = !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   var tautan = Array.prototype.slice.call(document.querySelectorAll(".rk-kelompok a"));
+  // Pil emas yang bergeser mulus antar kelompok, sama dengan beranda (gerak.js).
+  if (window.Gerak) window.Gerak.pilMenu(document.getElementById("menuKelompok"));
   function tandai(id) { tautan.forEach(function (a) { if (a.getAttribute("href") === "#" + id) a.setAttribute("aria-current", "true"); else a.removeAttribute("aria-current"); }); }
   /* Bagian aktif dihitung dari posisi gulir: bagian terakhir yang judulnya sudah melewati sepertiga atas layar.
      Bagian pendek di ujung halaman yang tidak pernah bisa naik sampai sepertiga atas mendapat giliran

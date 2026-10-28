@@ -30,7 +30,7 @@ window.KONTEN_BAWAAN = {
     "gerbang": { "tampil": true, "teks": "Gerbang Internal (Old)", "alamat": "https://sites.google.com/view/gerbanginternal/halaman-muka" },
     "detikPerInfo": 7
   },
-  "popup": { "tampil": false, "judul": "", "isi": "", "detik": 60 },
+  "pemberitahuan": [],
   "gaya": { "dasar": 1, "huruf": "public-sans", "hurufJudul": "sama", "tema": { "utama": "", "aksen": "" }, "elemen": {} },
   "info": [
     { "tampil": true, "label": "[Perjalanan Dinas]",
@@ -127,6 +127,48 @@ window.Konten = (function () {
 
   function salin(o) { return JSON.parse(JSON.stringify(o)); }
 
+  /* ---------- Pop up pemberitahuan ----------
+     Daftar pilihan ini harus sama dengan daftar putih pemberitahuan_ di Apps Script.
+     Bentuk lama (satu objek `popup`, hanya untuk beranda) diubah menjadi satu butir daftar, supaya isi yang sudah tersimpan tetap tampil. */
+  var PEMBERITAHUAN = {
+    jenis: [["info", "Informasi"], ["peringatan", "Peringatan"], ["penting", "Penting"]],
+    posisi: [["kanan-bawah", "Kanan bawah"], ["kiri-bawah", "Kiri bawah"], ["kanan-atas", "Kanan atas"], ["kiri-atas", "Kiri atas"]],
+    frekuensi: [["sesi", "Sekali per sesi"], ["harian", "Sekali per hari"], ["setiap", "Setiap halaman dibuka"]],
+    halaman: [["beranda", "Beranda"], ["perjadin", "Monitoring E-Perjadin"], ["realisasi", "Monitoring Realisasi Anggaran"], ["olahpdf", "Olah PDF"]]
+  };
+  function kodeDalam(daftar, nilai, bawaan) {
+    for (var i = 0; i < daftar.length; i++) if (daftar[i][0] === nilai) return nilai;
+    return bawaan;
+  }
+  function batasi(n, min, maks, bawaan) { n = Number(n); return isFinite(n) && n >= 0 ? Math.min(maks, Math.max(min, Math.round(n))) : bawaan; }
+  function idPemberitahuan() { return "p" + Math.random().toString(36).slice(2, 10); }
+  function rapikanButirPemberitahuan(x) {
+    x = x && typeof x === "object" ? x : {};
+    var semua = PEMBERITAHUAN.halaman.map(function (h) { return h[0]; });
+    var o = {
+      id: /^[a-z0-9-]{1,20}$/.test(String(x.id || "")) ? String(x.id) : idPemberitahuan(),
+      tampil: x.tampil !== false,
+      jenis: kodeDalam(PEMBERITAHUAN.jenis, x.jenis, "info"),
+      judul: String(x.judul == null ? "" : x.judul), isi: String(x.isi == null ? "" : x.isi),
+      tombolTeks: String(x.tombolTeks == null ? "" : x.tombolTeks), tombolAlamat: String(x.tombolAlamat == null ? "" : x.tombolAlamat),
+      detik: batasi(x.detik, 5, 600, 60), tunda: batasi(x.tunda, 0, 60, 0),
+      posisi: kodeDalam(PEMBERITAHUAN.posisi, x.posisi, "kanan-bawah"),
+      frekuensi: kodeDalam(PEMBERITAHUAN.frekuensi, x.frekuensi, "sesi"),
+      halaman: Array.isArray(x.halaman) ? semua.filter(function (h) { return x.halaman.indexOf(h) >= 0; }) : semua,
+      sembunyikan: x.sembunyikan === true
+    };
+    ["mulai", "selesai"].forEach(function (f) { if (/^\d{4}-\d{2}-\d{2}$/.test(String(x[f] || ""))) o[f] = x[f]; });
+    return o;
+  }
+  function rapikanPemberitahuan(k) {
+    if (Array.isArray(k.pemberitahuan)) return k.pemberitahuan.map(rapikanButirPemberitahuan);
+    var p = k.popup;
+    if (p && typeof p === "object" && (p.judul || p.isi)) {
+      return [rapikanButirPemberitahuan({ id: "lama", tampil: p.tampil === true, judul: p.judul, isi: p.isi, detik: p.detik, halaman: ["beranda"], mulai: p.mulai, selesai: p.selesai })];
+    }
+    return [];
+  }
+
   // Melengkapi isi yang kurang dengan bawaan, supaya isi lama dari Apps Script tetap bisa dipakai.
   function rapikan(k) {
     var b = window.KONTEN_BAWAAN;
@@ -134,8 +176,8 @@ window.Konten = (function () {
     var hasil = salin(k);
     hasil.umum = Object.assign({}, salin(b.umum), hasil.umum || {});
     hasil.umum.gerbang = Object.assign({}, b.umum.gerbang, (k.umum && k.umum.gerbang) || {});
-    // Isi lama dari Apps Script belum punya pop up, jadi dilengkapi dari bawaan (mati).
-    hasil.popup = Object.assign({}, salin(b.popup), (k.popup && typeof k.popup === "object") ? k.popup : {});
+    hasil.pemberitahuan = rapikanPemberitahuan(k);
+    delete hasil.popup;
     ["info", "kelompok", "tautan"].forEach(function (n) { if (!Array.isArray(hasil[n])) hasil[n] = salin(b[n]); });
     // Simpanan yang dibuat untuk koleksi banner lama diganti koleksi bawaan, supaya foto lama tidak muncul lagi.
     hasil.banner = (k.banner && k.banner.koleksi === b.banner.koleksi)
@@ -329,5 +371,6 @@ window.Konten = (function () {
 
   return { ELEMEN: ELEMEN, HURUF: HURUF, PRESET_TEMA: PRESET_TEMA, TEBAL: TEBAL, UTAMA_BAWAAN: UTAMA_BAWAAN, AKSEN_BAWAAN: AKSEN_BAWAAN,
     rapikanGaya: rapikanGaya, rapikanButir: rapikanButir, punyaGaya: punyaGaya, periksaGaya: periksaGaya, cssGaya: cssGaya, alamatHuruf: alamatHuruf, kontras: kontras,
-    isiTeks: isiTeks, polos: polos, alamatAman: alamatAman, luar: luar, salin: salin, rapikan: rapikan, slug: slug, statusJadwal: statusJadwal, dalamJadwal: dalamJadwal, hariIni: hariIni };
+    isiTeks: isiTeks, polos: polos, alamatAman: alamatAman, luar: luar, salin: salin, rapikan: rapikan, slug: slug, statusJadwal: statusJadwal, dalamJadwal: dalamJadwal, hariIni: hariIni,
+    PEMBERITAHUAN: PEMBERITAHUAN, rapikanButirPemberitahuan: rapikanButirPemberitahuan };
 })();

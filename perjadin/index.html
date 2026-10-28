@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://docs.google.com https://*.googleusercontent.com; frame-src https://drive.google.com; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://docs.google.com https://script.google.com https://*.googleusercontent.com; frame-src https://drive.google.com; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="Monitoring E-Perjadin KPKNL Balikpapan: status pembayaran surat tugas perjalanan dinas yang diperbarui langsung dari Google Sheets.">
 <link rel="icon" type="image/x-icon" href="../favicon.ico">
@@ -11,6 +11,9 @@
 <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16.png">
 <link rel="apple-touch-icon" href="../favicon-180.png">
 <script src="../tema.js"></script>
+<script src="../konten.js"></script>
+<link rel="stylesheet" href="../popup.css">
+<script src="../popup.js"></script>
 <style>html, body { margin: 0; padding: 0; } [hidden] { display: none !important; }</style>
 <title>Monitoring E-Perjadin | KPKNL Balikpapan</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap">
@@ -354,8 +357,10 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
   .ringkas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .kartu.semua { grid-column: 1 / -1; }
 }
+/* Transisi hover yang sama dengan beranda (0,16 detik) untuk elemen yang tadinya berganti warna seketika. */
+.baris, .urut, .unduh, .pratinjau-aksi a, .pratinjau-aksi button { transition: background-color .16s ease, border-color .16s ease, color .16s ease, opacity .16s ease; }
 @media (prefers-reduced-motion: reduce) {
-  .panel-foto, .seksi button, .kartu, .lipat { transition: none; }
+  .panel-foto, .seksi button, .kartu, .lipat, .baris, .urut, .unduh, .pratinjau-aksi a, .pratinjau-aksi button { transition: none; }
   .kerangka { animation: none; }
 }
 </style>
@@ -905,6 +910,9 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
   document.addEventListener("visibilitychange", function () { if (!document.hidden) { pasangBanner(); muatBila(); } });
   terakhir = Date.now();
   muat();
+
+  // Pop up pemberitahuan dari dasbor admin (popup.js). Isi terbaru diambil dari Apps Script; CSP di atas mengizinkan sambungan itu.
+  if (window.Popup) Popup.mulai({ halaman: "perjadin", akar: "../", ambil: true });
 
   window.__perjadin = { bacaCSV: bacaCSV, olahData: olahData, data: function () { return semuaData; } };
 })();

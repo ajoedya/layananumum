@@ -460,16 +460,32 @@
     }
   };
 
+  // Pop up pemberitahuan dari dasbor admin (popup.js di akar situs), sama dengan beranda.
+  // Tanpa `ambil`: CSP halaman Olah PDF sengaja menutup sambungan keluar supaya berkas tidak mungkin terkirim ke mana pun,
+  // jadi pop up hanya memakai isi yang sudah disimpan peramban dari beranda, Perjadin, atau Realisasi.
+  function pasangPopup() {
+    if (!window.Konten || window.Popup) return;
+    const gaya = document.createElement("link");
+    gaya.rel = "stylesheet"; gaya.href = "../popup.css";
+    document.head.appendChild(gaya);
+    const skrip = document.createElement("script");
+    skrip.src = "../popup.js";
+    skrip.onload = function () { if (window.Popup) window.Popup.mulai({ halaman: "olahpdf", akar: "../" }); };
+    document.head.appendChild(skrip);
+  }
+
   // Inisialisasi favicon dan menu saat DOM siap
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", function () {
       pasangFavicon();
       pasangMenu();
+      pasangPopup();
       if (window.Tema) window.Tema.segarkan();
     });
   } else {
     pasangFavicon();
     pasangMenu();
+    pasangPopup();
     if (window.Tema) window.Tema.segarkan();
   }
 })();

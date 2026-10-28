@@ -59,6 +59,8 @@ textarea { min-height: 76px; resize: vertical; line-height: 1.5; }
 input.salah, textarea.salah { border-color: var(--merah); background: var(--merah-muda); }
 .centang { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
 .centang input { width: 18px; height: 18px; accent-color: var(--laut); }
+fieldset.pilihan-halaman { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 0; padding: 0; border: 0; min-width: 0; }
+fieldset.pilihan-halaman legend { padding: 0; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: var(--lembut); }
 
 /* ---------- Tata letak ---------- */
 .wadah { max-width: 1120px; margin: 0 auto; padding: 20px; }
@@ -360,12 +362,20 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
     }
     if (!k.umum.judul.trim()) galat.push("Umum: judul beranda masih kosong.");
     if (k.umum.gerbang.tampil) cekAlamat(k.umum.gerbang.alamat, "Tombol Gerbang");
-    if (k.popup.tampil) {
-      if (!String(k.popup.judul || "").trim() && !String(k.popup.isi || "").trim()) galat.push("Pop up: judul dan isi masih kosong.");
-      var dp = Number(k.popup.detik);
-      if (!(dp >= 5 && dp <= 600)) galat.push("Pop up: lama tampil harus antara 5 dan 600 detik.");
-      if (k.popup.mulai && k.popup.selesai && k.popup.selesai < k.popup.mulai) galat.push("Pop up: tanggal selesai lebih awal daripada tanggal mulai.");
-    }
+    k.pemberitahuan.forEach(function (x, i) {
+      if (!x.tampil) return;
+      var nama = "Pop up \"" + (K.polos(x.judul) || i + 1) + "\"";
+      if (!String(x.judul || "").trim() && !String(x.isi || "").trim()) galat.push(nama + ": judul dan isi masih kosong.");
+      if (!(Number(x.detik) >= 5 && Number(x.detik) <= 600)) galat.push(nama + ": lama tampil harus antara 5 dan 600 detik.");
+      if (!(Number(x.tunda) >= 0 && Number(x.tunda) <= 60)) galat.push(nama + ": jeda sebelum muncul harus antara 0 dan 60 detik.");
+      if (!x.halaman.length) galat.push(nama + ": pilih sedikitnya satu halaman tempat pop up tampil.");
+      if (String(x.tombolTeks || "").trim() && !String(x.tombolAlamat || "").trim()) galat.push(nama + ": tombol punya teks tetapi alamatnya kosong.");
+      else if (String(x.tombolAlamat || "").trim()) {
+        if (!K.alamatAman(x.tombolAlamat)) galat.push(nama + ": alamat tombol harus diawali https:// atau berupa alamat di situs ini.");
+        if (!String(x.tombolTeks || "").trim()) galat.push(nama + ": alamat tombol terisi tetapi teks tombolnya kosong.");
+      }
+      if (x.mulai && x.selesai && x.selesai < x.mulai) galat.push(nama + ": tanggal selesai lebih awal daripada tanggal mulai.");
+    });
     var kode = {};
     k.kelompok.forEach(function (g, i) {
       if (!g.nama.trim()) galat.push("Kelompok " + (i + 1) + ": nama masih kosong.");
@@ -520,7 +530,7 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
 
   /* ---------- Tab ---------- */
   var TAB = [
-    ["umum", "Umum"], ["info", "Informasi"], ["kelompok", "Kelompok"], ["tautan", "Tautan"], ["tampilan", "Tampilan"], ["banner", "Banner"], ["lihat", "Pratinjau"], ["statistik", "Statistik"],
+    ["umum", "Umum"], ["info", "Informasi"], ["pemberitahuan", "Pop up"], ["kelompok", "Kelompok"], ["tautan", "Tautan"], ["tampilan", "Tampilan"], ["banner", "Banner"], ["lihat", "Pratinjau"], ["statistik", "Statistik"],
     ["penyunting", "Penyunting", "admin"], ["aktivitas", "Aktivitas", "admin"], ["riwayat", "Riwayat & Cadangan"]
   ];
   // Tab bertanda "admin" hanya tampil untuk pemegang kunci admin; penyunting terdaftar tidak melihatnya.
@@ -528,6 +538,7 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
   function hitung(id) {
     var k = keadaan.konten;
     if (id === "info") return k.info.length;
+    if (id === "pemberitahuan") return k.pemberitahuan.length;
     if (id === "kelompok") return k.kelompok.length;
     if (id === "tautan") return k.tautan.length;
     if (id === "banner") return k.banner.siang.length + k.banner.malam.length;
@@ -548,7 +559,7 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
   function gambarPanel() {
     var p = $("panel");
     p.textContent = "";
-    ({ umum: panelUmum, info: panelInfo, kelompok: panelKelompok, tautan: panelTautan, tampilan: panelTampilan, banner: panelBanner, lihat: panelLihat, statistik: panelStatistik, penyunting: panelPenyunting, aktivitas: panelAktivitas, riwayat: panelRiwayat })[keadaan.tab](p);
+    ({ umum: panelUmum, info: panelInfo, pemberitahuan: panelPemberitahuan, kelompok: panelKelompok, tautan: panelTautan, tampilan: panelTampilan, banner: panelBanner, lihat: panelLihat, statistik: panelStatistik, penyunting: panelPenyunting, aktivitas: panelAktivitas, riwayat: panelRiwayat })[keadaan.tab](p);
   }
   function judulBagian(teks, tombol) {
     return el("div", { kelas: "bagian-judul" }, [el("h2", { teks: teks })].concat(tombol || []));
@@ -575,15 +586,52 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
       kolom("Teks tombol", u.gerbang, "teks", { maks: 60 }),
       kolom("Alamat", u.gerbang, "alamat", { alamat: true, contoh: "https://..." })
     ]));
-    var pop = keadaan.konten.popup;
-    p.appendChild(judulBagian("Pop up pemberitahuan"));
-    p.appendChild(el("p", { kelas: "petunjuk", teks: "Kotak kecil di pojok kanan bawah beranda. Muncul sekali setiap pengunjung membuka beranda, hilang sendiri setelah beberapa detik, dan bisa ditutup dengan tombol silang. Teks berubah berarti pop up muncul lagi. " + KET_PENANDA }));
-    p.appendChild(el("div", { kelas: "kotak kisi" }, [
-      el("div", { kelas: "penuh" }, [centang("Tampilkan pop up", pop, "tampil")]),
-      kolom("Judul", pop, "judul", { maks: 80, penuh: true }),
-      kolom("Isi", pop, "isi", { jenis: "area", maks: 300, penuh: true }),
-      kolom("Lama tampil (detik)", pop, "detik", { jenis: "number", ket: "Antara 5 dan 600. Bawaan 60 detik (1 menit)." })
-    ].concat(kolomJadwal(pop))));
+  }
+
+  /* ---------- Tab Pop up ----------
+     Daftar pilihannya dari Konten.PEMBERITAHUAN, sama dengan daftar putih di Apps Script. */
+  var BATAS_POPUP = 10;
+  function pilihan(daftar) { return daftar.map(function (d) { return [d[0], d[1]]; }); }
+  // Kotak centang halaman: pilihan disimpan sebagai larik kode halaman pada butir.
+  function kolomHalaman(x) {
+    var wadah = el("fieldset", { kelas: "pilihan-halaman penuh" }, [el("legend", { teks: "Tampil di halaman" })]);
+    K.PEMBERITAHUAN.halaman.forEach(function (h) {
+      var m = el("input", { type: "checkbox" });
+      m.checked = x.halaman.indexOf(h[0]) >= 0;
+      m.addEventListener("change", function () {
+        x.halaman = K.PEMBERITAHUAN.halaman.map(function (a) { return a[0]; }).filter(function (kode) { return kode === h[0] ? m.checked : x.halaman.indexOf(kode) >= 0; });
+        berubah();
+      });
+      wadah.appendChild(el("label", { kelas: "centang" }, [m, h[1]]));
+    });
+    return wadah;
+  }
+  function panelPemberitahuan(p) {
+    var d = keadaan.konten.pemberitahuan;
+    p.appendChild(judulBagian("Pop up pemberitahuan", [el("button", { type: "button", kelas: "tombol utama", disabled: d.length >= BATAS_POPUP, teks: "+ Tambah pop up", onclick: function () {
+      d.unshift(K.rapikanButirPemberitahuan({ tampil: true })); berubah(); gambarTab();
+    } })]));
+    p.appendChild(el("p", { kelas: "petunjuk", teks: "Kotak kecil di pojok layar. Satu pop up tampil pada satu waktu; yang lain mengantre dan muncul setelah yang sebelumnya ditutup atau habis waktunya. Teks yang diubah dianggap pop up baru, jadi muncul lagi bagi yang pernah melihatnya. Paling banyak " + BATAS_POPUP + " butir. " + KET_PENANDA }));
+    p.appendChild(el("p", { kelas: "petunjuk", teks: "Tombol Pratinjau menampilkan semua pop up yang aktif di beranda, tanpa memandang pilihan halaman dan tanpa mengingat yang sudah dilihat." }));
+    if (!d.length) { p.appendChild(el("div", { kelas: "kosong", teks: "Belum ada pop up. Tidak ada pemberitahuan yang muncul di situs." })); return; }
+    var wadah = el("div", { kelas: "daftar" });
+    d.forEach(function (x, i) {
+      var kt = kartu(K.polos(x.judul), String(i + 1), x, kendaliKartu(d, i, { nama: "pop up ini" }), [
+        kolom("Jenis", x, "jenis", { jenis: "pilih", pilihan: pilihan(K.PEMBERITAHUAN.jenis), ket: "Menentukan warna garis dan ikon." }),
+        kolom("Posisi di layar", x, "posisi", { jenis: "pilih", pilihan: pilihan(K.PEMBERITAHUAN.posisi) }),
+        kolom("Judul", x, "judul", { maks: 80, penuh: true, ubah: function (v) { kt._nama.textContent = K.polos(v) || "(tanpa judul)"; } }),
+        kolom("Isi", x, "isi", { jenis: "area", maks: 300, penuh: true }),
+        kolom("Teks tombol", x, "tombolTeks", { maks: 40, contoh: "Lihat pengumuman", ket: "Kosong berarti tanpa tombol." }),
+        kolom("Alamat tombol", x, "tombolAlamat", { alamat: true, contoh: "https://... atau perjadin/" }),
+        kolom("Lama tampil (detik)", x, "detik", { jenis: "number", ket: "Antara 5 dan 600. Bawaan 60 detik." }),
+        kolom("Jeda sebelum muncul (detik)", x, "tunda", { jenis: "number", ket: "Antara 0 dan 60. Kosong atau 0 berarti langsung." }),
+        kolom("Seberapa sering muncul", x, "frekuensi", { jenis: "pilih", pilihan: pilihan(K.PEMBERITAHUAN.frekuensi) }),
+        el("div", { kelas: "penuh" }, [centang("Beri tombol \"Jangan tampilkan lagi\" agar pengunjung bisa menyembunyikannya", x, "sembunyikan")]),
+        kolomHalaman(x)
+      ].concat(kolomJadwal(x)));
+      wadah.appendChild(kt);
+    });
+    p.appendChild(wadah);
   }
 
   /* ---------- Tab Informasi ---------- */

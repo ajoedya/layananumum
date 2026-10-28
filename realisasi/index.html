@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="id" data-panel="lepas"><head>
+<html lang="id" data-panel="kunci"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <script>
 /* Panel kiri: "lepas" berarti menyusut otomatis menjadi lajur ikon, "kunci" berarti selalu terbuka.
    Dipasang sebelum halaman digambar supaya isi tidak bergeser saat dimuat. */
-(function(){var k=null;try{k=localStorage.getItem("jagakas-panel");}catch(e){}
-document.documentElement.setAttribute("data-panel",k==="kunci"?"kunci":"lepas");})();
+(function(){var k=null;try{k=localStorage.getItem("jagakas-panel-pilihan");}catch(e){}
+document.documentElement.setAttribute("data-panel",k==="lepas"?"lepas":"kunci");})();
 </script>
 <script>
 /* ============================================================
@@ -2515,6 +2515,10 @@ body.halaman-alat .kop.kop::before {
 
 
 <script src="../konten.js"></script>
+<link rel="stylesheet" href="../popup.css">
+<script src="../popup.js"></script>
+<link rel="stylesheet" href="../gerak.css">
+<script src="../gerak.js"></script>
 <script>
 /* ============================================================
    1. Pembacaan file Laporan Fa
@@ -4792,9 +4796,10 @@ document.addEventListener('DOMContentLoaded',()=>{
     rangka.classList.remove('panel-terbuka'); tombolBuka.setAttribute('aria-expanded','false');
     if(kembalikanFokus||fokusDiDalam) tombolBuka.focus({preventScroll:true});
   }
-  function pasangKunci(k){
+  function pasangKunci(k,simpan){
     akar.setAttribute('data-panel',k?'kunci':'lepas');
-    try{ localStorage.setItem('jagakas-panel',k?'kunci':'lepas'); }catch(e){}
+    /* Hanya pilihan yang sengaja dibuat pengguna (klik tombol kunci) yang disimpan, jadi bawaan panel lebar berlaku bagi semua yang belum memilih. */
+    if(simpan){ try{ localStorage.setItem('jagakas-panel-pilihan',k?'kunci':'lepas'); }catch(e){} }
     tombolKunci.setAttribute('aria-pressed',String(k));
     tombolKunci.setAttribute('aria-label',k?'Lepas kunci, panel menyusut otomatis':'Kunci panel agar tetap terbuka');
     tombolKunci.title=k?'Lepas kunci panel':'Kunci panel';
@@ -4802,7 +4807,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   }
 
   tombolBuka.addEventListener('click',()=>buka(true));
-  tombolKunci.addEventListener('click',()=>{ pasangKunci(!terkunci()); if(!terkunci()) tombolBuka.focus(); });
+  tombolKunci.addEventListener('click',()=>{ pasangKunci(!terkunci(),true); if(!terkunci()) tombolBuka.focus(); });
   /* Buka-tutup dengan arahan kursor hanya untuk tetikus atau trackpad. Ketukan jari di iPad juga
      memicu mouseenter/mouseleave tiruan, sehingga panel bisa terbuka sendiri setelah ditutup. */
   const kursor=e=>e.pointerType==='mouse';
@@ -4958,5 +4963,9 @@ window.BANNER_DASAR = location.protocol === "file:" ? "" : new URL("../", locati
     setTimeout(tampil, 500);
   });
 })();
+// Pop up pemberitahuan dari dasbor admin (popup.js). Halaman ini tidak memakai CSP, jadi isi terbaru boleh diambil dari Apps Script.
+if (window.Popup) Popup.mulai({ halaman: "realisasi", akar: "../", ambil: true });
+// Pil emas yang bergeser mulus antar tab di panel, sama dengan menu kelompok beranda (gerak.js).
+if (window.Gerak) Gerak.pilMenu(document.querySelector("nav.tab"), { aktif: 'button[aria-selected="true"]', atribut: ["aria-selected"] });
 </script>
 </body></html>

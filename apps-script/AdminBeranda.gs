@@ -351,13 +351,34 @@ function alamat_(v) {
   return a;
 }
 function daftar_(v, maks) { if (!Array.isArray(v)) return []; return v.slice(0, maks); }
-function popup_(v) {
-  v = (v && typeof v === "object") ? v : {};
-  var d = Number(v.detik);
-  var o = { tampil: v.tampil === true, judul: teks_(v.judul, 80), isi: teks_(v.isi, 300),
-            detik: Math.min(600, Math.max(5, isFinite(d) && d > 0 ? Math.round(d) : 60)) };
-  jadwal_(o, v);
-  return o;
+/* ---------- Pop up pemberitahuan ----------
+   Daftar putih ini harus sama dengan PEMBERITAHUAN di konten.js. Tombol tautan memakai aturan alamat yang sama dengan tautan layanan. */
+var PEMBERITAHUAN_JENIS_ = { info: true, peringatan: true, penting: true };
+var PEMBERITAHUAN_POSISI_ = { "kanan-bawah": true, "kiri-bawah": true, "kanan-atas": true, "kiri-atas": true };
+var PEMBERITAHUAN_FREKUENSI_ = { sesi: true, harian: true, setiap: true };
+var PEMBERITAHUAN_HALAMAN_ = ["beranda", "perjadin", "realisasi", "olahpdf"];
+function angkaBatas_(v, min, maks, bawaan) { v = Number(v); return isFinite(v) && v >= 0 ? Math.min(maks, Math.max(min, Math.round(v))) : bawaan; }
+function pemberitahuan_(daftar) {
+  var dipakai = {};
+  return daftar_(daftar, 10).map(function (x) {
+    x = (x && typeof x === "object") ? x : {};
+    var id = teks_(x.id, 20).toLowerCase().replace(/[^a-z0-9-]/g, "");
+    if (!id || dipakai[id]) id = "p" + Utilities.getUuid().replace(/-/g, "").slice(0, 10);
+    dipakai[id] = true;
+    var o = {
+      id: id, tampil: x.tampil !== false,
+      jenis: PEMBERITAHUAN_JENIS_[x.jenis] ? x.jenis : "info",
+      judul: teks_(x.judul, 80), isi: teks_(x.isi, 300),
+      tombolTeks: teks_(x.tombolTeks, 40), tombolAlamat: alamat_(x.tombolAlamat),
+      detik: angkaBatas_(x.detik, 5, 600, 60), tunda: angkaBatas_(x.tunda, 0, 60, 0),
+      posisi: PEMBERITAHUAN_POSISI_[x.posisi] ? x.posisi : "kanan-bawah",
+      frekuensi: PEMBERITAHUAN_FREKUENSI_[x.frekuensi] ? x.frekuensi : "sesi",
+      halaman: Array.isArray(x.halaman) ? PEMBERITAHUAN_HALAMAN_.filter(function (h) { return x.halaman.indexOf(h) >= 0; }) : PEMBERITAHUAN_HALAMAN_.slice(),
+      sembunyikan: x.sembunyikan === true
+    };
+    jadwal_(o, x);
+    return o;
+  });
 }
 function periksa_(k) {
   if (!k || typeof k !== "object") throw new Error("Isi beranda kosong.");
@@ -389,8 +410,8 @@ function periksa_(k) {
       jadwal_(o, x);
       return o;
     }),
-    // Pop up pemberitahuan di pojok beranda. Lama tampil dibatasi 5 detik sampai 10 menit.
-    popup: popup_(k.popup),
+    // Pop up pemberitahuan di pojok layar. Lama tampil dibatasi 5 detik sampai 10 menit, paling banyak 10 butir.
+    pemberitahuan: pemberitahuan_(k.pemberitahuan),
     gaya: gaya_(k.gaya),
     banner: {
       menit: Math.min(240, Math.max(1, Number(b.menit) || 10)),
