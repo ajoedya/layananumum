@@ -189,6 +189,18 @@
     atas.setAttribute("role", "navigation");
     atas.setAttribute("aria-label", "Navigasi perkakas");
 
+    // Keterangan perkakas pindah dari panel ke bilah atas, tepat di atas bagian unggah berkas,
+    // supaya panel hanya berisi judul dan langkah.
+    if (kopIsi) {
+      const paragraf = Array.from(kopIsi.children).filter((n) => n.tagName === "P" && !n.classList.contains("kop-label"));
+      if (paragraf.length) {
+        const ket = document.createElement("div");
+        ket.className = "rk-keterangan";
+        paragraf.forEach((p) => ket.appendChild(p));
+        atas.insertBefore(ket, atas.firstChild);
+      }
+    }
+
     const container = document.createElement("div");
     container.className = "menu-dropdown-wrapper";
     const tombol = document.createElement("button");
