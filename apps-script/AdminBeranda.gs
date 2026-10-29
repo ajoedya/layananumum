@@ -48,6 +48,10 @@ var BATAS_LOG = 500;            // baris log terlama dihapus bila melewati jumla
 var BATAS_BARIS_STATISTIK = 20000; // batas pengaman supaya tab Statistik tidak membengkak
 var ZONA_WAKTU = "Asia/Makassar";  // tanggal statistik dan log mengikuti WITA
 var POTONG = 45000;             // panjang teks per sel (batas sel Google Sheets 50.000 karakter)
+// Versi kode dan fitur yang dikenali. Dasbor admin membacanya lewat doGet (aksi=versi) untuk memastikan
+// deployment yang tayang sudah memakai kode ini. Naikkan tanggalnya setiap kali kode diubah.
+var VERSI_SKRIP = "2026-10-29";
+var FITUR_SKRIP = ["pemberitahuan"];
 
 /* ---------- Menu di spreadsheet ---------- */
 function onOpen() {
@@ -108,6 +112,7 @@ function kirimPengingatImpor() {
 function doGet(e) {
   var aksi = (e && e.parameter && e.parameter.aksi) || "baca";
   if (aksi === "realisasi") return bacaRealisasiPublik_();
+  if (aksi === "versi") return balas_({ ok: true, versi: VERSI_SKRIP, fitur: FITUR_SKRIP });
   if (aksi !== "baca") return balas_({ ok: false, pesan: "Aksi tidak dikenal" });
   var cache = CacheService.getScriptCache();
   var simpanan = cache.get("konten");

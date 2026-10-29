@@ -300,8 +300,27 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
       simpanLokal(KUNCI_NAMA, keadaan.nama);
       $("kunciAdmin").value = "";
       mulaiSunting(h.konten || window.KONTEN_BAWAAN, h.diperbarui || "");
+      periksaVersiSkrip();
     });
   });
+
+  /* Deployment Apps Script yang tayang bisa masih memakai kode lama (lupa memilih "Versi baru", atau membuat
+     deployment baru sehingga alamat /exec berbeda). Kode lama diam-diam membuang daftar pop up saat menyimpan,
+     jadi dasbor memeriksanya lebih dulu dan memberi tahu admin. */
+  function periksaVersiSkrip() {
+    fetch(ALAMAT + "?aksi=versi", { cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .then(function (h) { keadaan.skripLama = !(h && h.ok && h.fitur && h.fitur.indexOf("pemberitahuan") >= 0); })
+      .catch(function () { keadaan.skripLama = false; })   // gangguan jaringan bukan tanda kode lama
+      .then(function () {
+        if (!keadaan.skripLama) return;
+        kabar("Apps Script di server masih versi lama. Pop up tidak akan tersimpan sampai kodenya diperbarui.", true);
+        if (keadaan.tab === "pemberitahuan") gambarPanel();
+      });
+  }
+  var PESAN_SKRIP_LAMA = "Apps Script yang tayang masih versi lama, jadi daftar pop up dibuang saat diterbitkan. " +
+    "Tempel isi apps-script/AdminBeranda.gs terbaru ke Apps Script, simpan, lalu buka Terapkan > Kelola deployment > ikon pensil > " +
+    "Versi: Versi baru > Terapkan. Jangan memilih Deployment baru, karena alamat /exec akan berubah. Setelah itu muat ulang dasbor ini.";
   $("tombolKeluar").addEventListener("click", function () {
     if ((adaPerubahan() || monev.siap) && !confirm("Ada perubahan yang belum diterbitkan. Tetap keluar? Suntingan tetap tersimpan di peramban ini.")) return;
     location.reload();
@@ -416,6 +435,8 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
     if (galat.length) return;
     // Penerbitan pertama (spreadsheet masih kosong) boleh tanpa perubahan, supaya isi sekarang tercatat di riwayat.
     if (!adaPerubahan() && keadaan.dasar) { kabar("Tidak ada perubahan untuk diterbitkan."); return; }
+    if (keadaan.skripLama && keadaan.konten.pemberitahuan.length &&
+        !confirm(PESAN_SKRIP_LAMA + "\n\nTetap terbitkan bagian lain tanpa pop up?")) return;
     var catatan = prompt("Catatan singkat perubahan (boleh dikosongkan):", "");
     if (catatan === null) return;
     var tombol = $("tombolTerbit");
@@ -611,6 +632,7 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
     p.appendChild(judulBagian("Pop up pemberitahuan", [el("button", { type: "button", kelas: "tombol utama", disabled: d.length >= BATAS_POPUP, teks: "+ Tambah pop up", onclick: function () {
       d.unshift(K.rapikanButirPemberitahuan({ tampil: true })); berubah(); gambarTab();
     } })]));
+    if (keadaan.skripLama) p.appendChild(el("div", { kelas: "peringatan-gaya", role: "alert", teks: PESAN_SKRIP_LAMA }));
     p.appendChild(el("p", { kelas: "petunjuk", teks: "Kotak kecil di pojok layar. Satu pop up tampil pada satu waktu; yang lain mengantre dan muncul setelah yang sebelumnya ditutup atau habis waktunya. Teks yang diubah dianggap pop up baru, jadi muncul lagi bagi yang pernah melihatnya. Paling banyak " + BATAS_POPUP + " butir. " + KET_PENANDA }));
     p.appendChild(el("p", { kelas: "petunjuk", teks: "Tombol Pratinjau menampilkan semua pop up yang aktif di beranda, tanpa memandang pilihan halaman dan tanpa mengingat yang sudah dilihat." }));
     if (!d.length) { p.appendChild(el("div", { kelas: "kosong", teks: "Belum ada pop up. Tidak ada pemberitahuan yang muncul di situs." })); return; }
