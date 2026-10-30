@@ -2,44 +2,78 @@
 <html lang="id">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://lh3.googleusercontent.com https://drive.google.com; connect-src 'self' https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
 <title>Dasbor Admin | Layanan Subbagian Umum</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap">
+<script src="../tema.js"></script>
 <script src="../konten.js"></script>
+<script src="../banner.js"></script>
 <style>
-/* Dasbor admin beranda. Satu tampilan terang dengan warna yang sama dengan beranda. */
+/* Dasbor admin. Rangka (panel navy berfoto di kiri berisi menu, kolom isi di kanan) dan palet terang/gelap memakai
+   dasar.css, sama dengan beranda dan Olah PDF. Variabel di bawah hanya nama lama di halaman ini yang dipetakan ke
+   palet dasar.css, ditambah warna yang tidak ada di sana. */
 :root {
   color-scheme: light;
   --huruf: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --laut: #0f3554; --laut-hover: #1b4d75; --emas: #b8700f; --emas-teks: #8a5208; --emas-muda: #fff6e1; --emas-garis: #e9d3a0;
-  --putih: #fff; --latar: #f5f8fa; --tinta: #0f3554; --lembut: #4f6577; --garis: #dbe4ea; --kolom: #cdd9e0;
-  --merah: #b3261e; --merah-muda: #fdecea; --hijau: #1f7a4a; --hijau-muda: #e7f5ed; --abu-muda: #eef2f5;
+  --huruf-judul: var(--huruf); --huruf-isi: var(--huruf);
+  --laut: var(--aksen-latar); --laut-hover: var(--aksen-hover);
+  --lembut: var(--tinta-lembut); --kolom: var(--garis-fokus); --abu-muda: var(--biru-muda);
+  --merah: #b3261e; --merah-muda: #fdecea; --hijau: #1f7a4a; --hijau-muda: #e7f5ed;
+}
+:root[data-mode="gelap"] {
+  color-scheme: dark;
+  --merah: #f2a89d; --merah-muda: #3a1915; --hijau: #8fd9ae; --hijau-muda: #12301f;
 }
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; }
 body { background: var(--latar); color: var(--tinta); font: 15px/1.55 var(--huruf); -webkit-font-smoothing: antialiased; }
 [hidden] { display: none !important; }
 button, input, select, textarea { font: inherit; color: inherit; }
-a { color: #0f4a78; }
+a { color: var(--biru); }
+.lewati-konten { position: absolute; left: 8px; top: -60px; z-index: 60; padding: 10px 14px; border-radius: 6px; background: var(--laut-tua); color: #fff; font-weight: 700; }
+.lewati-konten:focus { top: 8px; }
 
-/* ---------- Kepala ---------- */
-.kepala { position: sticky; top: 0; z-index: 20; background: var(--laut); color: #fff; box-shadow: 0 2px 10px rgba(15,53,84,.18); }
-.kepala-isi { max-width: 1120px; margin: 0 auto; padding: 12px 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
-.merek { font-weight: 800; font-size: 18px; letter-spacing: -.02em; margin-right: auto; }
-.merek small { display: block; color: #c9d8e4; font-size: 11px; font-weight: 600; letter-spacing: .16em; }
-.status { font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,.14); }
-.status.ubah { background: #ffd27a; color: #4a2f05; }
-.kepala .tombol { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.3); color: #fff; }
-.kepala .tombol:hover { background: rgba(255,255,255,.22); }
-.kepala .tombol.utama { background: #ffd27a; border-color: #ffd27a; color: #3b2604; }
-.kepala .tombol.utama:hover { background: #ffe1a1; }
+/* ---------- Panel kiri (rk- dari dasar.css) ---------- */
+.rk-foto { background: center / cover no-repeat; }
+/* Tab bagian beranda tampil sebagai menu kotak kaca seperti menu kelompok beranda (.rk-kelompok a di dasar.css). */
+.rk-kelompok .tab {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 44px; padding: 8px 12px 8px 16px;
+  border-radius: 12px; color: #fff; font-size: 15px; font-weight: 600; text-align: left; cursor: pointer;
+  background: rgba(var(--rgb-laut),.62); border: 1px solid rgba(255,255,255,.30);
+  box-shadow: 0 4px 16px rgba(var(--rgb-gelap),.28), inset 0 1px 0 rgba(255,255,255,.12);
+  -webkit-backdrop-filter: blur(10px) saturate(1.2); backdrop-filter: blur(10px) saturate(1.2);
+  text-shadow: 0 1px 2px rgba(var(--rgb-gelap),.5); transition: background-color .16s ease, border-color .16s ease;
+}
+.rk-kelompok .tab:hover { background: rgba(var(--rgb-laut),.78); border-color: rgba(255,255,255,.5); }
+.rk-kelompok .tab[aria-selected="true"] { background: rgba(var(--rgb-laut),.82); border-color: var(--emas-terang); box-shadow: 0 4px 16px rgba(var(--rgb-gelap),.32), inset 3px 0 0 var(--emas-terang); }
+.rk-kelompok .tab[aria-selected="true"] b { background: var(--emas-terang); color: #0f3554; box-shadow: none; }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .rk-kelompok .tab { background: rgba(var(--rgb-laut),.88); } }
+@media (max-width: 920px) {
+  .rk-kelompok .tab { width: auto; padding: 6px 8px 6px 14px; border-radius: 999px; }
+  .rk-kelompok .tab[aria-selected="true"] { box-shadow: inset 0 0 0 1px var(--emas-terang); }
+}
+.rk-kelompok .tab:not(:has(b)) { padding-right: 16px; }
+
+/* ---------- Bilah alat di kolom isi: status, tombol halaman, saklar tema ---------- */
+.alat-admin { position: sticky; top: 0; z-index: 20; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px 10px;
+  margin: -28px calc(-1 * clamp(18px, 4vw, 56px)) 0; padding: 12px clamp(18px, 4vw, 56px); background: rgba(var(--rgb-latar), .94); border-bottom: 1px solid var(--garis); }
+.alat-admin .status { margin-right: auto; }
+.status { font-size: 13px; font-weight: 700; padding: 6px 12px; border-radius: 999px; background: var(--biru-muda); color: var(--tinta-lembut); }
+.status.ubah { background: var(--emas-muda); color: var(--emas-teks); box-shadow: inset 0 0 0 1px var(--emas-garis); }
+.menu-mode { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; padding: 0; color: var(--biru-tua); background: var(--tombol-polos); border: 1px solid var(--emas-garis); border-radius: 50%; cursor: pointer; }
+.menu-mode:hover { background: var(--hover-hangat); border-color: var(--emas-tua); }
+.menu-mode:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: 3px; }
+.menu-mode svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.menu-mode .ikon-matahari { display: none; }
+:root[data-mode="gelap"] .menu-mode .ikon-bulan { display: none; }
+:root[data-mode="gelap"] .menu-mode .ikon-matahari { display: block; }
 
 /* ---------- Tombol dan kolom ---------- */
-.tombol { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 8px 14px; border: 1px solid var(--kolom); border-radius: 6px; background: var(--putih); font-weight: 600; cursor: pointer; text-decoration: none; color: var(--tinta); }
+.tombol { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 8px 14px; border: 1px solid var(--kolom); border-radius: 6px; background: var(--putih); font-weight: 600; cursor: pointer; text-decoration: none; color: var(--tinta); }
 .tombol:hover { border-color: var(--laut); }
 .tombol.utama { background: var(--laut); border-color: var(--laut); color: #fff; }
 .tombol.utama:hover { background: var(--laut-hover); }
@@ -63,11 +97,8 @@ fieldset.pilihan-halaman { display: flex; flex-wrap: wrap; gap: 8px 20px; margin
 fieldset.pilihan-halaman legend { padding: 0; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: var(--lembut); }
 
 /* ---------- Tata letak ---------- */
-.wadah { max-width: 1120px; margin: 0 auto; padding: 20px; }
-.tab-baris { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; border-bottom: 1px solid var(--garis); }
-.tab { border: 0; background: none; padding: 10px 14px; font-weight: 700; color: var(--lembut); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -1px; }
-.tab[aria-selected="true"] { color: var(--laut); border-bottom-color: var(--emas); }
-.tab b { margin-left: 4px; padding: 1px 7px; border-radius: 10px; background: var(--abu-muda); font-size: 12px; }
+/* Isi berada di .rk-isi (dasar.css), dibatasi lebarnya supaya tidak terlalu melebar di layar besar. */
+.wadah { width: 100%; max-width: 1120px; }
 .bagian-judul { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 12px; }
 .bagian-judul h2 { margin: 0 auto 0 0; font-size: 18px; }
 .petunjuk { margin: 0 0 14px; color: var(--lembut); font-size: 14px; }
@@ -96,8 +127,9 @@ input[type=range] { width: 100%; accent-color: var(--emas); }
 @media (max-width: 600px) { .banner-kartu { grid-template-columns: 1fr; } .cuplikan { width: 100%; height: 150px; } }
 
 /* ---------- Masuk ---------- */
-.masuk { max-width: 460px; margin: 48px auto; display: flex; flex-direction: column; gap: 14px; }
-.masuk h1 { margin: 0; font-size: 22px; }
+.masuk { max-width: 460px; margin: clamp(0px, 6vh, 56px) auto 0; display: flex; flex-direction: column; gap: 14px; }
+.masuk .label-isi { margin: 0 0 -8px; color: var(--emas-teks); font-size: 12px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; }
+.masuk h2 { margin: 0; font-size: 22px; color: var(--biru-tua); }
 .pesan { margin: 0; padding: 10px 14px; border-radius: 6px; font-size: 14px; }
 .pesan.galat { background: var(--merah-muda); color: var(--merah); }
 .pesan.baik { background: var(--hijau-muda); color: var(--hijau); }
@@ -111,10 +143,11 @@ table.riwayat { width: 100%; border-collapse: collapse; font-size: 14px; }
 table.riwayat th, table.riwayat td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--garis); vertical-align: top; }
 table.riwayat th { color: var(--lembut); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
 /* ---------- Modul Monev anggaran ---------- */
-.modul { display: flex; gap: 4px; padding: 3px; border-radius: 8px; background: rgba(255,255,255,.12); }
-.modul button { border: 0; background: none; color: #dbe7f0; font-weight: 700; font-size: 14px; padding: 7px 14px; border-radius: 6px; cursor: pointer; min-height: 36px; }
-.modul button[aria-pressed="true"] { background: #fff; color: var(--laut); }
-.modul button:focus-visible { outline: 3px solid var(--emas); outline-offset: 1px; }
+/* Pemilih modul di panel navy: dua tombol berdampingan, yang aktif berlatar putih. */
+.modul { display: flex; gap: 4px; padding: 4px; border-radius: 12px; background: rgba(var(--rgb-gelap),.45); border: 1px solid rgba(255,255,255,.22); }
+.modul button { flex: 1 1 0; border: 0; background: none; color: var(--panel-teks); font-weight: 700; font-size: 14px; padding: 8px 12px; border-radius: 9px; cursor: pointer; min-height: 44px; }
+.modul button:hover { color: #fff; background: rgba(255,255,255,.1); }
+.modul button[aria-pressed="true"] { background: #fff; color: #0f3554; }
 h3.sub, summary.sub { margin: 0 0 12px; font-size: 16px; font-weight: 800; }
 h3.sub-kartu { margin: 6px 0 0; padding-top: 14px; border-top: 1px solid var(--garis); font-size: 15px; }
 summary.sub { cursor: pointer; margin: 0; }
@@ -183,34 +216,70 @@ details.gaya > .kisi { padding: 4px 14px 14px; }
 .gaya-baris input[type="range"] { height: 44px; }
 table.target input { min-height: 44px; }
 .lencana.jadwal { background: #fff1d6; color: #7a4a05; }
-.pengingat { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; max-width: 1120px; margin: 12px auto 0; padding: 10px 16px; border-left: 3px solid var(--emas); border-radius: 4px; background: var(--emas-muda); color: #5a3a06; font-size: 14px; }
+.pengingat { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; max-width: 1120px; margin: 0; padding: 10px 16px; border-left: 3px solid var(--emas); border-radius: 4px; background: var(--emas-muda); color: #5a3a06; font-size: 14px; }
 .pengingat span { flex: 1 1 260px; }
 table.target input { width: 76px; min-height: 36px; padding: 4px 8px; border: 1px solid var(--kolom); border-radius: 6px; background: var(--putih); text-align: right; }
 table.target td, table.target th { padding: 6px 8px; }
 table.target th { text-align: center; }
 table.target td:first-child, table.target th:first-child { text-align: left; }
+
+/* ---------- Target sentuh di layar sentuh dan layar sempit ---------- */
+@media (pointer: coarse), (max-width: 600px) {
+  .tombol.kecil, .saring button { min-height: 44px; }
+  .ikon, .tombol.ikon { width: 44px; }
+  .saring button { padding: 8px 14px; }
+  input[type=text], input[type=password], input[type=url], input[type=number], select { min-height: 44px; }
+}
+
+/* ---------- Mode gelap: warna tetap di atas yang belum ikut palet dasar.css ---------- */
+:root[data-mode="gelap"] .kartu.sembunyi { background: #121b25; }
+:root[data-mode="gelap"] .lencana.tersembunyi { background: #1f2b36; color: #b0bcc5; }
+:root[data-mode="gelap"] .lencana.jadwal { background: #2a2216; color: #f0b860; }
+:root[data-mode="gelap"] .peringatan-gaya { color: var(--merah); }
+:root[data-mode="gelap"] .pengingat { color: var(--emas-teks); }
+:root[data-mode="gelap"] .kabar-singkat.galat { background: #8f1d16; }
+:root[data-mode="gelap"] .bingkai-lihat iframe { background: #0e1620; }
+@media print { .rk-panel, .alat-admin { display: none !important; } }
 </style>
+<link rel="stylesheet" href="../dasar.css">
 </head>
 <body>
-
-<header class="kepala">
-  <div class="kepala-isi">
-    <div class="merek">Dasbor Admin<small>LAYANAN SUBBAGIAN UMUM</small></div>
+<a class="lewati-konten" href="#konten">Lewati navigasi</a>
+<div class="rk">
+  <aside class="rk-panel rk-bingkai" aria-labelledby="judulPanel">
+   <div class="rk-dalam">
+    <div class="rk-foto" id="bannerFoto" role="img" aria-label="Pemandangan Balikpapan"></div>
+    <div class="rk-tabir" aria-hidden="true"></div>
+    <a class="rk-kembali" href="../"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 18l-6-6 6-6"/></svg>Layanan Umum</a>
+    <p class="rk-label">Layanan / Umum / Admin</p>
+    <h1 id="judulPanel">Dasbor admin <span>isi beranda dan Monev anggaran.</span></h1>
+    <p class="rk-deskripsi" id="deskripsiPanel">Mengatur teks panel, informasi, pop up, kelompok, tautan layanan, banner, dan data realisasi anggaran.</p>
     <nav class="modul" id="modul" aria-label="Bagian dasbor" hidden>
       <button type="button" data-modul="beranda" aria-pressed="true">Beranda</button>
       <button type="button" data-modul="monev" aria-pressed="false">Monev anggaran</button>
     </nav>
+    <div class="rk-kelompok" role="tablist" aria-label="Bagian beranda" id="tabBaris" hidden></div>
+    <p class="rk-ket">KPKNL BALIKPAPAN</p>
+   </div>
+  </aside>
+
+ <main id="konten" class="rk-isi">
+  <div class="alat-admin">
     <span class="status" id="status" role="status" aria-live="polite" hidden></span>
     <button type="button" class="tombol" id="tombolPratinjau" hidden>Pratinjau</button>
     <button type="button" class="tombol utama" id="tombolTerbit" hidden>Terbitkan</button>
     <button type="button" class="tombol" id="tombolKeluar" hidden>Keluar</button>
+    <button type="button" class="menu-mode" data-tombol-mode aria-pressed="false" aria-label="Ganti ke tampilan gelap" title="Tampilan gelap">
+      <svg class="ikon-bulan" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>
+      <svg class="ikon-matahari" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
   </div>
-</header>
 
 <!-- ---------- Layar masuk ---------- -->
 <section class="wadah" id="layarMasuk">
   <form class="masuk kotak" id="formMasuk">
-    <h1>Masuk dasbor</h1>
+    <p class="label-isi">Masuk</p>
+    <h2>Masuk dasbor</h2>
     <p class="petunjuk" style="margin:0">Dasbor ini mengatur isi beranda Layanan Subbagian Umum, yaitu teks panel, kotak informasi, kelompok, tautan layanan, dan banner.</p>
     <p class="pesan info" id="pesanBelumSetel" hidden>Alamat Apps Script belum diisi di <code>konten.js</code>. Dasbor bisa dicoba dalam mode uji (isi bisa disunting dan dipratinjau, tetapi belum bisa diterbitkan).</p>
     <label class="kolom">Nama penyunting <small>Dicatat di riwayat perubahan.</small>
@@ -226,15 +295,16 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
 </section>
 
 <!-- ---------- Penyunting ---------- -->
-<main class="wadah" id="layarSunting" hidden>
-  <div class="tab-baris" role="tablist" aria-label="Bagian beranda" id="tabBaris"></div>
+<div class="wadah" id="layarSunting" hidden>
   <p class="pesan galat" id="pesanGalat" role="alert" hidden></p>
   <div id="panel" role="tabpanel"></div>
-</main>
+</div>
 
-<main class="wadah" id="layarMonev" hidden>
+<div class="wadah" id="layarMonev" hidden>
   <div id="panelMonev"></div>
-</main>
+</div>
+ </main>
+</div>
 
 <div class="kabar-singkat" id="kabarSingkat" role="status" aria-live="polite" hidden></div>
 
@@ -269,6 +339,16 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
   function simpanLokal(k, v) { try { localStorage.setItem(k, typeof v === "string" ? v : JSON.stringify(v)); } catch (e) { /* abaikan */ } }
   function bacaLokal(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function hapusLokal(k) { try { localStorage.removeItem(k); } catch (e) { /* abaikan */ } }
+
+  /* ---------- Foto panel: banner bersama yang sama dengan beranda (banner.js) ---------- */
+  if (window.BannerBersama) {
+    var fotoPanel = $("bannerFoto");
+    window.BannerBersama.mulai(function (b) {
+      fotoPanel.style.backgroundImage = 'url("' + b.url.replace(/"/g, "%22") + '")';
+      fotoPanel.style.backgroundPosition = b.posisi + "% center";
+      if (b.uraian) fotoPanel.setAttribute("aria-label", b.uraian);
+    });
+  }
 
   var pewaktuKabar;
   function kabar(teks, galat) {
@@ -356,7 +436,9 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
         } else if (d.dasar !== diperbarui) hapusLokal(KUNCI_DRAF);
       } catch (e) { hapusLokal(KUNCI_DRAF); }
     }
-    $("layarMasuk").hidden = true; $("layarSunting").hidden = false;
+    $("layarMasuk").hidden = true; $("layarSunting").hidden = false; $("tabBaris").hidden = false;
+    $("deskripsiPanel").textContent = keadaan.uji ? "Mode uji: isi bisa disunting dan dipratinjau, tetapi belum bisa diterbitkan."
+      : "Masuk sebagai " + (keadaan.nama || "penyunting") + (keadaan.peran === "admin" ? " (admin)." : " (penyunting).");
     ["status", "tombolPratinjau", "tombolTerbit", "tombolKeluar"].forEach(function (id) { $(id).hidden = false; });
     // Data realisasi (keuangan) hanya untuk admin, jadi penyunting terdaftar tidak melihat pilihan Monev.
     $("modul").hidden = keadaan.uji || keadaan.peran !== "admin";
@@ -594,7 +676,11 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
       var n = hitung(t[0]);
       baris.appendChild(el("button", {
         type: "button", kelas: "tab", role: "tab", "aria-selected": String(keadaan.tab === t[0]),
-        onclick: function () { keadaan.tab = t[0]; gambarTab(); gambarPanel(); }
+        onclick: function () {
+          keadaan.tab = t[0]; gambarTab(); gambarPanel();
+          // Di layar sempit menu ada di atas isi, jadi pengguna dibawa ke isi bagian yang dipilih.
+          if (window.matchMedia && matchMedia("(max-width: 920px)").matches) $("konten").scrollIntoView({ block: "start" });
+        }
       }, [t[1], n != null ? el("b", { teks: String(n) }) : null]));
     });
     gambarPanel();
@@ -1333,7 +1419,7 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
   });
   function pilihModul(m) {
     var monevAktif = m === "monev";
-    $("layarSunting").hidden = monevAktif;
+    $("layarSunting").hidden = monevAktif; $("tabBaris").hidden = monevAktif;
     $("layarMonev").hidden = !monevAktif;
     ["status", "tombolPratinjau", "tombolTerbit"].forEach(function (id) { $(id).hidden = monevAktif; });
     [].forEach.call($("modul").querySelectorAll("button"), function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-modul") === m)); });
@@ -1985,7 +2071,7 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
   }
   function pasangPengingat(d) {
     var n = $("pengingat");
-    if (!n) { n = el("div", { id: "pengingat", kelas: "pengingat", role: "status", hidden: true }); document.querySelector(".kepala").insertAdjacentElement("afterend", n); }
+    if (!n) { n = el("div", { id: "pengingat", kelas: "pengingat", role: "status", hidden: true }); document.querySelector(".alat-admin").insertAdjacentElement("afterend", n); }
     var teks = teksPengingat(d), tanda = "layanan-pengingat-" + new Date().getFullYear() + "-" + new Date().getMonth();
     var ditutup = false; try { ditutup = !!sessionStorage.getItem(tanda); } catch (e) { /* abaikan */ }
     n.textContent = "";
