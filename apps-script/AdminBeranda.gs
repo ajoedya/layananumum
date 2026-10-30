@@ -50,12 +50,14 @@ var ZONA_WAKTU = "Asia/Makassar";  // tanggal statistik dan log mengikuti WITA
 var POTONG = 45000;             // panjang teks per sel (batas sel Google Sheets 50.000 karakter)
 // Versi kode dan fitur yang dikenali. Dasbor admin membacanya lewat doGet (aksi=versi) untuk memastikan
 // deployment yang tayang sudah memakai kode ini. Naikkan tanggalnya setiap kali kode diubah.
-var VERSI_SKRIP = "2026-10-30.2";
-var FITUR_SKRIP = ["pemberitahuan", "pengumuman-jendela", "pengumuman-klik", "prognosa"];
+var VERSI_SKRIP = "2026-10-30.3";
+var FITUR_SKRIP = ["pemberitahuan", "pengumuman-jendela", "pengumuman-klik", "prognosa", "prognosa-kesesuaian"];
 // Prognosa kegiatan dan pengajuan TUP (prognosa/). Isian per unit di tab Prognosa; aturan dan kunci bersama seksi di Properti Skrip.
 var TAB_PROGNOSA = "Prognosa";
 var PROPERTI_KUNCI_PROGNOSA = "SIDIK_KUNCI_PROGNOSA";
 var PROPERTI_ATURAN_PROGNOSA = "ATURAN_PROGNOSA";
+var TAB_PROGNOSA_TETAP = "PrognosaTetap";      // satu baris per penetapan; baris terakhir yang berlaku
+var TAB_STATUS_PROGNOSA = "StatusPrognosa";    // satu baris per kegiatan: status pelaksanaan dari seksi
 
 /* ---------- Menu di spreadsheet ---------- */
 function onOpen() {
@@ -116,6 +118,7 @@ function kirimPengingatImpor() {
 function doGet(e) {
   var aksi = (e && e.parameter && e.parameter.aksi) || "baca";
   if (aksi === "realisasi") return bacaRealisasiPublik_();
+  if (aksi === "prognosa") return bacaKesesuaianPublik_();
   if (aksi === "versi") return balas_({ ok: true, versi: VERSI_SKRIP, fitur: FITUR_SKRIP });
   if (aksi !== "baca") return balas_({ ok: false, pesan: "Aksi tidak dikenal" });
   var cache = CacheService.getScriptCache();
@@ -200,6 +203,10 @@ function doPost(e) {
         return aturPrognosa_(minta, who);
       case "prognosaBayar":
         return bayarPrognosa_(minta, who);
+      case "prognosaTetapkan":
+        return tetapkanPrognosa_(minta, who);
+      case "prognosaStatus":
+        return statusPrognosaSimpan_(minta, who);
       default:
         return balas_({ ok: false, pesan: "Aksi tidak dikenal" });
     }
@@ -245,7 +252,8 @@ function simpan_(minta, who) {
    dan log aktivitas hanya untuk pemegang kunci admin. */
 var IZIN_ = { cekRealisasi: "admin", simpanRealisasi: "admin", riwayatRealisasi: "admin", ambilRiwayatRealisasi: "admin",
               daftarPenyunting: "admin", tambahPenyunting: "admin", aturPenyunting: "admin", log: "admin",
-              prognosaAtur: "admin", prognosaBayar: "admin", prognosaBaca: "seksi", prognosaSimpan: "seksi" };
+              prognosaAtur: "admin", prognosaBayar: "admin", prognosaTetapkan: "admin",
+              prognosaBaca: "seksi", prognosaSimpan: "seksi", prognosaStatus: "seksi" };
 
 // Mengembalikan { peran, nama } bila kunci cocok: kunci admin, atau kunci penyunting terdaftar yang aktif.
 // Mengembalikan { nonaktif: true } untuk penyunting yang dinonaktifkan, dan null bila kunci tidak dikenal.
@@ -599,7 +607,7 @@ function simpanRealisasi_(minta) {
     var lebih = riwayat.getLastRow() - 1 - BATAS_RIWAYAT_REALISASI;
     if (lebih > 0) riwayat.deleteRows(2, lebih);
 
-    CacheService.getScriptCache().remove("realisasi");
+    CacheService.getScriptCache().removeAll(["realisasi", "prognosaPublik"]);
     return balas_({ ok: true, diperbarui: waktu });
   } catch (galat) {
     return balas_({ ok: false, pesan: galat.message });
@@ -783,6 +791,8 @@ function bacaPrognosa_(who) {
   var hasil = { ok: true, aturan: aturanPrognosa_(), pagu: paguPrognosa_(), hariIni: hariIniWita_(),
     isian: isianPrognosa_().map(function (x) { return { unit: x.unit, status: x.status, diperbarui: x.diperbarui, pengisi: x.pengisi, data: x.data }; }) };
   if (who && who.peran === "admin") hasil.kunciDisetel = !!PropertiesService.getScriptProperties().getProperty(PROPERTI_KUNCI_PROGNOSA);
+  var tetap = bacaTetap_();
+  if (tetap) { hasil.tetap = tetap; hasil.kesesuaian = kesesuaian_(tetap, hasil.pagu, statusPrognosa_(), false); }
   return hasil;
 }
 
@@ -909,4 +919,155 @@ function aturPrognosa_(minta, who) {
     catatLog_(minta.penyunting, who.peran, "Membuka kunci isian prognosa", nama);
   }
   return balas_(bacaPrognosa_(who));
+}
+
+/* ---------- Penetapan prognosa dan kesesuaian terhadap realisasi ----------
+   Bendahara menetapkan prognosa: isian yang sudah dikirim dibekukan bersama titik awal realisasi tiap unit dan jenis belanja
+   (realisasi s.d. periode data saat penetapan). Penetapan berikutnya menambah baris baru di tab PrognosaTetap; yang berlaku
+   baris terakhir, jadi riwayatnya tetap ada.
+   Kesesuaian dihitung per unit dan jenis belanja, karena Laporan Fa tidak memuat kegiatan:
+     target s.d. bulan M  = outstanding + prognosa kegiatan yang rencana tanggalnya sampai akhir bulan M
+     realisasi tambahan   = realisasi s.d. periode data terbaru − realisasi titik awal
+   Selama data realisasi masih periode titik awal, target belum dihitung. Seksi menandai status tiap kegiatan
+   (terlaksana, bergeser, batal) di tab StatusPrognosa; id kegiatan dibentuk dari isinya, jadi status ikut terbawa
+   bila prognosa ditetapkan ulang tanpa mengubah kegiatan itu. */
+var STATUS_KEGIATAN_ = { rencana: true, terlaksana: true, bergeser: true, batal: true };
+function idKegiatan_(unit, x) { return "k" + sidik_(unit + "|" + x.jenis + "|" + x.kegiatan + "|" + x.tanggal).slice(0, 12); }
+function kunciBulan_(tahun, bulan) { return Number(tahun) * 12 + Number(bulan); }
+
+function bacaTetap_() {
+  var t = SpreadsheetApp.getActive().getSheetByName(TAB_PROGNOSA_TETAP);
+  if (!t || t.getLastRow() < 2) return null;
+  var baris = t.getRange(t.getLastRow(), 1, 1, t.getLastColumn()).getValues()[0];
+  try { return JSON.parse(baris.slice(2).join("")); } catch (galat) { return null; }
+}
+
+function tetapkanPrognosa_(minta, who) {
+  var pagu = paguPrognosa_();
+  if (!pagu.periode) throw new Error("Data realisasi belum diterbitkan, jadi titik awal tidak bisa ditetapkan.");
+  var kunciTulis = LockService.getScriptLock();
+  if (!kunciTulis.tryLock(10000)) throw new Error("Sedang ada penyimpanan lain. Coba lagi.");
+  try {
+    var isian = {};
+    isianPrognosa_().forEach(function (x) { if (x.status === "terkirim" && x.data) isian[x.unit] = x.data; });
+    var unit = pagu.unit.filter(function (u) { return isian[u.nama]; }).map(function (u) {
+      var d = isian[u.nama], dipakai = {};
+      return {
+        nama: u.nama,
+        jenis: u.jenis.map(function (j) {
+          var out = 0;
+          (d.outstanding || []).forEach(function (x) { if (x.jenis === j.nama) out += Number(x.nominal) || 0; });
+          return { nama: j.nama, awal: j.sd, out: angka_(out) };
+        }),
+        kegiatan: (d.prognosa || []).map(function (x) {
+          var id = idKegiatan_(u.nama, x);
+          while (dipakai[id]) id += "x";
+          dipakai[id] = true;
+          return { id: id, jenis: x.jenis, kegiatan: x.kegiatan, keterangan: x.keterangan || "", tanggal: x.tanggal, volume: x.volume || "",
+                   biaya: Number(x.biaya) || 0, bayar: x.bayar === "ls" ? "ls" : "up" };
+        })
+      };
+    });
+    if (!unit.length) throw new Error("Belum ada unit yang mengirim isian. Prognosa yang ditetapkan hanya dari isian terkirim.");
+    var waktu = new Date().toISOString();
+    var tetap = { ditetapkan: waktu, oleh: minta.penyunting, periodeAwal: pagu.periode, sampai: aturanPrognosa_().sampai, unit: unit };
+    var teks = JSON.stringify(tetap);
+    var t = tab_(TAB_PROGNOSA_TETAP, ["Ditetapkan", "Oleh", "Isi (jangan diubah manual)"]);
+    t.appendRow(["'" + waktu, minta.penyunting].concat(potong_(teks)));
+    CacheService.getScriptCache().remove("prognosaPublik");
+    catatLog_(minta.penyunting, who.peran, "Menetapkan prognosa", unit.length + " unit, titik awal " + BULAN_[pagu.periode.bulan - 1] + " " + (pagu.periode.tahun || ""));
+    return balas_(bacaPrognosa_(who));
+  } finally { kunciTulis.releaseLock(); }
+}
+
+function statusPrognosa_() {
+  var t = SpreadsheetApp.getActive().getSheetByName(TAB_STATUS_PROGNOSA), peta = {};
+  if (!t || t.getLastRow() < 2) return peta;
+  t.getRange(2, 1, t.getLastRow() - 1, 8).getValues().forEach(function (r) {
+    peta[String(r[0])] = { status: STATUS_KEGIATAN_[r[2]] ? String(r[2]) : "rencana", tanggal: tanggal_(r[3]), nominal: angka_(r[4]),
+                           catatan: String(r[5] || ""), diperbarui: String(r[6] || ""), oleh: String(r[7] || ""), baris: 0 };
+  });
+  return peta;
+}
+
+// Seksi menyimpan status pelaksanaan kegiatan unitnya pada prognosa yang berlaku. Tidak bergantung pada buka-tutup pengisian.
+function statusPrognosaSimpan_(minta, who) {
+  var tetap = bacaTetap_();
+  if (!tetap) throw new Error("Prognosa belum ditetapkan bendahara.");
+  var nama = teks_(minta.unit, 100), unit = null;
+  tetap.unit.forEach(function (u) { if (u.nama === nama) unit = u; });
+  if (!unit) throw new Error("Unit ini tidak ada dalam prognosa yang ditetapkan.");
+  var sah = {};
+  unit.kegiatan.forEach(function (k) { sah[k.id] = true; });
+  var daftar = daftar_(minta.status, 200).filter(function (x) { return x && sah[x.id]; });
+  var kunciTulis = LockService.getScriptLock();
+  if (!kunciTulis.tryLock(10000)) throw new Error("Sedang ada penyimpanan lain. Coba lagi.");
+  try {
+    var t = tab_(TAB_STATUS_PROGNOSA, ["Id", "Unit", "Status", "Tanggal", "Nominal", "Catatan", "Diperbarui", "Oleh"]);
+    var n = t.getLastRow() - 1, ada = {};
+    if (n > 0) t.getRange(2, 1, n, 1).getValues().forEach(function (r, i) { ada[String(r[0])] = i + 2; });
+    var waktu = "'" + new Date().toISOString();
+    daftar.forEach(function (x) {
+      var status = STATUS_KEGIATAN_[x.status] ? x.status : "rencana";
+      var baris = [x.id, nama, status, tanggal_(x.tanggal), Math.max(0, angka_(x.nominal)), teks_(x.catatan, 200), waktu, minta.penyunting];
+      if (ada[x.id]) t.getRange(ada[x.id], 1, 1, 8).setValues([baris]); else { t.appendRow(baris); ada[x.id] = t.getLastRow(); }
+    });
+    CacheService.getScriptCache().remove("prognosaPublik");
+    catatLog_(minta.penyunting, who.peran, "Memperbarui pelaksanaan prognosa", nama + " (" + daftar.length + " kegiatan)");
+    return balas_(bacaPrognosa_(who));
+  } finally { kunciTulis.releaseLock(); }
+}
+
+// Kesesuaian per unit dan jenis belanja. Versi publik tidak memuat nama kegiatan, hanya jumlah per status.
+function kesesuaian_(tetap, paguKini, status, publik) {
+  var awal = tetap.periodeAwal, kini = paguKini.periode;
+  var kAwal = kunciBulan_(awal.tahun || 0, awal.bulan), kKini = kini ? kunciBulan_(kini.tahun || awal.tahun || 0, kini.bulan) : kAwal;
+  var berjalan = kKini > kAwal;
+  var sdKini = {};
+  paguKini.unit.forEach(function (u) { u.jenis.forEach(function (j) { sdKini[u.nama + "|" + j.nama] = j.sd; }); });
+  var unit = tetap.unit.map(function (u) {
+    var r = { nama: u.nama, total: 0, target: 0, realisasi: 0, jumlah: { n: 0, rencana: 0, terlaksana: 0, bergeser: 0, batal: 0 }, jenis: [] };
+    var progJenis = {};
+    u.kegiatan.forEach(function (k) {
+      var p = progJenis[k.jenis] || (progJenis[k.jenis] = { total: 0, target: 0 });
+      p.total += k.biaya;
+      var m = /^(\d{4})-(\d{2})/.exec(k.tanggal || "");
+      if (berjalan && m && kunciBulan_(m[1], m[2]) <= kKini) p.target += k.biaya;
+      var st = (status[k.id] || {}).status || "rencana";
+      r.jumlah.n++; r.jumlah[st]++;
+    });
+    r.jenis = u.jenis.map(function (j) {
+      var p = progJenis[j.nama] || { total: 0, target: 0 };
+      var sd = sdKini[u.nama + "|" + j.nama];
+      var tambah = sd == null ? 0 : angka_(sd - j.awal);
+      var o = { nama: j.nama, total: angka_(j.out + p.total), target: berjalan ? angka_(j.out + p.target) : 0, realisasi: tambah };
+      r.total += o.total; r.target += o.target; r.realisasi += o.realisasi;
+      return o;
+    }).filter(function (o) { return o.total || o.realisasi; });
+    ["total", "target", "realisasi"].forEach(function (k) { r[k] = angka_(r[k]); });
+    r.kesesuaian = r.target > 0 ? Math.round(r.realisasi / r.target * 1000) / 10 : null;
+    if (!publik) r.kegiatan = u.kegiatan.map(function (k) {
+      var s = status[k.id] || {};
+      return { id: k.id, jenis: k.jenis, kegiatan: k.kegiatan, tanggal: k.tanggal, biaya: k.biaya, bayar: k.bayar,
+               status: s.status || "rencana", tanggalStatus: s.tanggal || "", nominal: s.nominal || 0, catatan: s.catatan || "",
+               diperbarui: s.diperbarui || "", oleh: s.oleh || "" };
+    });
+    return r;
+  });
+  var total = { total: 0, target: 0, realisasi: 0 };
+  unit.forEach(function (u) { total.total += u.total; total.target += u.target; total.realisasi += u.realisasi; });
+  total.kesesuaian = total.target > 0 ? Math.round(total.realisasi / total.target * 1000) / 10 : null;
+  return { ditetapkan: tetap.ditetapkan, periodeAwal: awal, periodeKini: kini, sampai: tetap.sampai, berjalan: berjalan, unit: unit, total: total };
+}
+
+// Data publik untuk halaman Monitoring Realisasi Anggaran (aksi=prognosa). Tanpa nama kegiatan dan tanpa nama pengisi.
+function bacaKesesuaianPublik_() {
+  var cache = CacheService.getScriptCache();
+  var simpanan = cache.get("prognosaPublik");
+  if (simpanan) return ContentService.createTextOutput(simpanan).setMimeType(ContentService.MimeType.JSON);
+  var tetap = bacaTetap_();
+  var isi = tetap ? { ok: true, ada: true, kesesuaian: kesesuaian_(tetap, paguPrognosa_(), statusPrognosa_(), true) } : { ok: true, ada: false };
+  var teks = JSON.stringify(isi);
+  if (teks.length < 95000) cache.put("prognosaPublik", teks, DETIK_CACHE);
+  return ContentService.createTextOutput(teks).setMimeType(ContentService.MimeType.JSON);
 }

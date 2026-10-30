@@ -125,6 +125,15 @@ td.minus { color: var(--merah); font-weight: 700; }
 .hapus { width: 44px; height: 44px; padding: 0; display: inline-grid; place-items: center; border: 1px solid transparent; border-radius: 8px; background: none; color: var(--merah); cursor: pointer; }
 .hapus:hover { border-color: var(--merah); background: var(--merah-muda); }
 .hapus svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.pel { border: 1px solid var(--garis); border-radius: 12px; background: var(--putih); padding: 14px 16px; margin-bottom: 10px; }
+.pel-kepala { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin-bottom: 10px; }
+.pel-kepala b { margin-right: auto; }
+.pel-kepala span { color: var(--lembut); font-size: 14px; font-variant-numeric: tabular-nums; }
+.pel.terlaksana { border-left: 4px solid var(--hijau); }
+.pel.batal { border-left: 4px solid var(--merah); }
+.pel.bergeser { border-left: 4px solid var(--emas); }
+.aksi-pelaksanaan { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 4px; }
+.aksi-pelaksanaan .ket { margin-right: auto; }
 .sr-only { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
 
 /* ---------- Bilah aksi menempel di bawah ---------- */
@@ -196,6 +205,19 @@ td.minus { color: var(--merah); font-weight: 700; }
   </div>
   <p class="pesan baik" id="pesanTerkirim" hidden style="margin-top:14px"></p>
   <div class="pesan galat" id="ringkasGalat" role="alert" tabindex="-1" hidden style="margin-top:14px"></div>
+
+  <section class="bagian" id="bagianPelaksanaan" aria-labelledby="hPelaksanaan" hidden>
+    <div class="bagian-kepala"><div>
+      <h2 id="hPelaksanaan">Pelaksanaan kegiatan</h2>
+      <p id="ketPelaksanaan"></p>
+    </div></div>
+    <p class="pesan info" id="kesUnit" hidden style="margin-bottom:12px"></p>
+    <div id="wadahPelaksanaan"></div>
+    <div class="aksi-pelaksanaan">
+      <span class="ket" id="ketPel"></span>
+      <button type="button" class="tombol utama" id="simpanPel">Simpan pelaksanaan</button>
+    </div>
+  </section>
 
   <section class="bagian" aria-labelledby="hRingkasan">
     <div class="bagian-kepala"><div>
@@ -272,7 +294,7 @@ td.minus { color: var(--merah); font-weight: 700; }
   var BULAN = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
   var IKON_HAPUS = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>';
 
-  var s = { kunci: "", nama: "", admin: false, data: null, unit: "", isian: null, dasar: "", status: "", kotor: false, st: null, stGalat: false, sibuk: false };
+  var s = { kunci: "", nama: "", admin: false, data: null, unit: "", isian: null, dasar: "", status: "", kotor: false, st: null, stGalat: false, sibuk: false, pel: null, kotorPel: false };
 
   function $(id) { return document.getElementById(id); }
   function el(tag, atr, anak) {
@@ -396,7 +418,7 @@ td.minus { color: var(--merah); font-weight: 700; }
     var simpanan = baca(KUNCI_UNIT);
     if (simpanan && unitData(simpanan)) pilih.value = simpanan;
     pilih.onchange = function () {
-      if (s.kotor && !confirm("Isian unit ini belum disimpan. Tetap ganti unit? Perubahan yang belum disimpan akan hilang.")) { pilih.value = s.unit; return; }
+      if ((s.kotor || s.kotorPel) && !confirm("Isian unit ini belum disimpan. Tetap ganti unit? Perubahan yang belum disimpan akan hilang.")) { pilih.value = s.unit; return; }
       pilihUnit(pilih.value);
     };
     pilihUnit(pilih.value);
@@ -412,6 +434,7 @@ td.minus { color: var(--merah); font-weight: 700; }
     s.status = lama ? lama.status : "";
     $("catatanUnit").value = s.isian.catatan;
     $("ringkasGalat").hidden = true;
+    siapkanPel();
     gambarSemua();
   }
 
@@ -428,7 +451,7 @@ td.minus { color: var(--merah); font-weight: 700; }
       (lama ? " pada " + waktuBaca(lama.diperbarui) : "") + "." + (s.admin ? " Sebagai admin, Anda tetap bisa mengubahnya." : " Bila perlu diubah, minta bendahara membukanya.");
     $("ketSimpan").textContent = !ada ? "Pilih unit untuk mulai mengisi." : s.kotor ? "Ada perubahan yang belum disimpan." :
       lama ? "Tersimpan " + waktuBaca(lama.diperbarui) + (lama.pengisi ? " oleh " + lama.pengisi : "") + "." : "Belum disimpan.";
-    gambarRingkasan(); gambarSt(); gambarOut(); gambarKegiatan();
+    gambarRingkasan(); gambarSt(); gambarOut(); gambarKegiatan(); gambarPelaksanaan();
   }
 
   function tandaiKotor() {
@@ -436,7 +459,7 @@ td.minus { color: var(--merah); font-weight: 700; }
     $("ketSimpan").textContent = "Ada perubahan yang belum disimpan.";
     gambarRingkasan();
   }
-  window.addEventListener("beforeunload", function (e) { if (s.kotor) { e.preventDefault(); e.returnValue = ""; } });
+  window.addEventListener("beforeunload", function (e) { if (s.kotor || s.kotorPel) { e.preventDefault(); e.returnValue = ""; } });
 
   /* ---------- Ringkasan anggaran ---------- */
   function hitung() {
@@ -617,6 +640,84 @@ td.minus { color: var(--merah); font-weight: 700; }
     var n = $("wadahKegiatan").querySelectorAll(".kegiatan"); if (n.length) { n[n.length - 1].scrollIntoView({ block: "center" }); n[n.length - 1].querySelector("input").focus(); }
   });
   $("catatanUnit").addEventListener("input", function () { s.isian.catatan = $("catatanUnit").value; tandaiKotor(); });
+
+  /* ---------- Pelaksanaan kegiatan pada prognosa yang ditetapkan ----------
+     Setelah bendahara menetapkan prognosa, seksi menandai status tiap kegiatan. Penyimpanannya terpisah dari isian
+     prognosa dan tetap terbuka walau pengisian prognosa sudah ditutup. */
+  var PILIHAN_STATUS = [["rencana", "Belum dilaksanakan"], ["terlaksana", "Terlaksana"], ["bergeser", "Bergeser jadwal"], ["batal", "Batal"]];
+  function kesUnit(nama) { var k = s.data.kesesuaian; return k ? (k.unit || []).filter(function (u) { return u.nama === nama; })[0] || null : null; }
+  function siapkanPel() {
+    var u = s.unit ? kesUnit(s.unit) : null;
+    s.pel = u ? u.kegiatan.map(function (x) {
+      return { id: x.id, kegiatan: x.kegiatan, tanggal: x.tanggal, biaya: x.biaya, jenis: x.jenis, status: x.status || "rencana",
+               tanggalStatus: x.tanggalStatus || "", nominal: x.nominal || 0, catatan: x.catatan || "" };
+    }).sort(function (a, b) { return String(a.tanggal).localeCompare(String(b.tanggal)); }) : null;
+    s.kotorPel = false;
+  }
+  function gambarPelaksanaan() {
+    var bag = $("bagianPelaksanaan"), w = $("wadahPelaksanaan"), kes = s.data.kesesuaian, u = s.unit ? kesUnit(s.unit) : null;
+    bag.hidden = !u;
+    if (!u) return;
+    var awal = kes.periodeAwal || {}, kini = kes.periodeKini || {};
+    $("ketPelaksanaan").textContent = "Prognosa unit ini ditetapkan bendahara pada " + tanggalBaca(String(kes.ditetapkan).slice(0, 10)) +
+      " dengan titik awal realisasi " + BULAN[(awal.bulan || 1) - 1] + " " + (awal.tahun || "") + ". Tandai status setiap kegiatan agar kesesuaiannya bisa dipantau.";
+    var info = $("kesUnit");
+    info.hidden = false;
+    info.textContent = kes.berjalan && u.kesesuaian != null
+      ? "Kesesuaian sampai akhir " + BULAN[(kini.bulan || 1) - 1] + ": " + u.kesesuaian.toLocaleString("id-ID") + "% (realisasi tambahan Rp" + rupiah(u.realisasi) + " dari target Rp" + rupiah(u.target) + ")."
+      : "Kesesuaian terhadap realisasi dihitung setelah data realisasi bulan berikutnya diterbitkan.";
+    w.textContent = "";
+    if (!s.pel.length) { w.appendChild(el("div", { kelas: "kosong", teks: "Tidak ada kegiatan dalam prognosa yang ditetapkan." })); $("simpanPel").hidden = true; return; }
+    $("simpanPel").hidden = false;
+    $("ketPel").textContent = s.kotorPel ? "Ada perubahan pelaksanaan yang belum disimpan." : "";
+    s.pel.forEach(function (x) {
+      var pilih = el("select", { "data-id": x.id });
+      PILIHAN_STATUS.forEach(function (p) { pilih.appendChild(el("option", { value: p[0], teks: p[1] })); });
+      pilih.value = x.status;
+      pilih.addEventListener("change", function () {
+        x.status = pilih.value; s.kotorPel = true; gambarPelaksanaan();
+        var n = $("wadahPelaksanaan").querySelector('select[data-id="' + x.id + '"]'); if (n) n.focus();
+      });
+      var kolom = [el("label", { kelas: "kolom" }, ["Status", pilih])];
+      if (x.status === "terlaksana" || x.status === "bergeser") {
+        var tgl = el("input", { type: "date" });
+        tgl.value = x.tanggalStatus || "";
+        tgl.addEventListener("input", function () { x.tanggalStatus = tgl.value; s.kotorPel = true; $("ketPel").textContent = "Ada perubahan pelaksanaan yang belum disimpan."; });
+        awasi(tgl, function () { return tgl.value ? "" : x.status === "bergeser" ? "Isi jadwal baru." : "Isi tanggal pelaksanaan."; });
+        kolom.push(el("label", { kelas: "kolom" }, [x.status === "bergeser" ? "Jadwal baru" : "Tanggal pelaksanaan", tgl]));
+      }
+      if (x.status === "terlaksana") {
+        var uang = kolomUang(x.nominal, true, function (n) { x.nominal = n; s.kotorPel = true; $("ketPel").textContent = "Ada perubahan pelaksanaan yang belum disimpan."; });
+        kolom.push(el("label", { kelas: "kolom" }, ["Realisasi biaya", el("span", { kelas: "uang" }, [uang])]));
+      }
+      var cat = el("input", { type: "text", maxlength: "200", placeholder: x.status === "batal" ? "Misalnya: permohonan dicabut" : "" });
+      cat.value = x.catatan || "";
+      cat.addEventListener("input", function () { x.catatan = cat.value; s.kotorPel = true; $("ketPel").textContent = "Ada perubahan pelaksanaan yang belum disimpan."; });
+      kolom.push(el("label", { kelas: "kolom penuh" }, [el("span", null, ["Catatan ", el("span", { kelas: "opsional", teks: "(opsional)" })]), cat]));
+      w.appendChild(el("article", { kelas: "pel " + x.status, "aria-label": x.kegiatan }, [
+        el("div", { kelas: "pel-kepala" }, [el("b", { teks: x.kegiatan }), el("span", { teks: tanggalBaca(x.tanggal) + " · Rp" + rupiah(x.biaya) })]),
+        el("div", { kelas: "kisi" }, kolom)
+      ]));
+    });
+  }
+  $("simpanPel").addEventListener("click", function () {
+    if (s.sibuk || !s.pel) return;
+    var salah = [];
+    $("wadahPelaksanaan").querySelectorAll("input, select").forEach(function (m) { if (m._aturan) { var g = m._aturan(); if (g) { pasangGalat(m, g); salah.push(m); } } });
+    if (salah.length) { salah[0].scrollIntoView({ block: "center" }); salah[0].focus({ preventScroll: true }); return; }
+    var tombol = $("simpanPel");
+    s.sibuk = true; tombol.setAttribute("aria-busy", "true"); tombol.textContent = "Menyimpan...";
+    kirim({ aksi: "prognosaStatus", unit: s.unit, status: s.pel.map(function (x) {
+      return { id: x.id, status: x.status, tanggal: x.status === "rencana" || x.status === "batal" ? "" : x.tanggalStatus,
+               nominal: x.status === "terlaksana" ? x.nominal : 0, catatan: x.catatan };
+    }) }).then(function (h) {
+      s.sibuk = false; tombol.removeAttribute("aria-busy"); tombol.textContent = "Simpan pelaksanaan";
+      if (!h.ok) { kabar(h.pesan || "Pelaksanaan gagal disimpan.", true); return; }
+      s.data.tetap = h.tetap; s.data.kesesuaian = h.kesesuaian;
+      siapkanPel(); gambarPelaksanaan();
+      kabar("Pelaksanaan kegiatan tersimpan.");
+    });
+  });
 
   /* ---------- Simpan dan kirim ---------- */
   function tampilGalat(daftar) {

@@ -1601,6 +1601,7 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
     k.appendChild(el("p", { kelas: "petunjuk", teks: "Prognosa yang diajukan seksi. Cara bayar tiap kegiatan ditetapkan bendahara setelah unit mengirim isiannya; bawaannya UP/TUP." }));
     if (!adaIsian.length) k.appendChild(el("p", { kelas: "kosong", teks: "Belum ada unit yang menyimpan atau mengirim isian." }));
     adaIsian.forEach(function (b) { k.appendChild(rincianUnit(b)); });
+    bagianKesesuaian(k, r);
     k.appendChild(el("div", { kelas: "bagian-judul", style: "margin:12px 0 0" }, [
       el("button", { type: "button", kelas: "tombol kecil", teks: "Unduh rekap TUP (.xlsx)", onclick: unduhTup }),
       el("button", { type: "button", kelas: "tombol kecil", teks: "Muat ulang prognosa", onclick: function () { tup.dimuat = false; muatTup(); gambarMonev(); } })
@@ -1679,6 +1680,90 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
     } else isi.appendChild(el("p", { kelas: "petunjuk", style: "margin:0", teks: "Tidak ada prognosa kegiatan." }));
     det.appendChild(isi);
     return det;
+  }
+
+  /* Penetapan prognosa dan kesesuaian terhadap realisasi. Penetapan membekukan isian terkirim beserta titik awal realisasinya;
+     kesesuaian dihitung server per unit dan jenis belanja setiap kali data realisasi bulan berikutnya diterbitkan. */
+  var NAMA_STATUS = { rencana: "Belum dilaksanakan", terlaksana: "Terlaksana", bergeser: "Bergeser", batal: "Batal" };
+  function persenKes(v) { return v == null ? "–" : v.toLocaleString("id-ID", { maximumFractionDigits: 1 }) + "%"; }
+  function kelasKes(v) { return v == null ? "" : v >= 90 && v <= 110 ? "color:var(--hijau);font-weight:700" : "color:var(--merah);font-weight:700"; }
+  function bagianKesesuaian(k, r) {
+    var d = tup.data, kes = d.kesesuaian, terkirim = r.baris.filter(function (b) { return b.isi && b.isi.status === "terkirim"; }).length;
+    k.appendChild(el("h4", { kelas: "sub-tup", teks: "Penetapan dan kesesuaian terhadap realisasi" }));
+    k.appendChild(el("p", { kelas: "petunjuk", teks: "Tetapkan prognosa setelah unit mengirim isiannya. Isian terkirim dibekukan bersama realisasi saat ini sebagai titik awal, lalu dibandingkan dengan realisasi setiap kali Laporan Fa bulan berikutnya diterbitkan. Ringkasan per unit tampil di tab Prognosa pada halaman Monitoring Realisasi Anggaran, tanpa nama kegiatan." }));
+    var tetapkan = function () {
+      if (!terkirim) { kabar("Belum ada unit yang mengirim isian.", true); return; }
+      var belum = r.baris.length - terkirim;
+      if (!confirm("Tetapkan prognosa dari " + terkirim + " unit yang sudah mengirim?" + (belum ? " " + belum + " unit lain belum ikut." : "") +
+        " Realisasi " + periodeTeks(d.pagu.periode || {}) + " menjadi titik awal." + (kes ? " Penetapan sebelumnya tetap tersimpan sebagai riwayat." : ""))) return;
+      if (tup.sibuk) return;
+      tup.sibuk = true;
+      kirim({ aksi: "prognosaTetapkan" }).then(function (h) {
+        tup.sibuk = false;
+        if (!h.ok) { kabar(h.pesan || "Prognosa gagal ditetapkan.", true); return; }
+        tup.data = h; kabar("Prognosa ditetapkan."); gambarMonev();
+      });
+    };
+    if (!kes) {
+      k.appendChild(el("div", { kelas: "bagian-judul", style: "margin:0 0 8px" }, [
+        el("button", { type: "button", kelas: "tombol utama kecil", teks: "Tetapkan prognosa", onclick: tetapkan }),
+        el("span", { kelas: "petunjuk", style: "margin:0", teks: terkirim + " dari " + r.baris.length + " unit sudah mengirim." })
+      ]));
+      return;
+    }
+    var awal = periodeTeks(kes.periodeAwal || {}), kini = periodeTeks(kes.periodeKini || {});
+    k.appendChild(kotakFakta([
+      ["Ditetapkan", waktuBaca(kes.ditetapkan)], ["Titik awal", awal], ["Data realisasi", kini],
+      ["Target s.d. " + kini, kes.berjalan ? rp(kes.total.target) : "–"], ["Realisasi tambahan", rp(kes.total.realisasi)], ["Kesesuaian", persenKes(kes.total.kesesuaian)]
+    ]));
+    if (!kes.berjalan) k.appendChild(el("p", { kelas: "pesan info", style: "margin:12px 0 0", teks: "Data realisasi masih periode titik awal (" + awal + "). Kesesuaian dihitung setelah Laporan Fa bulan berikutnya diterbitkan." }));
+    var tb = el("tbody");
+    kes.unit.forEach(function (u) {
+      var j = u.jumlah;
+      tb.appendChild(el("tr", null, [
+        el("td", { teks: u.nama }), el("td", { kelas: "angka", teks: rp(u.total) }), el("td", { kelas: "angka", teks: kes.berjalan ? rp(u.target) : "–" }),
+        el("td", { kelas: "angka", teks: rp(u.realisasi) }), el("td", { kelas: "angka", style: kelasKes(u.kesesuaian), teks: persenKes(u.kesesuaian) }),
+        el("td", { teks: j.terlaksana + " terlaksana, " + j.bergeser + " bergeser, " + j.batal + " batal dari " + j.n })
+      ]));
+    });
+    k.appendChild(el("div", { style: "overflow-x:auto;margin-top:12px" }, [el("table", { kelas: "riwayat" }, [
+      el("thead", null, [el("tr", null, [["Unit", ""], ["Prognosa", "angka"], ["Target s.d. " + kini, "angka"], ["Realisasi tambahan", "angka"], ["Kesesuaian", "angka"], ["Pelaksanaan kegiatan", ""]].map(function (h) { return el("th", { scope: "col", kelas: h[1], teks: h[0] }); }))]),
+      tb
+    ])]));
+    k.appendChild(el("p", { kelas: "petunjuk", style: "margin:8px 0 12px;font-size:13px", teks: "Kesesuaian = realisasi tambahan sejak titik awal ÷ target s.d. akhir bulan data. 90 sampai 110 persen dianggap sesuai. Realisasi tambahan mencakup semua belanja unit pada jenis belanja itu, termasuk yang tidak masuk prognosa." }));
+    kes.unit.forEach(function (u) {
+      var det = el("details", { kelas: "rincian-tup" }), kunci = "kes|" + u.nama;
+      if (tup.buka[kunci]) det.setAttribute("open", "");
+      det.addEventListener("toggle", function () { tup.buka[kunci] = det.open; });
+      det.appendChild(el("summary", null, [el("b", { teks: u.nama }), " · pelaksanaan " + u.jumlah.n + " kegiatan"]));
+      var tbK = el("tbody");
+      (u.kegiatan || []).slice().sort(function (a, b) { return String(a.tanggal).localeCompare(String(b.tanggal)); }).forEach(function (x) {
+        var ket = x.status === "terlaksana" ? (x.tanggalStatus ? tanggalPendek(x.tanggalStatus) + ", " : "") + rp(x.nominal)
+          : x.status === "bergeser" ? "ke " + tanggalPendek(x.tanggalStatus) : "";
+        tbK.appendChild(el("tr", null, [
+          el("td", { style: "white-space:nowrap", teks: tanggalPendek(x.tanggal) }), el("td", { teks: x.kegiatan }), el("td", { kelas: "angka", teks: rp(x.biaya) }),
+          el("td", { style: x.status === "batal" ? "color:var(--merah);font-weight:700" : x.status === "terlaksana" ? "color:var(--hijau);font-weight:700" : "", teks: NAMA_STATUS[x.status] || x.status }),
+          el("td", { teks: ket }), el("td", { teks: x.catatan || "" })
+        ]));
+      });
+      var jenis = el("tbody");
+      u.jenis.forEach(function (j) {
+        var v = j.target > 0 ? Math.round(j.realisasi / j.target * 1000) / 10 : null;
+        jenis.appendChild(el("tr", null, [el("td", { teks: j.nama }), el("td", { kelas: "angka", teks: rp(j.total) }), el("td", { kelas: "angka", teks: kes.berjalan ? rp(j.target) : "–" }),
+          el("td", { kelas: "angka", teks: rp(j.realisasi) }), el("td", { kelas: "angka", style: kelasKes(v), teks: persenKes(v) })]));
+      });
+      det.appendChild(el("div", { kelas: "rincian-isi" }, [
+        el("div", { style: "overflow-x:auto;margin-bottom:14px" }, [el("table", { kelas: "riwayat" }, [el("caption", { teks: "Per jenis belanja" }),
+          el("thead", null, [el("tr", null, [["Jenis belanja", ""], ["Prognosa", "angka"], ["Target", "angka"], ["Realisasi tambahan", "angka"], ["Kesesuaian", "angka"]].map(function (h) { return el("th", { scope: "col", kelas: h[1], teks: h[0] }); }))]), jenis])]),
+        el("div", { style: "overflow-x:auto" }, [el("table", { kelas: "riwayat" }, [el("caption", { teks: "Pelaksanaan kegiatan (diisi seksi)" }),
+          el("thead", null, [el("tr", null, ["Rencana", "Kegiatan", "Biaya", "Status", "Pelaksanaan", "Catatan"].map(function (h, i) { return el("th", { scope: "col", kelas: i === 2 ? "angka" : "", teks: h }); }))]), tbK])])
+      ]));
+      k.appendChild(det);
+    });
+    k.appendChild(el("div", { kelas: "bagian-judul", style: "margin:12px 0 0" }, [
+      el("button", { type: "button", kelas: "tombol kecil", teks: "Tetapkan ulang", onclick: tetapkan }),
+      el("a", { kelas: "tombol kecil", href: "../realisasi/", target: "_blank", rel: "noopener", teks: "Buka halaman Monitoring" })
+    ]));
   }
 
   // Rekap untuk bahan rincian rencana penggunaan TUP: ringkasan per unit, daftar outstanding, dan daftar prognosa kegiatan.

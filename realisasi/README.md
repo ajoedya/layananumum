@@ -12,6 +12,7 @@ Dashboard bisa dibuka di peramban komputer maupun ponsel, tanpa perlu memasang a
 |---|---|
 | **Ringkasan** | Persentase penyerapan satker terhadap target tertimbang, kartu angka (pagu, realisasi, realisasi bulan berjalan, sisa, blokir, dan target), serta rekap per kelompok belanja, unit pengampu, jenis belanja, dan rincian output. |
 | **Monitoring per RO** | Rincian satu rincian output (RO) dalam susunan kertas kerja seperti POK, yaitu subkomponen, akun, lalu item belanja beserta subtotalnya. Pilih RO lewat daftar atau tombol panah. |
+| **Prognosa** | Kesesuaian prognosa kegiatan seksi terhadap realisasi, per unit pengampu dan jenis belanja: prognosa, target sampai akhir bulan data, realisasi tambahan sejak prognosa ditetapkan, persentase kesesuaian, dan jumlah kegiatan terlaksana. Prognosa diisi seksi di `prognosa/` dan ditetapkan bendahara di dasbor admin. Nama kegiatan tidak ditampilkan. |
 | **Quick Report** | Laporan yang bisa disusun sendiri seperti menu laporan di OMSPAN. Pilih dimensi untuk baris dan kolom, nilai yang ditampilkan, lalu saring datanya. Hasilnya bisa diekspor ke Excel atau dicetak. |
 
 Tombol **Cetak** di kanan atas mencetak Ringkasan dalam satu halaman A4, dan bisa juga mencetak RO tertentu saja.
