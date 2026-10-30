@@ -41,8 +41,9 @@
   }
   function tulisPeta(tempat, kunci, o) { try { window[tempat].setItem(kunci, JSON.stringify(o)); } catch (e) { /* abaikan */ } }
 
-  function tanda(p) { return [p.jenis, p.judul, p.isi, p.tombolTeks, p.tombolAlamat, p.detik].join("|"); }
+  function tanda(p) { return [p.bentuk, p.jenis, p.judul, p.isi, p.gambar, p.gambarAlt, p.tombolTeks, p.tombolAlamat, p.detik].join("|"); }
   function sudahDilihat(p) {
+    if (p.bentuk === "jendela") return bacaPeta("localStorage", KUNCI_HARI)["jendela-" + p.id] === K.hariIni();
     var t = tanda(p);
     if (bacaPeta("localStorage", KUNCI_SEMBUNYI)[p.id] === t) return true;
     if (p.frekuensi === "setiap") return false;
@@ -51,6 +52,12 @@
   }
   function catatTampil(p) {
     s.dimuat[p.id + "|" + tanda(p)] = true;
+    if (p.bentuk === "jendela" && !s.pratinjau) {
+      var harian = bacaPeta("localStorage", KUNCI_HARI);
+      harian["jendela-" + p.id] = K.hariIni();
+      tulisPeta("localStorage", KUNCI_HARI, harian);
+      return;
+    }
     if (s.pratinjau || p.frekuensi === "setiap") return;
     var tempat = p.frekuensi === "harian" ? "localStorage" : "sessionStorage", kunci = p.frekuensi === "harian" ? KUNCI_HARI : KUNCI_SESI;
     var peta = bacaPeta(tempat, kunci);
@@ -74,14 +81,14 @@
   /* ---------- Hitung mundur ---------- */
   function jalan() {
     var a = s.aktif;
-    if (!a || s.pewaktu || document.hidden) return;
+    if (!a || a.jendela || s.pewaktu || document.hidden) return;
     s.sejak = Date.now();
     s.pewaktu = setTimeout(function () { s.pewaktu = null; tutup(a.el); }, s.sisa);
     a.waktu.style.animationPlayState = "running";
   }
   function jeda() {
     var a = s.aktif;
-    if (!a || !s.pewaktu) return;
+    if (!a || a.jendela || !s.pewaktu) return;
     clearTimeout(s.pewaktu); s.pewaktu = null;
     s.sisa = Math.max(1000, s.sisa - (Date.now() - s.sejak));
     a.waktu.style.animationPlayState = "paused";
@@ -89,6 +96,7 @@
 
   /* ---------- Menggambar satu pop up ---------- */
   function tampilkan(p) {
+    if (p.bentuk === "jendela") { tampilkanJendela(p); return; }
     var el = document.createElement("aside");
     el.className = "popup popup--" + p.jenis + " popup--" + p.posisi;
     el.setAttribute("role", p.jenis === "penting" ? "alert" : "status");
@@ -157,11 +165,44 @@
     jalan();
   }
 
+  function tampilkanJendela(p) {
+    var dialog = document.createElement("dialog");
+    dialog.className = "pengumuman-jendela";
+    dialog.setAttribute("aria-label", p.judul ? K.polos(p.judul) : "Pengumuman");
+    var judul = K.isiTeks(document.createElement("h2"), p.judul || "Pengumuman");
+    dialog.appendChild(judul);
+    var alamat = K.alamatAman(p.gambar);
+    if (alamat) {
+      var gambar = document.createElement("img");
+      gambar.src = K.luar(alamat) ? alamat : s.akar + alamat;
+      gambar.alt = p.gambarAlt || "";
+      dialog.appendChild(gambar);
+    }
+    if (p.isi) dialog.appendChild(K.isiTeks(document.createElement("p"), p.isi));
+    var tujuan = K.alamatAman(p.tombolAlamat);
+    if (p.tombolTeks && tujuan) {
+      var tautan = document.createElement("a");
+      tautan.className = "pengumuman-tautan"; tautan.textContent = p.tombolTeks;
+      tautan.href = K.luar(tujuan) ? tujuan : s.akar + tujuan;
+      if (K.luar(tujuan)) { tautan.target = "_blank"; tautan.rel = "noopener"; }
+      dialog.appendChild(tautan);
+    }
+    var tombol = document.createElement("button");
+    tombol.type = "button"; tombol.className = "pengumuman-tutup"; tombol.textContent = "Tutup";
+    tombol.addEventListener("click", function () { tutup(dialog); });
+    dialog.appendChild(tombol);
+    dialog.addEventListener("cancel", function (e) { e.preventDefault(); tutup(dialog); });
+    s.aktif = { p: p, el: dialog, jendela: true };
+    document.body.appendChild(dialog);
+    dialog.showModal(); tombol.focus(); catatTampil(p);
+  }
+
   function tutup(el) {
     var a = s.aktif;
     if (!a || (el && a.el !== el)) return;
     s.aktif = null;
     clearTimeout(s.pewaktu); s.pewaktu = null;
+    if (a.jendela) { a.el.close(); a.el.remove(); s.pernah = true; giliran(); return; }
     a.el.classList.add("popup--keluar");
     setTimeout(function () { if (a.el.parentNode) a.el.parentNode.removeChild(a.el); }, 200);
     s.pernah = true;

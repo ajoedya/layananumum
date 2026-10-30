@@ -310,7 +310,7 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
   function periksaVersiSkrip() {
     fetch(ALAMAT + "?aksi=versi", { cache: "no-store" })
       .then(function (r) { return r.json(); })
-      .then(function (h) { keadaan.skripLama = !(h && h.ok && h.fitur && h.fitur.indexOf("pemberitahuan") >= 0); })
+      .then(function (h) { keadaan.skripLama = !(h && h.ok && h.fitur && h.fitur.indexOf("pemberitahuan") >= 0); keadaan.jendelaTersedia = !!(h && h.ok && h.fitur && h.fitur.indexOf("pengumuman-jendela") >= 0); })
       .catch(function () { keadaan.skripLama = false; })   // gangguan jaringan bukan tanda kode lama
       .then(function () {
         if (!keadaan.skripLama) return;
@@ -384,6 +384,7 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
     k.pemberitahuan.forEach(function (x, i) {
       if (!x.tampil) return;
       var nama = "Pop up \"" + (K.polos(x.judul) || i + 1) + "\"";
+      if (x.gambar && !K.alamatAman(x.gambar)) galat.push(nama + ": alamat gambar harus https:// atau alamat di situs ini.");
       if (!String(x.judul || "").trim() && !String(x.isi || "").trim()) galat.push(nama + ": judul dan isi masih kosong.");
       if (!(Number(x.detik) >= 5 && Number(x.detik) <= 600)) galat.push(nama + ": lama tampil harus antara 5 dan 600 detik.");
       if (!(Number(x.tunda) >= 0 && Number(x.tunda) <= 60)) galat.push(nama + ": jeda sebelum muncul harus antara 0 dan 60 detik.");
@@ -431,6 +432,7 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
 
   $("tombolTerbit").addEventListener("click", function () {
     var galat = periksa();
+    if (!keadaan.jendelaTersedia && keadaan.konten.pemberitahuan.some(function (x) { return x.bentuk === "jendela"; })) galat.push("Perbarui deployment Apps Script sebelum menerbitkan jendela pengumuman agar pengaturannya tersimpan.");
     tampilGalat(galat);
     if (galat.length) return;
     // Penerbitan pertama (spreadsheet masih kosong) boleh tanpa perubahan, supaya isi sekarang tercatat di riwayat.
@@ -630,19 +632,22 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
   function panelPemberitahuan(p) {
     var d = keadaan.konten.pemberitahuan;
     p.appendChild(judulBagian("Pop up pemberitahuan", [el("button", { type: "button", kelas: "tombol utama", disabled: d.length >= BATAS_POPUP, teks: "+ Tambah pop up", onclick: function () {
-      d.unshift(K.rapikanButirPemberitahuan({ tampil: true })); berubah(); gambarTab();
+      d.unshift(K.rapikanButirPemberitahuan({ tampil: true, bentuk: "jendela", frekuensi: "harian", halaman: ["perjadin", "realisasi"] })); berubah(); gambarTab();
     } })]));
     if (keadaan.skripLama) p.appendChild(el("div", { kelas: "peringatan-gaya", role: "alert", teks: PESAN_SKRIP_LAMA }));
-    p.appendChild(el("p", { kelas: "petunjuk", teks: "Kotak kecil di pojok layar. Satu pop up tampil pada satu waktu; yang lain mengantre dan muncul setelah yang sebelumnya ditutup atau habis waktunya. Teks yang diubah dianggap pop up baru, jadi muncul lagi bagi yang pernah melihatnya. Paling banyak " + BATAS_POPUP + " butir. " + KET_PENANDA }));
+    p.appendChild(el("p", { kelas: "petunjuk", teks: "Pilih jendela pengumuman atau kotak kecil di pojok layar. Jendela tampil sekali per hari dan ditutup oleh pengunjung. Gambar menggunakan alamat HTTPS atau alamat di situs ini. Pop up tampil bergiliran. Paling banyak " + BATAS_POPUP + " butir. " + KET_PENANDA }));
     p.appendChild(el("p", { kelas: "petunjuk", teks: "Tombol Pratinjau menampilkan semua pop up yang aktif di beranda, tanpa memandang pilihan halaman dan tanpa mengingat yang sudah dilihat." }));
     if (!d.length) { p.appendChild(el("div", { kelas: "kosong", teks: "Belum ada pop up. Tidak ada pemberitahuan yang muncul di situs." })); return; }
     var wadah = el("div", { kelas: "daftar" });
     d.forEach(function (x, i) {
       var kt = kartu(K.polos(x.judul), String(i + 1), x, kendaliKartu(d, i, { nama: "pop up ini" }), [
+        kolom("Bentuk", x, "bentuk", { jenis: "pilih", pilihan: pilihan(K.PEMBERITAHUAN.bentuk) }),
         kolom("Jenis", x, "jenis", { jenis: "pilih", pilihan: pilihan(K.PEMBERITAHUAN.jenis), ket: "Menentukan warna garis dan ikon." }),
         kolom("Posisi di layar", x, "posisi", { jenis: "pilih", pilihan: pilihan(K.PEMBERITAHUAN.posisi) }),
         kolom("Judul", x, "judul", { maks: 80, penuh: true, ubah: function (v) { kt._nama.textContent = K.polos(v) || "(tanpa judul)"; } }),
-        kolom("Isi", x, "isi", { jenis: "area", maks: 300, penuh: true }),
+        kolom("Isi", x, "isi", { jenis: "area", maks: 2000, penuh: true }),
+        kolom("Alamat gambar untuk jendela", x, "gambar", { alamat: true, maks: 1000, penuh: true, contoh: "https://..." }),
+        kolom("Keterangan gambar", x, "gambarAlt", { maks: 160, penuh: true, ket: "Jelaskan gambar untuk pembaca layar." }),
         kolom("Teks tombol", x, "tombolTeks", { maks: 40, contoh: "Lihat pengumuman", ket: "Kosong berarti tanpa tombol." }),
         kolom("Alamat tombol", x, "tombolAlamat", { alamat: true, contoh: "https://... atau perjadin/" }),
         kolom("Lama tampil (detik)", x, "detik", { jenis: "number", ket: "Antara 5 dan 600. Bawaan 60 detik." }),

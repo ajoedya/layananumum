@@ -51,7 +51,7 @@ var POTONG = 45000;             // panjang teks per sel (batas sel Google Sheets
 // Versi kode dan fitur yang dikenali. Dasbor admin membacanya lewat doGet (aksi=versi) untuk memastikan
 // deployment yang tayang sudah memakai kode ini. Naikkan tanggalnya setiap kali kode diubah.
 var VERSI_SKRIP = "2026-10-29";
-var FITUR_SKRIP = ["pemberitahuan"];
+var FITUR_SKRIP = ["pemberitahuan", "pengumuman-jendela"];
 
 /* ---------- Menu di spreadsheet ---------- */
 function onOpen() {
@@ -372,8 +372,9 @@ function pemberitahuan_(daftar) {
     dipakai[id] = true;
     var o = {
       id: id, tampil: x.tampil !== false,
+      bentuk: x.bentuk === "jendela" ? "jendela" : "pojok", gambar: alamat_(x.gambar), gambarAlt: teks_(x.gambarAlt, 160),
       jenis: PEMBERITAHUAN_JENIS_[x.jenis] ? x.jenis : "info",
-      judul: teks_(x.judul, 80), isi: teks_(x.isi, 300),
+      judul: teks_(x.judul, 80), isi: teks_(x.isi, 2000),
       tombolTeks: teks_(x.tombolTeks, 40), tombolAlamat: alamat_(x.tombolAlamat),
       detik: angkaBatas_(x.detik, 5, 600, 60), tunda: angkaBatas_(x.tunda, 0, 60, 0),
       posisi: PEMBERITAHUAN_POSISI_[x.posisi] ? x.posisi : "kanan-bawah",

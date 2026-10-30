@@ -131,6 +131,7 @@ window.Konten = (function () {
      Daftar pilihan ini harus sama dengan daftar putih pemberitahuan_ di Apps Script.
      Bentuk lama (satu objek `popup`, hanya untuk beranda) diubah menjadi satu butir daftar, supaya isi yang sudah tersimpan tetap tampil. */
   var PEMBERITAHUAN = {
+    bentuk: [["pojok", "Pemberitahuan di pojok"], ["jendela", "Jendela pengumuman"]],
     jenis: [["info", "Informasi"], ["peringatan", "Peringatan"], ["penting", "Penting"]],
     posisi: [["kanan-bawah", "Kanan bawah"], ["kiri-bawah", "Kiri bawah"], ["kanan-atas", "Kanan atas"], ["kiri-atas", "Kiri atas"]],
     frekuensi: [["sesi", "Sekali per sesi"], ["harian", "Sekali per hari"], ["setiap", "Setiap halaman dibuka"]],
@@ -148,6 +149,7 @@ window.Konten = (function () {
     var o = {
       id: /^[a-z0-9-]{1,20}$/.test(String(x.id || "")) ? String(x.id) : idPemberitahuan(),
       tampil: x.tampil !== false,
+      bentuk: x.bentuk === "jendela" ? "jendela" : "pojok", gambar: String(x.gambar || ""), gambarAlt: String(x.gambarAlt || ""),
       jenis: kodeDalam(PEMBERITAHUAN.jenis, x.jenis, "info"),
       judul: String(x.judul == null ? "" : x.judul), isi: String(x.isi == null ? "" : x.isi),
       tombolTeks: String(x.tombolTeks == null ? "" : x.tombolTeks), tombolAlamat: String(x.tombolAlamat == null ? "" : x.tombolAlamat),
