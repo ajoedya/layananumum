@@ -50,8 +50,12 @@ var ZONA_WAKTU = "Asia/Makassar";  // tanggal statistik dan log mengikuti WITA
 var POTONG = 45000;             // panjang teks per sel (batas sel Google Sheets 50.000 karakter)
 // Versi kode dan fitur yang dikenali. Dasbor admin membacanya lewat doGet (aksi=versi) untuk memastikan
 // deployment yang tayang sudah memakai kode ini. Naikkan tanggalnya setiap kali kode diubah.
-var VERSI_SKRIP = "2026-10-30";
-var FITUR_SKRIP = ["pemberitahuan", "pengumuman-jendela", "pengumuman-klik"];
+var VERSI_SKRIP = "2026-10-30.2";
+var FITUR_SKRIP = ["pemberitahuan", "pengumuman-jendela", "pengumuman-klik", "prognosa"];
+// Prognosa kegiatan dan pengajuan TUP (prognosa/). Isian per unit di tab Prognosa; aturan dan kunci bersama seksi di Properti Skrip.
+var TAB_PROGNOSA = "Prognosa";
+var PROPERTI_KUNCI_PROGNOSA = "SIDIK_KUNCI_PROGNOSA";
+var PROPERTI_ATURAN_PROGNOSA = "ATURAN_PROGNOSA";
 
 /* ---------- Menu di spreadsheet ---------- */
 function onOpen() {
@@ -143,13 +147,16 @@ function doPost(e) {
     if (gagal >= BATAS_GAGAL) cache.put("terkunci", "1", MENIT_KUNCI * 60);
     catatLog_(teks_(minta.penyunting, 60) || "(tanpa nama)", "-", "Gagal masuk", "Kunci salah (percobaan ke-" + gagal + ")");
     Utilities.sleep(800);
-    return balas_({ ok: false, pesan: "Kunci admin salah." });
+    return balas_({ ok: false, pesan: "Kunci salah." });
   }
 
   cache.remove("gagal");
   // Penyunting terdaftar memakai namanya sendiri; pemegang kunci admin memakai nama yang diketik saat masuk.
   minta.penyunting = who.nama || teks_(minta.penyunting, 60) || "(tanpa nama)";
   if (IZIN_[minta.aksi] === "admin" && who.peran !== "admin") return balas_({ ok: false, pesan: "Bagian ini hanya untuk admin." });
+  // Kunci prognosa bersama hanya membuka isian prognosa; penyunting beranda tidak bisa membuka prognosa.
+  if (who.peran === "seksi" && IZIN_[minta.aksi] !== "seksi") return balas_({ ok: false, pesan: "Kunci ini hanya untuk mengisi prognosa." });
+  if (IZIN_[minta.aksi] === "seksi" && who.peran === "penyunting") return balas_({ ok: false, pesan: "Bagian ini hanya untuk seksi dan admin." });
   try {
     switch (minta.aksi) {
       case "cek":
@@ -183,6 +190,16 @@ function doPost(e) {
         return balas_({ ok: true, riwayat: daftarRiwayatRealisasi_() });
       case "ambilRiwayatRealisasi":
         return balas_({ ok: true, data: ambilRiwayatRealisasi_(Number(minta.baris)) });
+      case "prognosaBaca":
+        var bacaP = bacaPrognosa_(who);
+        if (minta.masuk) catatLog_(minta.penyunting, who.peran, "Membuka prognosa", "");
+        return balas_(bacaP);
+      case "prognosaSimpan":
+        return simpanPrognosa_(minta, who);
+      case "prognosaAtur":
+        return aturPrognosa_(minta, who);
+      case "prognosaBayar":
+        return bayarPrognosa_(minta, who);
       default:
         return balas_({ ok: false, pesan: "Aksi tidak dikenal" });
     }
@@ -227,7 +244,8 @@ function simpan_(minta, who) {
    Aksi yang tidak tercantum boleh dipakai semua penyunting terdaftar. Data realisasi (keuangan), daftar penyunting,
    dan log aktivitas hanya untuk pemegang kunci admin. */
 var IZIN_ = { cekRealisasi: "admin", simpanRealisasi: "admin", riwayatRealisasi: "admin", ambilRiwayatRealisasi: "admin",
-              daftarPenyunting: "admin", tambahPenyunting: "admin", aturPenyunting: "admin", log: "admin" };
+              daftarPenyunting: "admin", tambahPenyunting: "admin", aturPenyunting: "admin", log: "admin",
+              prognosaAtur: "admin", prognosaBayar: "admin", prognosaBaca: "seksi", prognosaSimpan: "seksi" };
 
 // Mengembalikan { peran, nama } bila kunci cocok: kunci admin, atau kunci penyunting terdaftar yang aktif.
 // Mengembalikan { nonaktif: true } untuk penyunting yang dinonaktifkan, dan null bila kunci tidak dikenal.
@@ -235,6 +253,7 @@ function masuk_(kunci, sidikAdmin) {
   if (!kunci) return null;
   var sk = sidik_(kunci);
   if (sk === sidikAdmin) return { peran: "admin", nama: "" };
+  if (sk === PropertiesService.getScriptProperties().getProperty(PROPERTI_KUNCI_PROGNOSA)) return { peran: "seksi", nama: "" };
   var t = SpreadsheetApp.getActive().getSheetByName(TAB_PENYUNTING);
   if (!t || t.getLastRow() < 2) return null;
   var v = t.getRange(2, 1, t.getLastRow() - 1, 5).getValues();
@@ -264,6 +283,7 @@ function tambahPenyunting_(minta) {
   try {
     var sk = sidik_(kunciBaru);
     if (sk === PropertiesService.getScriptProperties().getProperty(PROPERTI_KUNCI)) throw new Error("Kunci tidak boleh sama dengan kunci admin.");
+    if (sk === PropertiesService.getScriptProperties().getProperty(PROPERTI_KUNCI_PROGNOSA)) throw new Error("Kunci tidak boleh sama dengan kunci prognosa.");
     var t = tab_(TAB_PENYUNTING, ["Nama", "Sidik kunci", "Aktif", "Dibuat", "Terakhir masuk"]);
     var n = t.getLastRow() - 1, v = n > 0 ? t.getRange(2, 1, n, 2).getValues() : [];
     var baris = -1;
@@ -695,4 +715,198 @@ function sidik_(teks) {
 }
 function balas_(isi) {
   return ContentService.createTextOutput(JSON.stringify(isi)).setMimeType(ContentService.MimeType.JSON);
+}
+
+/* ---------- Prognosa kegiatan dan pengajuan TUP ----------
+   Seksi masuk ke prognosa/ dengan satu kunci bersama (peran "seksi"), memilih unitnya, lalu mengisi tagihan outstanding
+   dan prognosa kegiatan sampai tanggal batas kegiatan. Sisa pagu dihitung dari data realisasi terbitan terakhir per unit
+   pengampu dan jenis belanja (pemetaan Monev). Belanja pegawai (51) tidak dihitung karena dibayar LS, bukan lewat UP/TUP.
+   Satu baris per unit di tab Prognosa: Unit, Status (draf/terkirim), Diperbarui, Pengisi, Isian (JSON).
+   Isian yang sudah dikirim terkunci bagi seksi sampai admin membukanya. */
+var BATAS_ISIAN_PROGNOSA = 45000;
+function tanggal_(v) { v = String(v || ""); return /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : ""; }
+function hariIniWita_() { return Utilities.formatDate(new Date(), ZONA_WAKTU, "yyyy-MM-dd"); }
+
+function aturanPrognosa_() {
+  var a = {};
+  try { a = JSON.parse(PropertiesService.getScriptProperties().getProperty(PROPERTI_ATURAN_PROGNOSA) || "{}") || {}; } catch (galat) { a = {}; }
+  return {
+    terbuka: a.terbuka === true, batas: tanggal_(a.batas), sampai: tanggal_(a.sampai) || "2026-12-15",
+    saldoUp: angka_(a.saldoUp), judul: teks_(a.judul, 120) || "Prognosa kegiatan untuk pengajuan TUP"
+  };
+}
+
+// Sisa pagu per unit dan jenis belanja dari data realisasi terbitan terakhir.
+function paguPrognosa_() {
+  var d = bacaRealisasi_().data;
+  if (!d || !d.mentah || !Array.isArray(d.mentah.item)) return { periode: null, unit: [] };
+  var k = d.konfig || {}, petaUnit = k.unit || {}, petaJenis = k.jenis || {}, peta = {};
+  d.mentah.item.forEach(function (x) {
+    var akun = String(x.kodeAkun || "");
+    if (akun.indexOf("51") === 0) return;
+    var unit = petaUnit[x.kodeRo] || "Belum terpetakan";
+    var jenis = petaJenis[akun] || (akun.indexOf("5241") === 0 ? "Perjalanan Dinas" : "Lainnya");
+    var u = peta[unit] || (peta[unit] = {});
+    var j = u[jenis] || (u[jenis] = { pagu: 0, blokir: 0, sd: 0 });
+    j.pagu += Number(x.pagu) || 0; j.blokir += Number(x.blokir) || 0; j.sd += Number(x.sd) || 0;
+  });
+  function urut(nama, urutan) {
+    return nama.sort(function (a, b) {
+      var ia = urutan.indexOf(a), ib = urutan.indexOf(b);
+      return (ia < 0 ? 999 : ia) - (ib < 0 ? 999 : ib) || a.localeCompare(b);
+    });
+  }
+  var unit = urut(Object.keys(peta), larik_(k.urutanUnit, 30, 100)).map(function (nama) {
+    return {
+      nama: nama,
+      jenis: urut(Object.keys(peta[nama]), larik_(k.urutanJenis, 30, 100)).map(function (j) {
+        var v = peta[nama][j];
+        return { nama: j, pagu: angka_(v.pagu), blokir: angka_(v.blokir), sd: angka_(v.sd), sisa: angka_(v.pagu - v.blokir - v.sd) };
+      })
+    };
+  });
+  return { periode: { bulan: d.bulan, tahun: d.mentah.tahun || null, tanggal: d.tanggal || "" }, unit: unit };
+}
+
+function isianPrognosa_() {
+  var t = SpreadsheetApp.getActive().getSheetByName(TAB_PROGNOSA);
+  if (!t || t.getLastRow() < 2) return [];
+  return t.getRange(2, 1, t.getLastRow() - 1, 5).getValues().map(function (r, i) {
+    var data = null;
+    try { data = r[4] ? JSON.parse(String(r[4])) : null; } catch (galat) { data = null; }
+    return { baris: i + 2, unit: String(r[0]), status: String(r[1]) === "terkirim" ? "terkirim" : "draf",
+             diperbarui: r[2] instanceof Date ? r[2].toISOString() : String(r[2] || ""), pengisi: String(r[3] || ""), data: data };
+  });
+}
+
+function bacaPrognosa_(who) {
+  var hasil = { ok: true, aturan: aturanPrognosa_(), pagu: paguPrognosa_(), hariIni: hariIniWita_(),
+    isian: isianPrognosa_().map(function (x) { return { unit: x.unit, status: x.status, diperbarui: x.diperbarui, pengisi: x.pengisi, data: x.data }; }) };
+  if (who && who.peran === "admin") hasil.kunciDisetel = !!PropertiesService.getScriptProperties().getProperty(PROPERTI_KUNCI_PROGNOSA);
+  return hasil;
+}
+
+// Merapikan isian seksi: teks dipangkas, angka dibulatkan, baris kosong dibuang.
+function rapikanIsianPrognosa_(d) {
+  d = (d && typeof d === "object") ? d : {};
+  return {
+    outstanding: daftar_(d.outstanding, 60).map(function (x) {
+      x = x || {};
+      return { jenis: teks_(x.jenis, 100), uraian: teks_(x.uraian, 200), nominal: Math.max(0, angka_(x.nominal)) };
+    }).filter(function (x) { return x.uraian || x.nominal; }),
+    prognosa: daftar_(d.prognosa, 120).map(function (x) {
+      x = x || {};
+      return { jenis: teks_(x.jenis, 100), kegiatan: teks_(x.kegiatan, 200), keterangan: teks_(x.keterangan, 200),
+               tanggal: tanggal_(x.tanggal), volume: teks_(x.volume, 80), biaya: Math.max(0, angka_(x.biaya)), bayar: x.bayar === "ls" ? "ls" : "up" };
+    }).filter(function (x) { return x.kegiatan || x.biaya; }),
+    catatan: teks_(d.catatan, 500)
+  };
+}
+
+// Pemeriksaan sebelum dikirim: setiap baris lengkap, tanggal dalam batas, dan total per jenis tidak melebihi sisa pagu.
+function periksaKirimPrognosa_(isian, jenisUnit, sampai) {
+  var galat = [], sisa = {}, pakai = {};
+  jenisUnit.forEach(function (j) { sisa[j.nama] = j.sisa; pakai[j.nama] = 0; });
+  isian.outstanding.forEach(function (x, i) {
+    if (!(x.jenis in sisa)) galat.push("Outstanding " + (i + 1) + ": pilih jenis belanja.");
+    else pakai[x.jenis] += x.nominal;
+    if (!x.uraian) galat.push("Outstanding " + (i + 1) + ": uraian masih kosong.");
+    if (!(x.nominal > 0)) galat.push("Outstanding " + (i + 1) + ": nominal harus lebih dari nol.");
+  });
+  isian.prognosa.forEach(function (x, i) {
+    var n = "Kegiatan " + (i + 1);
+    if (!(x.jenis in sisa)) galat.push(n + ": pilih jenis belanja.");
+    else pakai[x.jenis] += x.biaya;
+    if (!x.kegiatan) galat.push(n + ": nama kegiatan masih kosong.");
+    if (!x.tanggal) galat.push(n + ": isi rencana tanggal.");
+    else if (x.tanggal > sampai) galat.push(n + ": rencana tanggal melewati batas kegiatan " + sampai + ".");
+    if (!(x.biaya > 0)) galat.push(n + ": perkiraan biaya harus lebih dari nol.");
+  });
+  Object.keys(pakai).forEach(function (j) {
+    if (pakai[j] > sisa[j] + 0.5) galat.push(j + ": outstanding dan prognosa (" + pakai[j] + ") melebihi sisa pagu (" + sisa[j] + ").");
+  });
+  return galat;
+}
+
+function simpanPrognosa_(minta, who) {
+  var admin = who.peran === "admin", aturan = aturanPrognosa_(), hariIni = hariIniWita_();
+  if (!admin && !aturan.terbuka) throw new Error("Pengisian prognosa sedang ditutup oleh bendahara.");
+  if (!admin && aturan.batas && hariIni > aturan.batas) throw new Error("Batas pengisian prognosa (" + aturan.batas + ") sudah lewat. Hubungi bendahara.");
+  var pagu = paguPrognosa_();
+  var unitNama = teks_(minta.unit, 100), unit = null;
+  pagu.unit.forEach(function (u) { if (u.nama === unitNama) unit = u; });
+  if (!unit) throw new Error("Unit tidak dikenal. Muat ulang halaman.");
+  var isian = rapikanIsianPrognosa_(minta.data);
+  var teks = JSON.stringify(isian);
+  if (teks.length > BATAS_ISIAN_PROGNOSA) throw new Error("Isian terlalu panjang. Gabungkan beberapa baris.");
+  if (minta.kirim) {
+    var galat = periksaKirimPrognosa_(isian, unit.jenis, aturan.sampai);
+    if (galat.length) return balas_({ ok: false, galat: galat, pesan: "Isian belum bisa dikirim." });
+  }
+  var kunciTulis = LockService.getScriptLock();
+  if (!kunciTulis.tryLock(10000)) throw new Error("Sedang ada penyimpanan lain. Coba lagi.");
+  try {
+    var t = tab_(TAB_PROGNOSA, ["Unit", "Status", "Diperbarui", "Pengisi", "Isian"]);
+    var lama = null;
+    isianPrognosa_().forEach(function (x) { if (x.unit === unitNama) lama = x; });
+    if (lama && lama.status === "terkirim" && !admin) throw new Error("Isian unit ini sudah dikirim. Minta bendahara membukanya bila perlu diubah.");
+    // Mencegah dua orang saling menimpa isian unit yang sama.
+    if (lama && lama.diperbarui && String(minta.dasar || "") !== lama.diperbarui) {
+      return balas_({ ok: false, bentrok: true, pesan: "Isian unit ini sudah diubah orang lain (" + (lama.pengisi || "tanpa nama") + ") sejak halaman dimuat. Muat ulang untuk melihat isian terbaru." });
+    }
+    var waktu = new Date().toISOString(), status = minta.kirim ? "terkirim" : "draf";
+    // Tanda kutip tunggal menjaga waktu tetap teks, supaya tidak diubah Sheets menjadi tanggal dan pembanding `dasar` tetap cocok.
+    var baris = [unitNama, status, "'" + waktu, minta.penyunting, teks];
+    if (lama) t.getRange(lama.baris, 1, 1, 5).setValues([baris]); else t.appendRow(baris);
+    catatLog_(minta.penyunting, who.peran, minta.kirim ? "Mengirim prognosa" : "Menyimpan draf prognosa", unitNama);
+    return balas_({ ok: true, status: status, diperbarui: waktu });
+  } finally { kunciTulis.releaseLock(); }
+}
+
+// Cara bayar tiap kegiatan (UP/TUP atau LS) ditetapkan bendahara, bukan seksi. Hanya untuk isian yang sudah dikirim, supaya
+// urutan kegiatan tidak berubah di tangan seksi. Status dan waktu isian tidak diubah.
+function bayarPrognosa_(minta, who) {
+  var nama = teks_(minta.unit, 100), bayar = Array.isArray(minta.bayar) ? minta.bayar : [];
+  var kunciTulis = LockService.getScriptLock();
+  if (!kunciTulis.tryLock(10000)) throw new Error("Sedang ada penyimpanan lain. Coba lagi.");
+  try {
+    var t = SpreadsheetApp.getActive().getSheetByName(TAB_PROGNOSA), x = null;
+    isianPrognosa_().forEach(function (r) { if (r.unit === nama) x = r; });
+    if (!t || !x || !x.data) throw new Error("Isian unit ini tidak ditemukan.");
+    if (x.status !== "terkirim") throw new Error("Cara bayar hanya bisa ditetapkan setelah unit mengirim isiannya.");
+    var daftar = x.data.prognosa || [];
+    if (bayar.length !== daftar.length) throw new Error("Daftar kegiatan sudah berubah. Muat ulang prognosa.");
+    daftar.forEach(function (k, i) { k.bayar = bayar[i] === "ls" ? "ls" : "up"; });
+    t.getRange(x.baris, 5).setValue(JSON.stringify(x.data));
+    catatLog_(minta.penyunting, who.peran, "Menetapkan cara bayar prognosa", nama);
+    return balas_(bacaPrognosa_(who));
+  } finally { kunciTulis.releaseLock(); }
+}
+
+// Pengaturan admin: buka atau tutup pengisian, batas pengisian, batas kegiatan, saldo UP, kunci bersama, dan membuka kunci isian satu unit.
+function aturPrognosa_(minta, who) {
+  var p = PropertiesService.getScriptProperties();
+  if (minta.aturan) {
+    var a = minta.aturan, lama = aturanPrognosa_();
+    var baru = {
+      terbuka: a.terbuka === true, batas: tanggal_(a.batas), sampai: tanggal_(a.sampai) || lama.sampai,
+      saldoUp: Math.max(0, angka_(a.saldoUp)), judul: teks_(a.judul, 120) || lama.judul
+    };
+    p.setProperty(PROPERTI_ATURAN_PROGNOSA, JSON.stringify(baru));
+    catatLog_(minta.penyunting, who.peran, "Mengatur prognosa", (baru.terbuka ? "dibuka" : "ditutup") + (baru.batas ? ", batas " + baru.batas : ""));
+  }
+  if (minta.kunciBaru) {
+    var kunci = String(minta.kunciBaru);
+    if (kunci.length < 10) throw new Error("Kunci prognosa minimal 10 karakter.");
+    var sk = sidik_(kunci);
+    if (sk === p.getProperty(PROPERTI_KUNCI)) throw new Error("Kunci prognosa tidak boleh sama dengan kunci admin.");
+    p.setProperty(PROPERTI_KUNCI_PROGNOSA, sk);
+    catatLog_(minta.penyunting, who.peran, "Mengganti kunci prognosa", "");
+  }
+  if (minta.bukaUnit) {
+    var nama = teks_(minta.bukaUnit, 100), t = SpreadsheetApp.getActive().getSheetByName(TAB_PROGNOSA);
+    isianPrognosa_().forEach(function (x) { if (x.unit === nama && t) t.getRange(x.baris, 2).setValue("draf"); });
+    catatLog_(minta.penyunting, who.peran, "Membuka kunci isian prognosa", nama);
+  }
+  return balas_(bacaPrognosa_(who));
 }

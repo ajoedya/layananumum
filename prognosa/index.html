@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://docs.google.com https://script.google.com https://*.googleusercontent.com; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/x-icon" href="../favicon.ico">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<title>Prognosa Kegiatan | Layanan Subbagian Umum</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap">
+<script src="../tema.js"></script>
+<script src="../konten.js"></script>
+<style>
+/* ============================================================
+   Prognosa kegiatan untuk pengajuan TUP
+   Halaman isian seksi (pola Form): masuk dengan kunci prognosa bersama, pilih unit, isi tagihan outstanding dan
+   prognosa kegiatan, lalu simpan draf atau kirim ke bendahara. Sisa pagu dan aturan diambil dari Apps Script
+   (aksi prognosaBaca), daftar surat tugas belum dibayar dari CSV Monitoring E-Perjadin.
+   ============================================================ */
+:root {
+  color-scheme: light;
+  --huruf: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --laut: #0f3554; --laut-hover: #1b4d75; --emas: #b8700f; --emas-teks: #8a5208; --emas-muda: #fff6e1; --emas-garis: #e9d3a0;
+  --putih: #fff; --latar: #f5f8fa; --tinta: #0f3554; --lembut: #4f6577; --garis: #dbe4ea; --kolom: #cdd9e0; --abu-muda: #eef2f5;
+  --merah: #b3261e; --merah-muda: #fdecea; --hijau: #1f7a4a; --hijau-muda: #e7f5ed; --utama: #0f3554; --utama-hover: #1b4d75;
+}
+:root[data-mode="gelap"] {
+  color-scheme: dark;
+  --laut: #0b2033; --laut-hover: #2a5f8c; --emas: #e0a040; --emas-teks: #f0b860; --emas-muda: #241d13; --emas-garis: #5a4626;
+  --putih: #16212c; --latar: #0e1620; --tinta: #e4ecf2; --lembut: #a3b3c0; --garis: #243341; --kolom: #3a4d5f; --abu-muda: #1f2b36;
+  --merah: #f2a89d; --merah-muda: #3a1915; --hijau: #8fd9ae; --hijau-muda: #12301f; --utama: #2a5f8c; --utama-hover: #3a73a3;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--latar); color: var(--tinta); font: 15px/1.55 var(--huruf); -webkit-font-smoothing: antialiased; }
+[hidden] { display: none !important; }
+button, input, select, textarea { font: inherit; color: inherit; }
+a { color: #0f4a78; }
+:root[data-mode="gelap"] a { color: #8cc3f0; }
+.angka { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+
+/* ---------- Kepala ---------- */
+.kepala { background: var(--laut); color: #fff; }
+.kepala-isi { max-width: 900px; margin: 0 auto; padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
+.merek { font-weight: 800; font-size: 18px; letter-spacing: -.02em; margin-right: auto; }
+.merek small { display: block; color: #c9d8e4; font-size: 11px; font-weight: 600; letter-spacing: .16em; }
+.saklar-tema { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; color: #fff; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.3); border-radius: 50%; cursor: pointer; }
+.saklar-tema:hover { background: rgba(255,255,255,.22); }
+.saklar-tema svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.saklar-tema .ikon-matahari { display: none; }
+:root[data-mode="gelap"] .saklar-tema .ikon-bulan { display: none; }
+:root[data-mode="gelap"] .saklar-tema .ikon-matahari { display: block; }
+
+/* ---------- Tombol dan kolom ---------- */
+.tombol { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 8px 16px; border: 1px solid var(--kolom); border-radius: 8px; background: var(--putih); color: var(--tinta); font-weight: 600; cursor: pointer; text-decoration: none; }
+.tombol:hover { border-color: var(--tinta); }
+.tombol.utama { background: var(--utama); border-color: var(--utama); color: #fff; }
+.tombol.utama:hover { background: var(--utama-hover); }
+.tombol.bahaya { color: var(--merah); }
+.tombol.bahaya:hover { border-color: var(--merah); background: var(--merah-muda); }
+.tombol.teks { border-color: transparent; background: none; padding: 8px 10px; }
+.tombol[aria-busy="true"] { opacity: .7; cursor: progress; }
+.tombol:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, .saklar-tema:focus-visible { outline: 3px solid var(--emas); outline-offset: 2px; }
+label.kolom { display: flex; flex-direction: column; gap: 4px; font-size: 14px; font-weight: 700; min-width: 0; }
+label.kolom .ket, .ket { font-size: 13px; font-weight: 500; color: var(--lembut); }
+.opsional { font-weight: 500; color: var(--lembut); }
+input[type=text], input[type=password], input[type=date], select, textarea {
+  width: 100%; min-height: 44px; padding: 9px 12px; border: 1px solid var(--kolom); border-radius: 8px; background: var(--putih); font-size: 15px; font-weight: 400;
+}
+textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
+input[readonly], select:disabled, textarea[readonly] { background: var(--abu-muda); }
+.salah { border-color: var(--merah) !important; background: var(--merah-muda) !important; }
+.pesan-kolom { font-size: 13px; font-weight: 600; color: var(--merah); }
+.uang { position: relative; }
+.uang::before { content: "Rp"; position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--lembut); font-size: 14px; pointer-events: none; }
+.uang input { padding-left: 38px; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ---------- Tata letak ---------- */
+.wadah { max-width: 900px; margin: 0 auto; padding: 24px 16px 120px; }
+.masuk { max-width: 440px; margin: 40px auto; display: flex; flex-direction: column; gap: 16px; }
+h1 { margin: 0; font-size: 24px; letter-spacing: -.01em; }
+h2 { margin: 0; font-size: 18px; }
+.lead { margin: 6px 0 0; color: var(--lembut); }
+.kotak { background: var(--putih); border: 1px solid var(--garis); border-radius: 12px; padding: 20px; }
+.bagian { margin-top: 28px; }
+.bagian-kepala { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px 16px; margin-bottom: 12px; }
+.bagian-kepala > div { margin-right: auto; }
+.bagian-kepala p { margin: 4px 0 0; color: var(--lembut); font-size: 14px; }
+.pesan { margin: 0; padding: 12px 14px; border-radius: 8px; font-size: 14px; }
+.pesan.galat { background: var(--merah-muda); color: var(--merah); }
+.pesan.info { background: var(--emas-muda); color: var(--emas-teks); border: 1px solid var(--emas-garis); }
+.pesan.baik { background: var(--hijau-muda); color: var(--hijau); }
+.pesan ul { margin: 6px 0 0; padding-left: 20px; }
+.baris-unit { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: end; margin-top: 20px; }
+.status { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 8px; font-weight: 700; font-size: 14px; background: var(--abu-muda); color: var(--lembut); white-space: nowrap; }
+.status.draf { background: var(--emas-muda); color: var(--emas-teks); }
+.status.terkirim { background: var(--hijau-muda); color: var(--hijau); }
+
+/* ---------- Tabel ringkasan ---------- */
+.gulir { overflow-x: auto; border: 1px solid var(--garis); border-radius: 12px; background: var(--putih); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { padding: 10px 12px; border-bottom: 1px solid var(--garis); text-align: left; vertical-align: top; }
+thead th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--lembut); background: var(--abu-muda); }
+tbody tr:last-child td { border-bottom: 0; }
+tfoot td, tfoot th { font-weight: 800; border-top: 2px solid var(--garis); border-bottom: 0; }
+td.minus { color: var(--merah); font-weight: 700; }
+
+/* ---------- Daftar ST dan baris isian ---------- */
+.daftar-st { list-style: none; margin: 0; padding: 0; border: 1px solid var(--garis); border-radius: 12px; background: var(--putih); }
+.daftar-st li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; padding: 10px 14px; border-bottom: 1px solid var(--garis); }
+.daftar-st li:last-child { border-bottom: 0; }
+.daftar-st .st-isi { margin-right: auto; min-width: 0; }
+.daftar-st b { display: block; overflow-wrap: anywhere; }
+.daftar-st span { color: var(--lembut); font-size: 13px; }
+.kosong { padding: 16px; border: 1px dashed var(--kolom); border-radius: 12px; color: var(--lembut); text-align: center; background: var(--putih); }
+.baris-out { display: grid; grid-template-columns: 190px minmax(0, 1fr) 170px 44px; gap: 10px; align-items: start; padding: 12px 14px; border-bottom: 1px solid var(--garis); }
+.baris-out:last-child { border-bottom: 0; }
+.daftar-isian { border: 1px solid var(--garis); border-radius: 12px; background: var(--putih); }
+.kegiatan { border: 1px solid var(--garis); border-left: 4px solid var(--emas); border-radius: 12px; background: var(--putih); padding: 16px; margin-bottom: 12px; }
+.kegiatan-kepala { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.kegiatan-kepala b { margin-right: auto; color: var(--emas-teks); font-variant-numeric: tabular-nums; }
+.kisi { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 16px; }
+.penuh { grid-column: 1 / -1; }
+.hapus { width: 44px; height: 44px; padding: 0; display: inline-grid; place-items: center; border: 1px solid transparent; border-radius: 8px; background: none; color: var(--merah); cursor: pointer; }
+.hapus:hover { border-color: var(--merah); background: var(--merah-muda); }
+.hapus svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.sr-only { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+
+/* ---------- Bilah aksi menempel di bawah ---------- */
+.bilah { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--putih); border-top: 1px solid var(--garis); box-shadow: 0 -4px 16px rgba(15,53,84,.08); }
+.bilah-isi { max-width: 900px; margin: 0 auto; padding: 10px 16px max(10px, env(safe-area-inset-bottom)); display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.bilah-isi .ket { margin-right: auto; }
+.kabar { position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%); z-index: 30; max-width: calc(100% - 32px); padding: 10px 18px; border-radius: 8px; background: var(--utama); color: #fff; font-weight: 600; box-shadow: 0 6px 20px rgba(0,0,0,.2); }
+.kabar.galat { background: #b3261e; }
+
+@media (max-width: 680px) {
+  .baris-out { grid-template-columns: minmax(0, 1fr) 44px; }
+  .baris-out .k-jenis, .baris-out .k-uraian, .baris-out .k-nominal { grid-column: 1; }
+  .baris-out .hapus { grid-column: 2; grid-row: 1; }
+  .kisi { grid-template-columns: minmax(0, 1fr); }
+  .baris-unit { grid-template-columns: minmax(0, 1fr); }
+  .bilah-isi .ket { flex-basis: 100%; }
+  .bilah-isi .tombol { flex: 1 1 0; }
+  h1 { font-size: 21px; }
+}
+@media print { .kepala, .bilah, .kabar, .saklar-tema { display: none !important; } }
+</style>
+</head>
+<body>
+
+<header class="kepala">
+  <div class="kepala-isi">
+    <div class="merek">Prognosa Kegiatan<small>LAYANAN SUBBAGIAN UMUM</small></div>
+    <button type="button" class="saklar-tema" data-tombol-mode aria-pressed="false" aria-label="Ganti ke tampilan gelap" title="Tampilan gelap">
+      <svg class="ikon-bulan" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>
+      <svg class="ikon-matahari" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- ---------- Layar masuk ---------- -->
+<section class="wadah" id="layarMasuk">
+  <form class="masuk kotak" id="formMasuk" novalidate>
+    <div>
+      <h1>Masuk pengisian prognosa</h1>
+      <p class="lead">Isi tagihan outstanding dan rencana kegiatan unit Anda sebagai dasar pengajuan tambahan uang persediaan (TUP).</p>
+    </div>
+    <label class="kolom" for="namaPengisi">Nama pengisi
+      <span class="ket">Dicatat bersama isian unit Anda.</span>
+      <input type="text" id="namaPengisi" autocomplete="name" maxlength="60" required>
+      <span class="pesan-kolom" id="namaPengisiGalat" hidden></span>
+    </label>
+    <label class="kolom" for="kunciPrognosa">Kunci prognosa
+      <span class="ket">Diberikan oleh bendahara pengeluaran.</span>
+      <input type="password" id="kunciPrognosa" autocomplete="current-password" required>
+      <span class="pesan-kolom" id="kunciPrognosaGalat" hidden></span>
+    </label>
+    <p class="pesan galat" id="pesanMasuk" role="alert" hidden></p>
+    <button type="submit" class="tombol utama" id="tombolMasuk">Masuk</button>
+    <a href="../">Kembali ke beranda</a>
+  </form>
+</section>
+
+<!-- ---------- Isian ---------- -->
+<main class="wadah" id="layarIsi" hidden>
+  <h1 id="judulIsian">Prognosa kegiatan</h1>
+  <p class="lead" id="ketIsian"></p>
+  <p class="pesan info" id="pesanAturan" hidden style="margin-top:14px"></p>
+
+  <div class="baris-unit">
+    <label class="kolom" for="pilihUnit">Unit
+      <select id="pilihUnit" required></select>
+    </label>
+    <span class="status" id="statusUnit" role="status" aria-live="polite">Belum diisi</span>
+  </div>
+  <p class="pesan baik" id="pesanTerkirim" hidden style="margin-top:14px"></p>
+  <div class="pesan galat" id="ringkasGalat" role="alert" tabindex="-1" hidden style="margin-top:14px"></div>
+
+  <section class="bagian" aria-labelledby="hRingkasan">
+    <div class="bagian-kepala"><div>
+      <h2 id="hRingkasan">Ringkasan anggaran unit</h2>
+      <p id="ketRingkasan">Sisa pagu = pagu − blokir − realisasi. Sisa akhir = sisa pagu − outstanding − prognosa.</p>
+    </div></div>
+    <div class="gulir">
+      <table>
+        <thead><tr><th scope="col">Jenis belanja</th><th scope="col" class="angka">Sisa pagu</th><th scope="col" class="angka">Outstanding</th><th scope="col" class="angka">Prognosa</th><th scope="col" class="angka">Sisa akhir</th></tr></thead>
+        <tbody id="isiRingkasan"></tbody>
+        <tfoot id="kakiRingkasan"></tfoot>
+      </table>
+    </div>
+  </section>
+
+  <section class="bagian" aria-labelledby="hSt">
+    <div class="bagian-kepala"><div>
+      <h2 id="hSt">Surat tugas perjalanan dinas belum dibayar</h2>
+      <p>Dari Monitoring E-Perjadin. Masukkan ke tabel outstanding, lalu isi nominalnya.</p>
+    </div></div>
+    <div id="wadahSt"><div class="kosong">Memuat daftar surat tugas...</div></div>
+  </section>
+
+  <section class="bagian" aria-labelledby="hOut">
+    <div class="bagian-kepala">
+      <div>
+        <h2 id="hOut">Tagihan outstanding</h2>
+        <p>Kegiatan yang sudah dilaksanakan tetapi belum dibayar atau belum tercatat di realisasi.</p>
+      </div>
+      <button type="button" class="tombol" id="tambahOut">+ Tambah outstanding</button>
+    </div>
+    <div id="wadahOut"></div>
+  </section>
+
+  <section class="bagian" aria-labelledby="hPrognosa">
+    <div class="bagian-kepala">
+      <div>
+        <h2 id="hPrognosa">Prognosa kegiatan</h2>
+        <p id="ketPrognosa">Rencana kegiatan yang akan dilaksanakan.</p>
+      </div>
+      <button type="button" class="tombol" id="tambahKegiatan">+ Tambah kegiatan</button>
+    </div>
+    <div id="wadahKegiatan"></div>
+  </section>
+
+  <section class="bagian">
+    <label class="kolom" for="catatanUnit">Catatan untuk bendahara <span class="opsional">(opsional)</span>
+      <textarea id="catatanUnit" maxlength="500" rows="3"></textarea>
+    </label>
+  </section>
+</main>
+
+<div class="bilah" id="bilah" hidden>
+  <div class="bilah-isi">
+    <span class="ket" id="ketSimpan">Belum disimpan.</span>
+    <button type="button" class="tombol" id="tombolDraf">Simpan draf</button>
+    <button type="button" class="tombol utama" id="tombolKirim">Kirim ke bendahara</button>
+  </div>
+</div>
+<div class="kabar" id="kabar" role="status" aria-live="polite" hidden></div>
+
+<script>
+(function () {
+  "use strict";
+  var ALAMAT = window.ALAMAT_SKRIP;
+  var URL_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT7jvGq4u-PBVeEj5rCZrEnPVSfexxR8dypEBulFs80iZI-ODhj0JPDPJrfWW5PxlYkdtva-ehkKcyt/pub?gid=734508134&single=true&output=csv";
+  // Kelompok di lembar Monitoring E-Perjadin dipetakan ke unit pengampu di Monev anggaran.
+  var PETA_KELOMPOK = {
+    pkn: "Seksi Pengelolaan Kekayaan Negara", lelang: "Kelompok Jafung Pelelang", hi: "Seksi Hukum dan Informasi",
+    umum: "Subbagian Umum", penilaian: "Kelompok Jafung Penilai", pn: "Seksi Piutang Negara", ki: "Seksi Kepatuhan Internal"
+  };
+  var JENIS_PERJADIN = "Perjalanan Dinas";
+  var KUNCI_NAMA = "prognosa-nama", KUNCI_UNIT = "prognosa-unit";
+  var BULAN = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+  var IKON_HAPUS = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>';
+
+  var s = { kunci: "", nama: "", admin: false, data: null, unit: "", isian: null, dasar: "", status: "", kotor: false, st: null, stGalat: false, sibuk: false };
+
+  function $(id) { return document.getElementById(id); }
+  function el(tag, atr, anak) {
+    var n = document.createElement(tag);
+    if (atr) Object.keys(atr).forEach(function (k) {
+      if (k === "teks") n.textContent = atr[k];
+      else if (k === "kelas") n.className = atr[k];
+      else if (k === "html") n.innerHTML = atr[k];
+      else if (k.indexOf("on") === 0) n.addEventListener(k.slice(2), atr[k]);
+      else if (atr[k] === true) n.setAttribute(k, "");
+      else if (atr[k] !== false && atr[k] != null) n.setAttribute(k, atr[k]);
+    });
+    (anak || []).forEach(function (a) { if (a) n.appendChild(typeof a === "string" ? document.createTextNode(a) : a); });
+    return n;
+  }
+  function baca(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function tulis(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* abaikan */ } }
+  var fmt = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 0 });
+  function rupiah(n) { return (n < 0 ? "−" : "") + fmt.format(Math.abs(Math.round(n || 0))); }
+  function angkaDari(teks) { var d = String(teks || "").replace(/[^\d]/g, ""); return d ? Number(d) : 0; }
+  function tanggalBaca(iso) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || "");
+    return m ? Number(m[3]) + " " + BULAN[Number(m[2]) - 1] + " " + m[1] : "";
+  }
+  function waktuBaca(iso) {
+    var d = new Date(iso); if (isNaN(d)) return "";
+    return d.toLocaleString("id-ID", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+  }
+
+  var pewaktuKabar;
+  function kabar(teks, galat) {
+    var n = $("kabar");
+    n.textContent = teks; n.className = "kabar" + (galat ? " galat" : ""); n.hidden = false;
+    clearTimeout(pewaktuKabar); pewaktuKabar = setTimeout(function () { n.hidden = true; }, 4000);
+  }
+
+  // Dikirim sebagai text/plain supaya peramban tidak meminta izin CORS terlebih dahulu (sama dengan dasbor admin).
+  function kirim(isi) {
+    isi.kunci = s.kunci; isi.penyunting = s.nama;
+    return fetch(ALAMAT, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(isi) })
+      .then(function (r) { return r.json(); })
+      .catch(function () { return { ok: false, pesan: "Tidak tersambung ke server. Periksa jaringan lalu coba lagi." }; });
+  }
+
+  /* ---------- Validasi kolom ----------
+     Kolom baru diperiksa setelah ditinggalkan pertama kali (blur), dan tanda salah hilang begitu kolom difokus lagi. */
+  function pasangGalat(masukan, pesan) {
+    masukan.classList.add("salah"); masukan.setAttribute("aria-invalid", "true");
+    var p = masukan._pesan;
+    if (!p) {
+      p = el("span", { kelas: "pesan-kolom", id: "g" + Math.random().toString(36).slice(2, 8) });
+      masukan.insertAdjacentElement("afterend", p); masukan._pesan = p;
+      masukan.setAttribute("aria-describedby", p.id);
+    }
+    p.textContent = pesan; p.hidden = false;
+  }
+  function hapusGalat(masukan) {
+    masukan.classList.remove("salah"); masukan.removeAttribute("aria-invalid");
+    if (masukan._pesan) masukan._pesan.hidden = true;
+  }
+  function awasi(masukan, aturan) {
+    masukan._aturan = aturan;
+    masukan.addEventListener("blur", function () { var g = aturan(); if (g) pasangGalat(masukan, g); });
+    masukan.addEventListener("focus", function () { hapusGalat(masukan); });
+    masukan.addEventListener("input", function () { hapusGalat(masukan); });
+  }
+
+  /* ---------- Masuk ---------- */
+  $("namaPengisi").value = baca(KUNCI_NAMA) || "";
+  awasi($("namaPengisi"), function () { return $("namaPengisi").value.trim() ? "" : "Isi nama Anda."; });
+  awasi($("kunciPrognosa"), function () { return $("kunciPrognosa").value ? "" : "Isi kunci prognosa dari bendahara."; });
+  $("formMasuk").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var salah = [$("namaPengisi"), $("kunciPrognosa")].filter(function (m) { var g = m._aturan(); if (g) pasangGalat(m, g); return !!g; });
+    if (salah.length) { salah[0].focus(); return; }
+    if (!ALAMAT) { $("pesanMasuk").textContent = "Alamat server belum diatur di konten.js."; $("pesanMasuk").hidden = false; return; }
+    var tombol = $("tombolMasuk");
+    s.nama = $("namaPengisi").value.trim(); s.kunci = $("kunciPrognosa").value;
+    tombol.setAttribute("aria-busy", "true"); tombol.textContent = "Memeriksa...";
+    $("pesanMasuk").hidden = true;
+    kirim({ aksi: "prognosaBaca", masuk: true }).then(function (h) {
+      tombol.removeAttribute("aria-busy"); tombol.textContent = "Masuk";
+      if (!h.ok) { $("pesanMasuk").textContent = h.pesan || "Gagal masuk."; $("pesanMasuk").hidden = false; return; }
+      tulis(KUNCI_NAMA, s.nama);
+      $("kunciPrognosa").value = "";
+      s.admin = "kunciDisetel" in h;
+      s.data = h;
+      $("layarMasuk").hidden = true; $("layarIsi").hidden = false; $("bilah").hidden = false;
+      mulai();
+      muatSt();
+    });
+  });
+
+  /* ---------- Data dan unit ---------- */
+  function unitData(nama) { return (s.data.pagu.unit || []).filter(function (u) { return u.nama === nama; })[0] || null; }
+  function isianUnit(nama) { return (s.data.isian || []).filter(function (x) { return x.unit === nama; })[0] || null; }
+  function bolehUbah() {
+    var a = s.data.aturan;
+    if (s.admin) return true;
+    if (!a.terbuka) return false;
+    if (a.batas && s.data.hariIni > a.batas) return false;
+    return s.status !== "terkirim";
+  }
+
+  function mulai() {
+    var a = s.data.aturan, p = s.data.pagu.periode;
+    $("judulIsian").textContent = a.judul;
+    $("ketIsian").textContent = "Rencana kegiatan dihitung sampai " + tanggalBaca(a.sampai) + "." +
+      (p ? " Sisa pagu memakai data realisasi " + BULAN[(p.bulan || 1) - 1] + " " + (p.tahun || "") + "." : "");
+    $("ketPrognosa").textContent = "Rencana kegiatan yang akan dilaksanakan sampai " + tanggalBaca(a.sampai) + ".";
+    var aturan = $("pesanAturan");
+    if (!a.terbuka) aturan.textContent = s.admin ? "Pengisian sedang ditutup untuk seksi. Anda masuk sebagai admin, jadi tetap bisa mengubah isian." : "Pengisian sedang ditutup oleh bendahara. Isian hanya bisa dilihat.";
+    else if (a.batas && s.data.hariIni > a.batas) aturan.textContent = "Batas pengisian " + tanggalBaca(a.batas) + " sudah lewat. Isian hanya bisa dilihat.";
+    else if (a.batas) aturan.textContent = "Batas pengisian: " + tanggalBaca(a.batas) + ".";
+    aturan.hidden = !aturan.textContent;
+
+    var pilih = $("pilihUnit");
+    pilih.textContent = "";
+    pilih.appendChild(el("option", { value: "", teks: "Pilih unit Anda" }));
+    s.data.pagu.unit.forEach(function (u) { pilih.appendChild(el("option", { value: u.nama, teks: u.nama })); });
+    var simpanan = baca(KUNCI_UNIT);
+    if (simpanan && unitData(simpanan)) pilih.value = simpanan;
+    pilih.onchange = function () {
+      if (s.kotor && !confirm("Isian unit ini belum disimpan. Tetap ganti unit? Perubahan yang belum disimpan akan hilang.")) { pilih.value = s.unit; return; }
+      pilihUnit(pilih.value);
+    };
+    pilihUnit(pilih.value);
+  }
+
+  function pilihUnit(nama) {
+    s.unit = nama; s.kotor = false;
+    if (nama) tulis(KUNCI_UNIT, nama);
+    var lama = nama ? isianUnit(nama) : null;
+    var d = lama && lama.data ? lama.data : {};
+    s.isian = { outstanding: (d.outstanding || []).slice(), prognosa: (d.prognosa || []).slice(), catatan: d.catatan || "" };
+    s.dasar = lama ? lama.diperbarui : "";
+    s.status = lama ? lama.status : "";
+    $("catatanUnit").value = s.isian.catatan;
+    $("ringkasGalat").hidden = true;
+    gambarSemua();
+  }
+
+  function gambarSemua() {
+    var ada = !!s.unit, ubah = ada && bolehUbah();
+    ["tambahOut", "tambahKegiatan", "tombolDraf", "tombolKirim"].forEach(function (id) { $(id).hidden = !ubah; });
+    $("catatanUnit").readOnly = !ubah;
+    var st = $("statusUnit");
+    st.className = "status" + (s.status ? " " + s.status : "");
+    st.textContent = !ada ? "Pilih unit" : s.status === "terkirim" ? "Terkirim" : s.status === "draf" ? "Draf" : "Belum diisi";
+    var lama = ada ? isianUnit(s.unit) : null;
+    $("pesanTerkirim").hidden = s.status !== "terkirim";
+    if (s.status === "terkirim") $("pesanTerkirim").textContent = "Isian sudah dikirim" + (lama && lama.pengisi ? " oleh " + lama.pengisi : "") +
+      (lama ? " pada " + waktuBaca(lama.diperbarui) : "") + "." + (s.admin ? " Sebagai admin, Anda tetap bisa mengubahnya." : " Bila perlu diubah, minta bendahara membukanya.");
+    $("ketSimpan").textContent = !ada ? "Pilih unit untuk mulai mengisi." : s.kotor ? "Ada perubahan yang belum disimpan." :
+      lama ? "Tersimpan " + waktuBaca(lama.diperbarui) + (lama.pengisi ? " oleh " + lama.pengisi : "") + "." : "Belum disimpan.";
+    gambarRingkasan(); gambarSt(); gambarOut(); gambarKegiatan();
+  }
+
+  function tandaiKotor() {
+    s.kotor = true;
+    $("ketSimpan").textContent = "Ada perubahan yang belum disimpan.";
+    gambarRingkasan();
+  }
+  window.addEventListener("beforeunload", function (e) { if (s.kotor) { e.preventDefault(); e.returnValue = ""; } });
+
+  /* ---------- Ringkasan anggaran ---------- */
+  function hitung() {
+    var u = unitData(s.unit), baris = {};
+    if (!u) return { baris: [], total: null };
+    u.jenis.forEach(function (j) { baris[j.nama] = { nama: j.nama, sisa: j.sisa, out: 0, prog: 0 }; });
+    s.isian.outstanding.forEach(function (x) { if (baris[x.jenis]) baris[x.jenis].out += Number(x.nominal) || 0; });
+    s.isian.prognosa.forEach(function (x) { if (baris[x.jenis]) baris[x.jenis].prog += Number(x.biaya) || 0; });
+    var total = { sisa: 0, out: 0, prog: 0 };
+    var hasil = u.jenis.map(function (j) { var b = baris[j.nama]; total.sisa += b.sisa; total.out += b.out; total.prog += b.prog; return b; });
+    return { baris: hasil, total: total };
+  }
+  function gambarRingkasan() {
+    var tb = $("isiRingkasan"), tf = $("kakiRingkasan");
+    tb.textContent = ""; tf.textContent = "";
+    if (!s.unit) { tb.appendChild(el("tr", null, [el("td", { colspan: "5", teks: "Pilih unit untuk melihat sisa pagu." })])); return; }
+    var h = hitung();
+    h.baris.forEach(function (b) {
+      var akhir = b.sisa - b.out - b.prog;
+      tb.appendChild(el("tr", null, [el("th", { scope: "row", teks: b.nama }), el("td", { kelas: "angka", teks: rupiah(b.sisa) }),
+        el("td", { kelas: "angka", teks: rupiah(b.out) }), el("td", { kelas: "angka", teks: rupiah(b.prog) }),
+        el("td", { kelas: "angka" + (akhir < 0 ? " minus" : ""), teks: rupiah(akhir) })]));
+    });
+    var t = h.total, akhirT = t.sisa - t.out - t.prog;
+    tf.appendChild(el("tr", null, [el("th", { scope: "row", teks: "Jumlah" }), el("td", { kelas: "angka", teks: rupiah(t.sisa) }),
+      el("td", { kelas: "angka", teks: rupiah(t.out) }), el("td", { kelas: "angka", teks: rupiah(t.prog) }),
+      el("td", { kelas: "angka" + (akhirT < 0 ? " minus" : ""), teks: rupiah(akhirT) })]));
+  }
+
+  /* ---------- Surat tugas belum dibayar (Monitoring E-Perjadin) ---------- */
+  function bacaCSV(teks) {
+    var baris = [], sel = [], nilai = "", kutip = false;
+    teks = teks.replace(/^﻿/, "");
+    for (var i = 0; i < teks.length; i++) {
+      var c = teks[i];
+      if (kutip) { if (c === '"') { if (teks[i + 1] === '"') { nilai += '"'; i++; } else kutip = false; } else nilai += c; }
+      else if (c === '"') kutip = true;
+      else if (c === ",") { sel.push(nilai); nilai = ""; }
+      else if (c === "\r") continue;
+      else if (c === "\n") { sel.push(nilai); baris.push(sel); sel = []; nilai = ""; }
+      else nilai += c;
+    }
+    if (nilai !== "" || sel.length) { sel.push(nilai); baris.push(sel); }
+    return baris;
+  }
+  function muatSt() {
+    fetch(URL_CSV, { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error(); return r.text(); }).then(function (teks) {
+      var b = bacaCSV(teks), judul = (b[0] || []).map(function (j) { return j.replace(/\s+/g, " ").trim().toLowerCase(); });
+      function kol(kata) { for (var i = 0; i < judul.length; i++) if (judul[i].indexOf(kata) >= 0) return i; return -1; }
+      var iK = kol("kelompok"), iSt = kol("surat tugas"), iTgl = kol("tanggal"), iTahap = kol("tahap");
+      s.st = b.slice(1).filter(function (r) { return r[iSt] && String(r[iTahap] || "").trim().toLowerCase() !== "sudah dibayar"; }).map(function (r) {
+        return { unit: PETA_KELOMPOK[String(r[iK] || "").trim().toLowerCase()] || "", st: String(r[iSt]).trim(),
+                 tanggal: String(r[iTgl] || "").replace(/\s+/g, " ").trim(), tahap: String(r[iTahap] || "").trim() || "Belum ada status" };
+      });
+      gambarSt();
+    }).catch(function () { s.stGalat = true; gambarSt(); });
+  }
+  function gambarSt() {
+    var w = $("wadahSt");
+    w.textContent = "";
+    if (!s.unit) { w.appendChild(el("div", { kelas: "kosong", teks: "Pilih unit untuk melihat surat tugas yang belum dibayar." })); return; }
+    if (s.stGalat) { w.appendChild(el("div", { kelas: "kosong", teks: "Daftar surat tugas tidak bisa dimuat. Isi outstanding secara manual." })); return; }
+    if (!s.st) { w.appendChild(el("div", { kelas: "kosong", teks: "Memuat daftar surat tugas..." })); return; }
+    var daftar = s.st.filter(function (x) { return x.unit === s.unit; });
+    if (!daftar.length) { w.appendChild(el("div", { kelas: "kosong", teks: "Tidak ada surat tugas unit ini yang belum dibayar." })); return; }
+    var ul = el("ul", { kelas: "daftar-st" }), ubah = bolehUbah();
+    daftar.forEach(function (x) {
+      var sudah = s.isian.outstanding.some(function (o) { return String(o.uraian || "").indexOf(x.st) >= 0; });
+      ul.appendChild(el("li", null, [
+        el("div", { kelas: "st-isi" }, [el("b", { teks: x.st }), el("span", { teks: (x.tanggal ? x.tanggal + " · " : "") + x.tahap })]),
+        ubah ? el("button", { type: "button", kelas: "tombol", disabled: sudah, teks: sudah ? "Sudah dimasukkan" : "Masukkan ke outstanding", onclick: function () {
+          var jenis = unitData(s.unit).jenis.some(function (j) { return j.nama === JENIS_PERJADIN; }) ? JENIS_PERJADIN : "";
+          s.isian.outstanding.push({ jenis: jenis, uraian: x.st + (x.tanggal ? " (" + x.tanggal + ")" : ""), nominal: 0 });
+          tandaiKotor(); gambarSt(); gambarOut();
+          var n = $("wadahOut").querySelectorAll(".k-nominal input"); if (n.length) n[n.length - 1].focus();
+        } }) : null
+      ]));
+    });
+    w.appendChild(ul);
+  }
+
+  /* ---------- Kolom isian bersama ---------- */
+  function pilihanJenis(nilai, ubah, onubah) {
+    var p = el("select", { disabled: !ubah });
+    p.appendChild(el("option", { value: "", teks: "Pilih jenis belanja" }));
+    unitData(s.unit).jenis.forEach(function (j) { p.appendChild(el("option", { value: j.nama, teks: j.nama })); });
+    p.value = nilai || "";
+    p.addEventListener("change", function () { onubah(p.value); });
+    awasi(p, function () { return p.value ? "" : "Pilih jenis belanja."; });
+    return p;
+  }
+  function kolomUang(nilai, ubah, onubah) {
+    var m = el("input", { type: "text", inputmode: "numeric", autocomplete: "off", readonly: !ubah });
+    m.value = nilai ? fmt.format(nilai) : "";
+    m.addEventListener("input", function () { onubah(angkaDari(m.value)); });
+    m.addEventListener("blur", function () { var n = angkaDari(m.value); m.value = n ? fmt.format(n) : ""; });
+    awasi(m, function () { return angkaDari(m.value) > 0 ? "" : "Isi nominal dalam rupiah."; });
+    return m;
+  }
+  function tombolHapus(label, aksi) {
+    return el("button", { type: "button", kelas: "hapus", "aria-label": label, title: label, html: IKON_HAPUS, onclick: aksi });
+  }
+
+  /* ---------- Tagihan outstanding ---------- */
+  function gambarOut() {
+    var w = $("wadahOut"), ubah = s.unit && bolehUbah();
+    w.textContent = "";
+    if (!s.unit) return;
+    if (!s.isian.outstanding.length) { w.appendChild(el("div", { kelas: "kosong", teks: ubah ? "Belum ada outstanding. Tambahkan bila ada kegiatan yang sudah dilaksanakan tetapi belum dibayar." : "Tidak ada outstanding." })); return; }
+    var daftar = el("div", { kelas: "daftar-isian" });
+    s.isian.outstanding.forEach(function (x, i) {
+      var uraian = el("input", { type: "text", maxlength: "200", readonly: !ubah, placeholder: "Misalnya: ST-123/KNL.1505/2026, monitoring aset" });
+      uraian.value = x.uraian || "";
+      uraian.addEventListener("input", function () { x.uraian = uraian.value; tandaiKotor(); });
+      awasi(uraian, function () { return uraian.value.trim() ? "" : "Isi uraian atau nomor surat tugas."; });
+      daftar.appendChild(el("div", { kelas: "baris-out" }, [
+        el("label", { kelas: "kolom k-jenis" }, ["Jenis belanja", pilihanJenis(x.jenis, ubah, function (v) { x.jenis = v; tandaiKotor(); })]),
+        el("label", { kelas: "kolom k-uraian" }, ["Uraian", uraian]),
+        el("label", { kelas: "kolom k-nominal" }, ["Nominal", el("span", { kelas: "uang" }, [kolomUang(x.nominal, ubah, function (n) { x.nominal = n; tandaiKotor(); })])]),
+        ubah ? tombolHapus("Hapus outstanding " + (i + 1), function () {
+          if (!confirm("Hapus outstanding ini?")) return;
+          s.isian.outstanding.splice(i, 1); tandaiKotor(); gambarOut(); gambarSt();
+        }) : null
+      ]));
+    });
+    w.appendChild(daftar);
+  }
+  $("tambahOut").addEventListener("click", function () {
+    var jenis = unitData(s.unit).jenis.some(function (j) { return j.nama === JENIS_PERJADIN; }) ? JENIS_PERJADIN : "";
+    s.isian.outstanding.push({ jenis: jenis, uraian: "", nominal: 0 });
+    tandaiKotor(); gambarOut();
+    var n = $("wadahOut").querySelectorAll(".k-uraian input"); if (n.length) n[n.length - 1].focus();
+  });
+
+  /* ---------- Prognosa kegiatan ---------- */
+  function gambarKegiatan() {
+    var w = $("wadahKegiatan"), ubah = s.unit && bolehUbah(), sampai = s.data.aturan.sampai;
+    w.textContent = "";
+    if (!s.unit) return;
+    if (!s.isian.prognosa.length) { w.appendChild(el("div", { kelas: "kosong", teks: ubah ? "Belum ada kegiatan. Tambahkan setiap kegiatan yang direncanakan sampai " + tanggalBaca(sampai) + "." : "Tidak ada prognosa kegiatan." })); return; }
+    s.isian.prognosa.forEach(function (x, i) {
+      var nama = el("input", { type: "text", maxlength: "200", readonly: !ubah, placeholder: "Misalnya: Penilaian aset BMN ke Paser" });
+      nama.value = x.kegiatan || "";
+      nama.addEventListener("input", function () { x.kegiatan = nama.value; tandaiKotor(); });
+      awasi(nama, function () { return nama.value.trim() ? "" : "Isi nama kegiatan."; });
+      var tgl = el("input", { type: "date", max: sampai, readonly: !ubah });
+      tgl.value = x.tanggal || "";
+      tgl.addEventListener("input", function () { x.tanggal = tgl.value; tandaiKotor(); });
+      awasi(tgl, function () { return !tgl.value ? "Isi rencana tanggal." : tgl.value > sampai ? "Paling lambat " + tanggalBaca(sampai) + "." : ""; });
+      var vol = el("input", { type: "text", maxlength: "80", readonly: !ubah, placeholder: "Misalnya: 3 orang × 2 hari" });
+      vol.value = x.volume || "";
+      vol.addEventListener("input", function () { x.volume = vol.value; tandaiKotor(); });
+      var ket = el("input", { type: "text", maxlength: "200", readonly: !ubah, placeholder: "Misalnya: tujuan, dasar surat permohonan" });
+      ket.value = x.keterangan || "";
+      ket.addEventListener("input", function () { x.keterangan = ket.value; tandaiKotor(); });
+      w.appendChild(el("article", { kelas: "kegiatan", "aria-label": "Kegiatan " + (i + 1) }, [
+        el("div", { kelas: "kegiatan-kepala" }, [el("b", { teks: "Kegiatan " + (i + 1) }),
+          ubah ? tombolHapus("Hapus kegiatan " + (i + 1), function () {
+            if (!confirm("Hapus kegiatan " + (i + 1) + "?")) return;
+            s.isian.prognosa.splice(i, 1); tandaiKotor(); gambarKegiatan();
+          }) : null]),
+        el("div", { kelas: "kisi" }, [
+          el("label", { kelas: "kolom penuh" }, ["Nama kegiatan", nama]),
+          el("label", { kelas: "kolom" }, ["Jenis belanja", pilihanJenis(x.jenis, ubah, function (v) { x.jenis = v; tandaiKotor(); })]),
+          el("label", { kelas: "kolom" }, ["Rencana tanggal", el("span", { kelas: "ket", teks: "Paling lambat " + tanggalBaca(sampai) + "." }), tgl]),
+          el("label", { kelas: "kolom" }, ["Perkiraan biaya", el("span", { kelas: "uang" }, [kolomUang(x.biaya, ubah, function (n) { x.biaya = n; tandaiKotor(); })])]),
+          el("label", { kelas: "kolom" }, [el("span", null, ["Volume ", el("span", { kelas: "opsional", teks: "(opsional)" })]), vol]),
+          el("label", { kelas: "kolom penuh" }, [el("span", null, ["Keterangan ", el("span", { kelas: "opsional", teks: "(opsional)" })]), ket])
+        ])
+      ]));
+    });
+  }
+  $("tambahKegiatan").addEventListener("click", function () {
+    var jenis = unitData(s.unit).jenis.some(function (j) { return j.nama === JENIS_PERJADIN; }) ? JENIS_PERJADIN : "";
+    // Cara bayar (UP/TUP atau LS) ditetapkan bendahara di dasbor admin, bukan oleh seksi.
+    s.isian.prognosa.push({ jenis: jenis, kegiatan: "", keterangan: "", tanggal: "", volume: "", biaya: 0 });
+    tandaiKotor(); gambarKegiatan();
+    var n = $("wadahKegiatan").querySelectorAll(".kegiatan"); if (n.length) { n[n.length - 1].scrollIntoView({ block: "center" }); n[n.length - 1].querySelector("input").focus(); }
+  });
+  $("catatanUnit").addEventListener("input", function () { s.isian.catatan = $("catatanUnit").value; tandaiKotor(); });
+
+  /* ---------- Simpan dan kirim ---------- */
+  function tampilGalat(daftar) {
+    var g = $("ringkasGalat");
+    g.textContent = "";
+    if (!daftar.length) { g.hidden = true; return; }
+    g.appendChild(el("strong", { teks: "Belum bisa dikirim:" }));
+    var ul = el("ul");
+    daftar.slice(0, 12).forEach(function (t) { ul.appendChild(el("li", { teks: t })); });
+    if (daftar.length > 12) ul.appendChild(el("li", { teks: "dan " + (daftar.length - 12) + " hal lain." }));
+    g.appendChild(ul); g.hidden = false;
+  }
+  // Pemeriksaan sebelum kirim: semua kolom wajib ditandai, lalu fokus ke kolom salah pertama. Sisa pagu yang minus juga menahan pengiriman.
+  function periksaKirim() {
+    var salah = [];
+    document.querySelectorAll("#wadahOut input, #wadahOut select, #wadahKegiatan input, #wadahKegiatan select").forEach(function (m) {
+      if (!m._aturan) return;
+      var g = m._aturan(); if (g) { pasangGalat(m, g); salah.push(m); }
+    });
+    var galat = [];
+    if (salah.length) galat.push(salah.length + " kolom wajib belum diisi dengan benar.");
+    hitung().baris.forEach(function (b) {
+      if (b.sisa - b.out - b.prog < 0) galat.push(b.nama + ": outstanding dan prognosa melebihi sisa pagu sebesar Rp" + rupiah(b.out + b.prog - b.sisa) + ".");
+    });
+    return { galat: galat, pertama: salah[0] };
+  }
+  function simpan(kirimKe) {
+    if (s.sibuk || !s.unit) return;
+    if (kirimKe) {
+      var p = periksaKirim();
+      tampilGalat(p.galat);
+      if (p.galat.length) {
+        if (p.pertama) { p.pertama.scrollIntoView({ block: "center" }); p.pertama.focus({ preventScroll: true }); }
+        else { $("ringkasGalat").scrollIntoView({ block: "center" }); $("ringkasGalat").focus({ preventScroll: true }); }
+        return;
+      }
+      if (!confirm("Kirim isian " + s.unit + " ke bendahara? Setelah dikirim, isian terkunci dan hanya bisa diubah bila bendahara membukanya.")) return;
+    } else tampilGalat([]);
+    var tombol = $(kirimKe ? "tombolKirim" : "tombolDraf"), teksAsli = tombol.textContent;
+    s.sibuk = true; tombol.setAttribute("aria-busy", "true"); tombol.textContent = kirimKe ? "Mengirim..." : "Menyimpan...";
+    kirim({ aksi: "prognosaSimpan", unit: s.unit, data: s.isian, kirim: !!kirimKe, dasar: s.dasar }).then(function (h) {
+      s.sibuk = false; tombol.removeAttribute("aria-busy"); tombol.textContent = teksAsli;
+      if (!h.ok) {
+        if (h.galat) { tampilGalat(h.galat); $("ringkasGalat").scrollIntoView({ block: "center" }); $("ringkasGalat").focus({ preventScroll: true }); return; }
+        kabar(h.pesan || "Gagal menyimpan.", true); return;
+      }
+      // Isian yang tersimpan dicatat ulang di data lokal supaya status dan waktu langsung terbarui.
+      var lama = isianUnit(s.unit), baru = { unit: s.unit, status: h.status, diperbarui: h.diperbarui, pengisi: s.nama, data: JSON.parse(JSON.stringify(s.isian)) };
+      if (lama) Object.assign(lama, baru); else s.data.isian.push(baru);
+      s.dasar = h.diperbarui; s.status = h.status; s.kotor = false;
+      gambarSemua();
+      kabar(kirimKe ? "Terkirim ke bendahara." : "Draf tersimpan.");
+    });
+  }
+  $("tombolDraf").addEventListener("click", function () { simpan(false); });
+  $("tombolKirim").addEventListener("click", function () { simpan(true); });
+})();
+</script>
+</body>
+</html>

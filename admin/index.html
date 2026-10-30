@@ -121,6 +121,20 @@ summary.sub { cursor: pointer; margin: 0; }
 .fakta { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px 16px; }
 .fakta small { display: block; color: var(--lembut); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
 .fakta b { font-size: 16px; font-variant-numeric: tabular-nums; }
+/* Pengajuan TUP di Monev anggaran */
+.tup td.angka, .tup th.angka { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tup .tombol.kecil { min-height: 44px; padding: 8px 14px; }
+.tup tfoot th, .tup tfoot td { font-weight: 800; border-top: 2px solid var(--garis); }
+.tup h4.sub-tup { margin: 20px 0 4px; padding-top: 16px; border-top: 1px solid var(--garis); font-size: 15px; }
+.tup .kosong { margin: 0 0 8px; }
+.tup details.rincian-tup { border: 1px solid var(--garis); border-radius: 8px; margin-bottom: 8px; background: var(--putih); }
+.tup details.rincian-tup > summary { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; min-height: 44px; padding: 10px 14px; cursor: pointer; font-size: 14px; color: var(--lembut); }
+.tup details.rincian-tup > summary b { color: var(--tinta); }
+.tup details.rincian-tup[open] > summary { border-bottom: 1px solid var(--garis); }
+.tup .rincian-isi { padding: 14px; }
+.tup table caption { text-align: left; font-weight: 800; padding: 0 0 6px; }
+.tup td select { min-height: 44px; width: auto; min-width: 104px; }
+.tup .tombol[aria-disabled="true"] { opacity: .6; cursor: default; }
 .zona-impor { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 26px 16px; border: 2px dashed var(--kolom); border-radius: 10px; background: var(--latar); text-align: center; cursor: pointer; color: var(--lembut); }
 .zona-impor b { color: var(--laut); font-size: 16px; }
 .zona-impor:hover, .zona-impor.aktif { border-color: var(--emas); background: var(--emas-muda); }
@@ -1444,6 +1458,7 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
     p.appendChild(tayang);
     var tekPeng = t ? teksPengingat(t) : "";
     if (tekPeng) p.insertBefore(el("p", { kelas: "pesan galat", role: "status", style: "margin-bottom:14px", teks: tekPeng }), tayang);
+    p.appendChild(kotakTup());
     if (t) { p.appendChild(kotakTren(t)); }
     p.appendChild(kotakTarget());
 
@@ -1463,6 +1478,230 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
 
     /* 6. Riwayat */
     gambarRiwayatMonev(p);
+  }
+
+  /* ---------- Pengajuan TUP dari prognosa seksi ----------
+     Seksi mengisi outstanding dan prognosa kegiatan di prognosa/ dengan kunci bersama. Di sini admin mengatur pengisian,
+     melihat status tiap unit, dan menghitung usulan TUP: kebutuhan kas (outstanding + prognosa yang dibayar lewat UP/TUP)
+     dikurangi saldo UP yang tersedia. Prognosa yang dibayar LS mengurangi sisa pagu tetapi tidak menambah kebutuhan kas. */
+  var tup = { dimuat: false, memuat: false, data: null, galat: "", sibuk: false, buka: {}, bayar: {} };
+  function muatTup() {
+    tup.memuat = true; tup.galat = "";
+    kirim({ aksi: "prognosaBaca" }).then(function (h) {
+      tup.memuat = false;
+      if (!h.ok) tup.galat = h.pesan || "Data prognosa gagal dimuat.";
+      else { tup.data = h; tup.dimuat = true; }
+      gambarMonev();
+    });
+  }
+  // Rekap per unit: sisa pagu dari data realisasi, outstanding dan prognosa dari isian seksi.
+  function rekapTup() {
+    var d = tup.data, isian = {};
+    (d.isian || []).forEach(function (x) { isian[x.unit] = x; });
+    var total = { sisa: 0, out: 0, up: 0, ls: 0 };
+    var baris = (d.pagu.unit || []).map(function (u) {
+      var r = { unit: u.nama, isi: isian[u.nama] || null, sisa: 0, out: 0, up: 0, ls: 0 };
+      u.jenis.forEach(function (j) { r.sisa += j.sisa; });
+      var data = r.isi && r.isi.data;
+      if (data) {
+        (data.outstanding || []).forEach(function (x) { r.out += Number(x.nominal) || 0; });
+        (data.prognosa || []).forEach(function (x) { r[x.bayar === "ls" ? "ls" : "up"] += Number(x.biaya) || 0; });
+      }
+      ["sisa", "out", "up", "ls"].forEach(function (k) { total[k] += r[k]; });
+      return r;
+    });
+    var kebutuhan = total.out + total.up, saldo = Number(d.aturan.saldoUp) || 0;
+    return { baris: baris, total: total, kebutuhan: kebutuhan, usulan: Math.max(0, kebutuhan - saldo) };
+  }
+  function kotakTup() {
+    var k = el("div", { kelas: "kotak tup", style: "margin-bottom:16px" }, [el("h3", { kelas: "sub", teks: "Pengajuan TUP dari prognosa seksi" })]);
+    if (!tup.dimuat && !tup.memuat && !tup.galat) setTimeout(muatTup, 0);
+    if (tup.galat) {
+      k.appendChild(el("p", { kelas: "pesan galat", role: "alert", teks: tup.galat + (/aksi tidak dikenal/i.test(tup.galat) ? " Apps Script yang tayang belum memuat fitur prognosa. Perbarui deployment-nya dulu." : "") }));
+      k.appendChild(el("button", { type: "button", kelas: "tombol kecil", style: "margin-top:10px", teks: "Coba muat lagi", onclick: function () { tup.galat = ""; muatTup(); gambarMonev(); } }));
+      return k;
+    }
+    if (!tup.dimuat) { k.appendChild(el("p", { kelas: "petunjuk", style: "margin:0", teks: "Memuat prognosa seksi..." })); return k; }
+    var d = tup.data, a = d.aturan;
+    k.appendChild(el("p", { kelas: "petunjuk", teks: "Seksi mengisi tagihan outstanding dan prognosa kegiatan di halaman Prognosa dengan kunci prognosa bersama. Usulan TUP = outstanding + prognosa yang dibayar lewat UP/TUP − saldo UP tersedia. Sisa pagu memakai data realisasi " + periodeTeks(d.pagu.periode || {}) + "." }));
+
+    /* Pengaturan pengisian */
+    var terbuka = el("input", { type: "checkbox", id: "tupTerbuka" }); terbuka.checked = a.terbuka;
+    var batas = el("input", { type: "date", id: "tupBatas" }); batas.value = a.batas || "";
+    var sampai = el("input", { type: "date", id: "tupSampai" }); sampai.value = a.sampai || "";
+    var saldo = el("input", { type: "number", id: "tupSaldo", min: "0", step: "1" }); saldo.value = a.saldoUp || "";
+    var judul = el("input", { type: "text", id: "tupJudul", maxlength: "120" }); judul.value = a.judul || "";
+    var kunciBaru = el("input", { type: "password", id: "tupKunci", autocomplete: "new-password", placeholder: "Minimal 10 karakter" });
+    var simpanAturan = function (tambahan) {
+      if (tup.sibuk) return;
+      var isi = { aksi: "prognosaAtur", aturan: { terbuka: terbuka.checked, batas: batas.value, sampai: sampai.value, saldoUp: Number(saldo.value) || 0, judul: judul.value } };
+      Object.keys(tambahan || {}).forEach(function (x) { isi[x] = tambahan[x]; });
+      tup.sibuk = true;
+      kirim(isi).then(function (h) {
+        tup.sibuk = false;
+        if (!h.ok) { kabar(h.pesan || "Pengaturan gagal disimpan.", true); return; }
+        tup.data = h; kabar(isi.kunciBaru ? "Kunci prognosa diganti. Bagikan kunci baru ke seksi." : isi.bukaUnit ? "Isian " + isi.bukaUnit + " dibuka kembali." : "Pengaturan prognosa tersimpan.");
+        gambarMonev();
+      });
+    };
+    k.appendChild(el("div", { kelas: "kisi", style: "margin-bottom:12px" }, [
+      el("div", { kelas: "penuh" }, [el("label", { kelas: "centang" }, [terbuka, "Pengisian prognosa terbuka untuk seksi"])]),
+      el("label", { kelas: "kolom" }, ["Batas pengisian", el("small", { teks: "Kosong berarti tanpa batas." }), batas]),
+      el("label", { kelas: "kolom" }, ["Kegiatan dihitung sampai", el("small", { teks: "Tanggal rencana kegiatan paling lambat." }), sampai]),
+      el("label", { kelas: "kolom" }, ["Saldo UP tersedia (Rp)", el("small", { teks: "Mengurangi kebutuhan kas menjadi usulan TUP." }), saldo]),
+      el("label", { kelas: "kolom" }, ["Judul halaman", el("small", { teks: "Tampil di halaman Prognosa." }), judul])
+    ]));
+    k.appendChild(el("div", { kelas: "bagian-judul", style: "margin:0 0 16px" }, [
+      el("button", { type: "button", kelas: "tombol utama kecil", teks: tup.sibuk ? "Menyimpan..." : "Simpan pengaturan", onclick: function () {
+        if (sampai.value && batas.value && batas.value > sampai.value) { kabar("Batas pengisian tidak boleh setelah tanggal batas kegiatan.", true); return; }
+        simpanAturan();
+      } }),
+      el("a", { kelas: "tombol kecil", href: "../prognosa/", target: "_blank", rel: "noopener", teks: "Buka halaman Prognosa" })
+    ]));
+    k.appendChild(el("div", { kelas: "kisi", style: "margin-bottom:16px" }, [
+      el("label", { kelas: "kolom" }, ["Kunci prognosa bersama", el("small", { teks: d.kunciDisetel ? "Sudah disetel. Isi untuk mengganti; kunci lama langsung tidak berlaku." : "Belum disetel. Seksi belum bisa masuk sebelum kunci dibuat." }), kunciBaru]),
+      el("div", { style: "align-self:end" }, [el("button", { type: "button", kelas: "tombol kecil", teks: d.kunciDisetel ? "Ganti kunci" : "Setel kunci", onclick: function () {
+        if (kunciBaru.value.length < 10) { kabar("Kunci prognosa minimal 10 karakter.", true); kunciBaru.focus(); return; }
+        simpanAturan({ kunciBaru: kunciBaru.value });
+      } })])
+    ]));
+
+    /* Rekap per unit */
+    var r = rekapTup();
+    k.appendChild(kotakFakta([
+      ["Unit terkirim", r.baris.filter(function (b) { return b.isi && b.isi.status === "terkirim"; }).length + " dari " + r.baris.length],
+      ["Outstanding", rp(r.total.out)], ["Prognosa UP/TUP", rp(r.total.up)], ["Kebutuhan kas", rp(r.kebutuhan)],
+      ["Saldo UP", rp(a.saldoUp)], ["Usulan TUP", rp(r.usulan)]
+    ]));
+    var tb = el("tbody");
+    r.baris.forEach(function (b) {
+      var akhir = b.sisa - b.out - b.up - b.ls, st = b.isi ? b.isi.status : "";
+      tb.appendChild(el("tr", null, [
+        el("td", { teks: b.unit }),
+        el("td", null, [el("b", { teks: st === "terkirim" ? "Terkirim" : st === "draf" ? "Draf" : "Belum diisi" }),
+          b.isi ? el("div", { kelas: "petunjuk", style: "margin:0;font-size:12px", teks: (b.isi.pengisi ? b.isi.pengisi + ", " : "") + waktuBaca(b.isi.diperbarui) }) : null]),
+        el("td", { kelas: "angka", teks: rp(b.sisa) }), el("td", { kelas: "angka", teks: rp(b.out) }),
+        el("td", { kelas: "angka", teks: rp(b.up) }), el("td", { kelas: "angka", teks: rp(b.ls) }),
+        el("td", { kelas: "angka", style: akhir < 0 ? "color:var(--merah);font-weight:700" : "", teks: rp(akhir) }),
+        el("td", null, [st === "terkirim" ? el("button", { type: "button", kelas: "tombol kecil", "aria-label": "Buka kunci isian " + b.unit, teks: "Buka kunci", onclick: function () {
+          if (confirm("Buka kunci isian " + b.unit + "? Seksi bisa mengubah lalu mengirim ulang.")) simpanAturan({ bukaUnit: b.unit });
+        } }) : null])
+      ]));
+    });
+    var t = r.total;
+    k.appendChild(el("div", { style: "overflow-x:auto;margin-top:12px" }, [el("table", { kelas: "riwayat" }, [
+      el("thead", null, [el("tr", null, ["Unit", "Status", "Sisa pagu", "Outstanding", "Prognosa UP/TUP", "Prognosa LS", "Sisa akhir", ""].map(function (h, i) { return el("th", { scope: "col", kelas: i >= 2 && i <= 6 ? "angka" : "", teks: h }); }))]),
+      tb,
+      el("tfoot", null, [el("tr", null, [el("th", { scope: "row", teks: "Jumlah" }), el("td"), el("td", { kelas: "angka", teks: rp(t.sisa) }), el("td", { kelas: "angka", teks: rp(t.out) }),
+        el("td", { kelas: "angka", teks: rp(t.up) }), el("td", { kelas: "angka", teks: rp(t.ls) }), el("td", { kelas: "angka", teks: rp(t.sisa - t.out - t.up - t.ls) }), el("td")])])
+    ])]));
+    /* Rincian isian per unit: hasil akhir yang diajukan seksi, dan tempat bendahara menetapkan cara bayar. */
+    var adaIsian = r.baris.filter(function (b) { return b.isi && b.isi.data; });
+    k.appendChild(el("h4", { kelas: "sub-tup", teks: "Rincian isian per unit" }));
+    k.appendChild(el("p", { kelas: "petunjuk", teks: "Prognosa yang diajukan seksi. Cara bayar tiap kegiatan ditetapkan bendahara setelah unit mengirim isiannya; bawaannya UP/TUP." }));
+    if (!adaIsian.length) k.appendChild(el("p", { kelas: "kosong", teks: "Belum ada unit yang menyimpan atau mengirim isian." }));
+    adaIsian.forEach(function (b) { k.appendChild(rincianUnit(b)); });
+    k.appendChild(el("div", { kelas: "bagian-judul", style: "margin:12px 0 0" }, [
+      el("button", { type: "button", kelas: "tombol kecil", teks: "Unduh rekap TUP (.xlsx)", onclick: unduhTup }),
+      el("button", { type: "button", kelas: "tombol kecil", teks: "Muat ulang prognosa", onclick: function () { tup.dimuat = false; muatTup(); gambarMonev(); } })
+    ]));
+    return k;
+  }
+  function tanggalPendek(iso) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || "");
+    return m ? Number(m[3]) + " " + BULAN_ID[Number(m[2]) - 1].slice(0, 3) + " " + m[1] : "";
+  }
+  // Satu unit dalam bentuk <details>. Keadaan terbuka dan pilihan cara bayar yang belum disimpan disimpan di `tup`,
+  // supaya tidak hilang saat panel Monev digambar ulang.
+  function rincianUnit(b) {
+    var d = b.isi.data, terkirim = b.isi.status === "terkirim", unit = b.unit;
+    var asal = (d.prognosa || []).map(function (x) { return x.bayar === "ls" ? "ls" : "up"; });
+    var pilih = tup.bayar[unit] || asal;
+    var berubah = pilih.some(function (v, i) { return v !== asal[i]; });
+    var jumlahKeg = (d.prognosa || []).length, jumlahOut = (d.outstanding || []).length;
+    var det = el("details", { kelas: "rincian-tup" });
+    if (tup.buka[unit]) det.setAttribute("open", "");
+    det.addEventListener("toggle", function () { tup.buka[unit] = det.open; });
+    det.appendChild(el("summary", null, [el("b", { teks: unit }), " · " + (terkirim ? "Terkirim" : "Draf") + " · " + jumlahOut + " outstanding, " + jumlahKeg + " kegiatan · " + rp(b.out + b.up + b.ls)]));
+    var isi = el("div", { kelas: "rincian-isi" });
+    isi.appendChild(el("p", { kelas: "petunjuk", style: "margin:0 0 10px", teks: (terkirim ? "Dikirim" : "Disimpan sebagai draf") + (b.isi.pengisi ? " oleh " + b.isi.pengisi : "") + ", " + waktuBaca(b.isi.diperbarui) + "." }));
+    if (d.catatan) isi.appendChild(el("p", { kelas: "pesan info", style: "margin:0 0 12px", teks: "Catatan seksi: " + d.catatan }));
+
+    if (jumlahOut) {
+      var tbO = el("tbody");
+      d.outstanding.forEach(function (x) { tbO.appendChild(el("tr", null, [el("td", { teks: x.uraian }), el("td", { teks: x.jenis }), el("td", { kelas: "angka", teks: rp(x.nominal) })])); });
+      isi.appendChild(el("div", { style: "overflow-x:auto;margin-bottom:14px" }, [el("table", { kelas: "riwayat" }, [
+        el("caption", { teks: "Tagihan outstanding" }),
+        el("thead", null, [el("tr", null, [el("th", { scope: "col", teks: "Uraian" }), el("th", { scope: "col", teks: "Jenis belanja" }), el("th", { scope: "col", kelas: "angka", teks: "Nominal" })])]),
+        tbO,
+        el("tfoot", null, [el("tr", null, [el("th", { scope: "row", colspan: "2", teks: "Jumlah" }), el("td", { kelas: "angka", teks: rp(b.out) })])])
+      ])]));
+    }
+
+    if (jumlahKeg) {
+      // Ditampilkan menurut rencana tanggal, tetapi pilihan cara bayar tetap mengikuti urutan asli kegiatan.
+      var urut = d.prognosa.map(function (x, i) { return i; }).sort(function (i, j) { return String(d.prognosa[i].tanggal).localeCompare(String(d.prognosa[j].tanggal)) || i - j; });
+      var tbK = el("tbody");
+      urut.forEach(function (i) {
+        var x = d.prognosa[i];
+        var sel = el("select", { "aria-label": "Cara bayar " + x.kegiatan, disabled: !terkirim });
+        [["up", "UP/TUP"], ["ls", "LS"]].forEach(function (o) { sel.appendChild(el("option", { value: o[0], teks: o[1] })); });
+        sel.value = pilih[i];
+        sel.addEventListener("change", function () { var a = (tup.bayar[unit] || asal).slice(); a[i] = sel.value; tup.bayar[unit] = a; gambarMonev(); });
+        tbK.appendChild(el("tr", null, [
+          el("td", { style: "white-space:nowrap", teks: tanggalPendek(x.tanggal) }),
+          el("td", null, [el("b", { teks: x.kegiatan }), x.keterangan ? el("div", { kelas: "petunjuk", style: "margin:0;font-size:13px", teks: x.keterangan }) : null]),
+          el("td", { teks: x.jenis }), el("td", { teks: x.volume || "" }),
+          el("td", { kelas: "angka", teks: rp(x.biaya) }), el("td", null, [sel])
+        ]));
+      });
+      isi.appendChild(el("div", { style: "overflow-x:auto" }, [el("table", { kelas: "riwayat" }, [
+        el("caption", { teks: "Prognosa kegiatan" }),
+        el("thead", null, [el("tr", null, [["Tanggal", ""], ["Kegiatan", ""], ["Jenis belanja", ""], ["Volume", ""], ["Biaya", "angka"], ["Cara bayar", ""]].map(function (h) { return el("th", { scope: "col", kelas: h[1], teks: h[0] }); }))]),
+        tbK,
+        el("tfoot", null, [el("tr", null, [el("th", { scope: "row", colspan: "4", teks: "Jumlah" }), el("td", { kelas: "angka", teks: rp(b.up + b.ls) }), el("td")])])
+      ])]));
+      if (!terkirim) isi.appendChild(el("p", { kelas: "petunjuk", style: "margin:8px 0 0", teks: "Cara bayar bisa ditetapkan setelah unit mengirim isiannya." }));
+      else isi.appendChild(el("div", { kelas: "bagian-judul", style: "margin:10px 0 0" }, [
+        el("button", { type: "button", kelas: "tombol kecil" + (berubah ? " utama" : ""), teks: berubah ? "Simpan cara bayar" : "Cara bayar tersimpan", "aria-disabled": berubah ? null : "true", onclick: function () {
+          if (!berubah || tup.sibuk) return;
+          tup.sibuk = true;
+          kirim({ aksi: "prognosaBayar", unit: unit, bayar: pilih }).then(function (h) {
+            tup.sibuk = false;
+            if (!h.ok) { kabar(h.pesan || "Cara bayar gagal disimpan.", true); return; }
+            tup.data = h; delete tup.bayar[unit];
+            kabar("Cara bayar " + unit + " tersimpan.");
+            gambarMonev();
+          });
+        } }),
+        berubah ? el("button", { type: "button", kelas: "tombol kecil", teks: "Batalkan perubahan", onclick: function () { delete tup.bayar[unit]; gambarMonev(); } }) : null
+      ]));
+    } else isi.appendChild(el("p", { kelas: "petunjuk", style: "margin:0", teks: "Tidak ada prognosa kegiatan." }));
+    det.appendChild(isi);
+    return det;
+  }
+
+  // Rekap untuk bahan rincian rencana penggunaan TUP: ringkasan per unit, daftar outstanding, dan daftar prognosa kegiatan.
+  function unduhTup() {
+    siapkanPustaka().then(function () {
+      var X = window.XLSX, r = rekapTup(), a = tup.data.aturan, wb = X.utils.book_new();
+      var ringkas = [["Unit", "Status", "Pengisi", "Sisa pagu", "Outstanding", "Prognosa UP/TUP", "Prognosa LS", "Sisa akhir"]];
+      r.baris.forEach(function (b) {
+        ringkas.push([b.unit, b.isi ? b.isi.status : "belum diisi", b.isi ? b.isi.pengisi : "", b.sisa, b.out, b.up, b.ls, b.sisa - b.out - b.up - b.ls]);
+      });
+      ringkas.push([], ["Kebutuhan kas (outstanding + prognosa UP/TUP)", "", "", r.kebutuhan], ["Saldo UP tersedia", "", "", Number(a.saldoUp) || 0], ["Usulan TUP", "", "", r.usulan],
+        ["Kegiatan dihitung sampai", "", "", a.sampai]);
+      var out = [["Unit", "Jenis belanja", "Uraian", "Nominal"]], prog = [["Unit", "Jenis belanja", "Kegiatan", "Rencana tanggal", "Volume", "Perkiraan biaya", "Cara bayar", "Keterangan"]];
+      r.baris.forEach(function (b) {
+        var d = b.isi && b.isi.data; if (!d) return;
+        (d.outstanding || []).forEach(function (x) { out.push([b.unit, x.jenis, x.uraian, Number(x.nominal) || 0]); });
+        (d.prognosa || []).forEach(function (x) { prog.push([b.unit, x.jenis, x.kegiatan, x.tanggal, x.volume, Number(x.biaya) || 0, x.bayar === "ls" ? "LS" : "UP/TUP", x.keterangan]); });
+      });
+      X.utils.book_append_sheet(wb, X.utils.aoa_to_sheet(ringkas), "Rekap unit");
+      X.utils.book_append_sheet(wb, X.utils.aoa_to_sheet(out), "Outstanding");
+      X.utils.book_append_sheet(wb, X.utils.aoa_to_sheet(prog), "Prognosa kegiatan");
+      X.writeFile(wb, "rekap-tup-" + new Date().toISOString().slice(0, 10) + ".xlsx");
+    }).catch(function (e) { kabar(e.message || "Rekap gagal dibuat.", true); });
   }
 
   function gambarSiap(p) {
