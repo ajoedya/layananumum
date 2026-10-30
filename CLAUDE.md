@@ -26,6 +26,8 @@ Situs statis (HTML, CSS, JS murni, tanpa *build step*) yang terbit lewat GitHub 
 - Satu sesi untuk satu tugas. Kalau menyentuh berkas bersama (`dasar.css`, `tema.js`, `banner.js`), periksa dampaknya ke semua halaman yang memuatnya.
 - **Jangan membaca utuh berkas besar.** `realisasi/index.html` berukuran sekitar 430 KB, jadi cari bagiannya dengan `grep -n` lalu baca rentang barisnya saja. Folder `bengkelpdf/pustaka/` dan `realisasi/pustaka/` berisi pustaka pihak ketiga (pdf.js, pdf-lib, fontkit, QPDF, Tesseract). Jangan dibaca dan jangan diubah. Aturan pembacaan Laporan Fa ada di dua tempat (`realisasi/index.html` dan `realisasi/pembaca-fa.js`), ubah keduanya sekaligus.
 - Jaga CSP di `<meta http-equiv="Content-Security-Policy">` tiap halaman. Kalau menambah sumber luar, perbarui CSP-nya dan jelaskan alasannya.
+- Halaman berkunci (`admin/`, `prognosa/`) memuat penolak bingkai (`#tolakBingkai`) di `<head>` karena GitHub Pages tidak bisa mengirim X-Frame-Options. Halaman berkunci baru harus memuatnya juga.
+- Di Apps Script, teks dari pengguna yang ditulis ke sel spreadsheet lewat `sel_()` supaya awalan `=` tidak dibaca sebagai rumus, dan alamat lewat `alamat_()`. Filter alamat di peramban (`Konten.alamatAman`, salinannya di `banner.js` dan `realisasi/index.html`) harus sama dengan `alamat_()`.
 - Alamat lama harus tetap dialihkan. Kalau memindah atau mengganti nama halaman, buat pengalih seperti `jagakas/index.html`.
 
 ## Privasi data

@@ -50,7 +50,7 @@ var ZONA_WAKTU = "Asia/Makassar";  // tanggal statistik dan log mengikuti WITA
 var POTONG = 45000;             // panjang teks per sel (batas sel Google Sheets 50.000 karakter)
 // Versi kode dan fitur yang dikenali. Dasbor admin membacanya lewat doGet (aksi=versi) untuk memastikan
 // deployment yang tayang sudah memakai kode ini. Naikkan tanggalnya setiap kali kode diubah.
-var VERSI_SKRIP = "2026-10-30.3";
+var VERSI_SKRIP = "2026-10-31.1";
 var FITUR_SKRIP = ["pemberitahuan", "pengumuman-jendela", "pengumuman-klik", "prognosa", "prognosa-kesesuaian"];
 // Prognosa kegiatan dan pengajuan TUP (prognosa/). Isian per unit di tab Prognosa; aturan dan kunci bersama seksi di Properti Skrip.
 var TAB_PROGNOSA = "Prognosa";
@@ -233,7 +233,7 @@ function simpan_(minta, who) {
     var penyunting = String(minta.penyunting || "").slice(0, 60) || "(tanpa nama)";
     var catatan = String(minta.catatan || "").slice(0, 200);
     var riwayat = tab_(TAB_RIWAYAT, ["Waktu", "Penyunting", "Catatan", "Isi"]);
-    riwayat.appendRow([waktu, penyunting, catatan].concat(potong_(teks)));
+    riwayat.appendRow([waktu, sel_(penyunting, 60), sel_(catatan, 200)].concat(potong_(teks)));
     var lebih = riwayat.getLastRow() - 1 - BATAS_RIWAYAT;
     if (lebih > 0) riwayat.deleteRows(2, lebih);
 
@@ -301,7 +301,7 @@ function tambahPenyunting_(minta) {
     });
     var waktu = new Date().toISOString();
     if (baris > 0) { t.getRange(baris, 2, 1, 2).setValues([[sk, "ya"]]); catatLog_(minta.penyunting, "admin", "Mengganti kunci penyunting", nama); }
-    else { t.appendRow([nama, sk, "ya", waktu, ""]); catatLog_(minta.penyunting, "admin", "Menambah penyunting", nama); }
+    else { t.appendRow([sel_(nama, 40), sk, "ya", waktu, ""]); catatLog_(minta.penyunting, "admin", "Menambah penyunting", nama); }
     return balas_({ ok: true, penyunting: daftarPenyunting_() });
   } finally { kunciTulis.releaseLock(); }
 }
@@ -323,7 +323,7 @@ function aturPenyunting_(minta) {
 function catatLog_(nama, peran, aksi, rincian) {
   try {
     var t = tab_(TAB_LOG, ["Waktu", "Nama", "Peran", "Aksi", "Rincian"]);
-    t.appendRow([new Date().toISOString(), teks_(nama, 60), teks_(peran, 20), teks_(aksi, 60), teks_(rincian, 200)]);
+    t.appendRow([new Date().toISOString(), sel_(nama, 60), sel_(peran, 20), sel_(aksi, 60), sel_(rincian, 200)]);
     var lebih = t.getLastRow() - 1 - BATAS_LOG;
     if (lebih > 0) t.deleteRows(2, lebih);
   } catch (galat) { /* log tidak boleh menggagalkan pekerjaan utama */ }
@@ -376,13 +376,17 @@ function bacaStatistik_(hari) {
 /* ---------- Pemeriksaan isi ----------
    Semua teks dipangkas panjangnya dan semua alamat hanya boleh https atau alamat di dalam situs. */
 function teks_(v, maks) { return String(v == null ? "" : v).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, "").slice(0, maks || 300); }
+// Tab dan baris baru ikut dibuang karena peramban mengabaikannya di alamat ("java[tab]script:" tetap jalan),
+// dan garis miring terbalik dianggap garis miring ("/\situs-lain" sama dengan "//situs-lain").
 function alamat_(v) {
-  var a = teks_(v, 1000).trim();
+  var a = String(v == null ? "" : v).replace(/[\u0000-\u001f\u007f]/g, "").slice(0, 1000).trim();
   if (!a) return "";
   if (/^https:\/\//i.test(a)) return a;
-  if (/^[a-z][a-z0-9+.-]*:/i.test(a) || a.indexOf("//") === 0) throw new Error("Alamat tidak diizinkan: " + a.slice(0, 60));
+  if (/^[a-z][a-z0-9+.-]*:/i.test(a) || /^[\/\\]{2}/.test(a)) throw new Error("Alamat tidak diizinkan: " + a.slice(0, 60));
   return a;
 }
+// Teks yang ditulis ke sel: awalan = + - @ membuat Sheets membacanya sebagai rumus, jadi diberi tanda kutip tunggal.
+function sel_(v, maks) { var s = teks_(v, maks); return /^[=+\-@']/.test(s) ? "'" + s : s; }
 function daftar_(v, maks) { if (!Array.isArray(v)) return []; return v.slice(0, maks); }
 /* ---------- Pop up pemberitahuan ----------
    Daftar putih ini harus sama dengan PEMBERITAHUAN di konten.js. Tombol tautan memakai aturan alamat yang sama dengan tautan layanan. */
@@ -529,7 +533,8 @@ function tab_(nama, judul) {
 }
 function potong_(teks) {
   var hasil = [];
-  for (var i = 0; i < teks.length; i += POTONG) hasil.push(teks.slice(i, i + POTONG));
+  // Potongan yang kebetulan diawali = + - @ atau kutip tunggal diberi kutip tunggal supaya tetap teks; kutip itu tidak ikut terbaca.
+  for (var i = 0; i < teks.length; i += POTONG) { var b = teks.slice(i, i + POTONG); hasil.push(/^[=+\-@']/.test(b) ? "'" + b : b); }
   return hasil.length ? hasil : [""];
 }
 function tulisKonten_(teks, waktu) {
@@ -599,11 +604,11 @@ function simpanRealisasi_(minta) {
     var t = tab_(TAB_REALISASI, ["Diperbarui", "Penyunting", "Isi (jangan diubah manual)"]);
     var bagian = potong_(teks);
     t.getRange(2, 1, 1, Math.max(t.getLastColumn(), 3)).clearContent();
-    t.getRange(2, 1, 1, bagian.length + 2).setValues([[waktu, penyunting].concat(bagian)]);
+    t.getRange(2, 1, 1, bagian.length + 2).setValues([[waktu, sel_(penyunting, 60)].concat(bagian)]);
 
     var periode = bersih.mentah.bulan ? BULAN_[bersih.mentah.bulan - 1] + " " + (bersih.mentah.tahun || "") : "";
     var riwayat = tab_(TAB_RIWAYAT_REALISASI, ["Waktu", "Penyunting", "Catatan", "Periode", "Isi"]);
-    riwayat.appendRow([waktu, penyunting, catatan, periode.trim()].concat(potong_(teks)));
+    riwayat.appendRow([waktu, sel_(penyunting, 60), sel_(catatan, 200), periode.trim()].concat(potong_(teks)));
     var lebih = riwayat.getLastRow() - 1 - BATAS_RIWAYAT_REALISASI;
     if (lebih > 0) riwayat.deleteRows(2, lebih);
 
@@ -866,7 +871,7 @@ function simpanPrognosa_(minta, who) {
     }
     var waktu = new Date().toISOString(), status = minta.kirim ? "terkirim" : "draf";
     // Tanda kutip tunggal menjaga waktu tetap teks, supaya tidak diubah Sheets menjadi tanggal dan pembanding `dasar` tetap cocok.
-    var baris = [unitNama, status, "'" + waktu, minta.penyunting, teks];
+    var baris = [unitNama, status, "'" + waktu, sel_(minta.penyunting, 60), teks];
     if (lama) t.getRange(lama.baris, 1, 1, 5).setValues([baris]); else t.appendRow(baris);
     catatLog_(minta.penyunting, who.peran, minta.kirim ? "Mengirim prognosa" : "Menyimpan draf prognosa", unitNama);
     return balas_({ ok: true, status: status, diperbarui: waktu });
@@ -973,7 +978,7 @@ function tetapkanPrognosa_(minta, who) {
     var tetap = { ditetapkan: waktu, oleh: minta.penyunting, periodeAwal: pagu.periode, sampai: aturanPrognosa_().sampai, unit: unit };
     var teks = JSON.stringify(tetap);
     var t = tab_(TAB_PROGNOSA_TETAP, ["Ditetapkan", "Oleh", "Isi (jangan diubah manual)"]);
-    t.appendRow(["'" + waktu, minta.penyunting].concat(potong_(teks)));
+    t.appendRow(["'" + waktu, sel_(minta.penyunting, 60)].concat(potong_(teks)));
     CacheService.getScriptCache().remove("prognosaPublik");
     catatLog_(minta.penyunting, who.peran, "Menetapkan prognosa", unit.length + " unit, titik awal " + BULAN_[pagu.periode.bulan - 1] + " " + (pagu.periode.tahun || ""));
     return balas_(bacaPrognosa_(who));
@@ -1009,7 +1014,7 @@ function statusPrognosaSimpan_(minta, who) {
     var waktu = "'" + new Date().toISOString();
     daftar.forEach(function (x) {
       var status = STATUS_KEGIATAN_[x.status] ? x.status : "rencana";
-      var baris = [x.id, nama, status, tanggal_(x.tanggal), Math.max(0, angka_(x.nominal)), teks_(x.catatan, 200), waktu, minta.penyunting];
+      var baris = [x.id, nama, status, tanggal_(x.tanggal), Math.max(0, angka_(x.nominal)), sel_(x.catatan, 200), waktu, sel_(minta.penyunting, 60)];
       if (ada[x.id]) t.getRange(ada[x.id], 1, 1, 8).setValues([baris]); else { t.appendRow(baris); ada[x.id] = t.getLastRow(); }
     });
     CacheService.getScriptCache().remove("prognosaPublik");

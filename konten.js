@@ -116,11 +116,13 @@ window.Konten = (function () {
   function polos(teks) { return String(teks || "").replace(/\*\*([^*]+)\*\*/g, "$1").replace(/_([^_]+)_/g, "$1"); }
 
   // Hanya alamat https atau alamat di dalam situs ini yang dipakai; selain itu (javascript:, data:) ditolak.
+  // Karakter kendali dibuang lebih dulu karena peramban mengabaikan tab dan baris baru di alamat ("java[tab]script:" tetap jalan),
+  // dan garis miring terbalik dianggap garis miring ("/\situs-lain" sama dengan "//situs-lain").
   function alamatAman(a) {
-    a = String(a || "").trim();
+    a = String(a || "").replace(/[\u0000-\u001f\u007f]/g, "").trim();
     if (!a) return "";
     if (/^https:\/\//i.test(a)) return a;
-    if (/^[a-z][a-z0-9+.-]*:/i.test(a) || a.indexOf("//") === 0) return "";
+    if (/^[a-z][a-z0-9+.-]*:/i.test(a) || /^[\/\\]{2}/.test(a)) return "";
     return a;
   }
   function luar(a) { return /^https:\/\//i.test(a); }

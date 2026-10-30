@@ -5,6 +5,17 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://docs.google.com https://script.google.com https://*.googleusercontent.com; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
+<style id="tolakBingkai">html { display: none !important; }</style>
+<script>
+  // Halaman berkunci tidak boleh dimuat di dalam bingkai situs lain (clickjacking). GitHub Pages tidak bisa mengirim
+  // X-Frame-Options dan frame-ancestors tidak berlaku di CSP lewat meta, jadi penjagaannya di sini.
+  (function () {
+    var aman = window.top === window.self;
+    if (!aman) { try { aman = window.top.location.origin === window.location.origin; } catch (e) { aman = false; } }
+    if (aman) { var s = document.getElementById("tolakBingkai"); s.parentNode.removeChild(s); }
+    else { try { window.top.location = window.location.href; } catch (e) { /* tetap tersembunyi */ } }
+  })();
+</script>
 <link rel="icon" type="image/x-icon" href="../favicon.ico">
 <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 <title>Prognosa Kegiatan | Layanan Subbagian Umum</title>

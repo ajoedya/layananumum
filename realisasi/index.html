@@ -4892,11 +4892,12 @@ window.BANNER_DASAR = location.protocol === "file:" ? "" : new URL("../", locati
   }
   var DASAR = dasar();
 
+  // Sama dengan Konten.alamatAman: karakter kendali dibuang dulu supaya "java[tab]script:" tidak lolos.
   function alamatAman(a) {
-    a = String(a || "").trim();
+    a = String(a || "").replace(/[\u0000-\u001f\u007f]/g, "").trim();
     if (!a) return "";
     if (/^https:\/\//i.test(a)) return a;
-    if (/^[a-z][a-z0-9+.-]*:/i.test(a) || a.indexOf("//") === 0) return "";
+    if (/^[a-z][a-z0-9+.-]*:/i.test(a) || /^[\/\\]{2}/.test(a)) return "";
     try { return new URL(a, DASAR).href; } catch (e) { return ""; }
   }
 
