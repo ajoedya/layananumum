@@ -50,8 +50,8 @@ var ZONA_WAKTU = "Asia/Makassar";  // tanggal statistik dan log mengikuti WITA
 var POTONG = 45000;             // panjang teks per sel (batas sel Google Sheets 50.000 karakter)
 // Versi kode dan fitur yang dikenali. Dasbor admin membacanya lewat doGet (aksi=versi) untuk memastikan
 // deployment yang tayang sudah memakai kode ini. Naikkan tanggalnya setiap kali kode diubah.
-var VERSI_SKRIP = "2026-10-29";
-var FITUR_SKRIP = ["pemberitahuan", "pengumuman-jendela"];
+var VERSI_SKRIP = "2026-10-30";
+var FITUR_SKRIP = ["pemberitahuan", "pengumuman-jendela", "pengumuman-klik"];
 
 /* ---------- Menu di spreadsheet ---------- */
 function onOpen() {
@@ -362,6 +362,10 @@ var PEMBERITAHUAN_JENIS_ = { info: true, peringatan: true, penting: true };
 var PEMBERITAHUAN_POSISI_ = { "kanan-bawah": true, "kiri-bawah": true, "kanan-atas": true, "kiri-atas": true };
 var PEMBERITAHUAN_FREKUENSI_ = { sesi: true, harian: true, setiap: true };
 var PEMBERITAHUAN_HALAMAN_ = ["beranda", "perjadin", "realisasi", "olahpdf"];
+var PEMBERITAHUAN_PEMICU_ = { buka: true, klik: true };
+var PEMBERITAHUAN_BURAM_ = { tanpa: true, tipis: true, sedang: true, tebal: true };
+var PEMBERITAHUAN_REDUP_ = { terang: true, sedang: true, gelap: true };
+var PEMBERITAHUAN_LEBAR_ = { kecil: true, sedang: true, besar: true };
 function angkaBatas_(v, min, maks, bawaan) { v = Number(v); return isFinite(v) && v >= 0 ? Math.min(maks, Math.max(min, Math.round(v))) : bawaan; }
 function pemberitahuan_(daftar) {
   var dipakai = {};
@@ -380,7 +384,15 @@ function pemberitahuan_(daftar) {
       posisi: PEMBERITAHUAN_POSISI_[x.posisi] ? x.posisi : "kanan-bawah",
       frekuensi: PEMBERITAHUAN_FREKUENSI_[x.frekuensi] ? x.frekuensi : "sesi",
       halaman: Array.isArray(x.halaman) ? PEMBERITAHUAN_HALAMAN_.filter(function (h) { return x.halaman.indexOf(h) >= 0; }) : PEMBERITAHUAN_HALAMAN_.slice(),
-      sembunyikan: x.sembunyikan === true
+      sembunyikan: x.sembunyikan === true,
+      // Pengaturan jendela pengumuman: pemicu klik tautan, latar buram dan redup, lebar, tombol, dan centang wajib baca.
+      pemicu: PEMBERITAHUAN_PEMICU_[x.pemicu] ? x.pemicu : "buka", pemicuAlamat: alamat_(x.pemicuAlamat),
+      buram: PEMBERITAHUAN_BURAM_[x.buram] ? x.buram : "sedang",
+      redup: PEMBERITAHUAN_REDUP_[x.redup] ? x.redup : "sedang",
+      lebar: PEMBERITAHUAN_LEBAR_[x.lebar] ? x.lebar : "sedang",
+      tombolLanjut: teks_(x.tombolLanjut, 40), tombolTutup: teks_(x.tombolTutup, 40),
+      tutupLatar: x.tutupLatar === true,
+      wajibBaca: x.wajibBaca === true, teksBaca: teks_(x.teksBaca, 120)
     };
     jadwal_(o, x);
     return o;

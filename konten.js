@@ -134,8 +134,14 @@ window.Konten = (function () {
     bentuk: [["pojok", "Pemberitahuan di pojok"], ["jendela", "Jendela pengumuman"]],
     jenis: [["info", "Informasi"], ["peringatan", "Peringatan"], ["penting", "Penting"]],
     posisi: [["kanan-bawah", "Kanan bawah"], ["kiri-bawah", "Kiri bawah"], ["kanan-atas", "Kanan atas"], ["kiri-atas", "Kiri atas"]],
-    frekuensi: [["sesi", "Sekali per sesi"], ["harian", "Sekali per hari"], ["setiap", "Setiap halaman dibuka"]],
-    halaman: [["beranda", "Beranda"], ["perjadin", "Monitoring E-Perjadin"], ["realisasi", "Monitoring Realisasi Anggaran"], ["olahpdf", "Olah PDF"]]
+    frekuensi: [["sesi", "Sekali per sesi"], ["harian", "Sekali per hari"], ["setiap", "Setiap kali"]],
+    halaman: [["beranda", "Beranda"], ["perjadin", "Monitoring E-Perjadin"], ["realisasi", "Monitoring Realisasi Anggaran"], ["olahpdf", "Olah PDF"]],
+    // Khusus jendela pengumuman. Pemicu "klik" memunculkan jendela saat pengunjung mengklik tautan ke pemicuAlamat,
+    // lalu meneruskannya ke tujuan setelah menekan tombol lanjut.
+    pemicu: [["buka", "Saat halaman dibuka"], ["klik", "Saat tautan tertentu diklik"]],
+    buram: [["tanpa", "Tanpa buram"], ["tipis", "Tipis"], ["sedang", "Sedang"], ["tebal", "Tebal"]],
+    redup: [["terang", "Terang"], ["sedang", "Sedang"], ["gelap", "Gelap"]],
+    lebar: [["kecil", "Kecil"], ["sedang", "Sedang"], ["besar", "Besar"]]
   };
   function kodeDalam(daftar, nilai, bawaan) {
     for (var i = 0; i < daftar.length; i++) if (daftar[i][0] === nilai) return nilai;
@@ -157,7 +163,15 @@ window.Konten = (function () {
       posisi: kodeDalam(PEMBERITAHUAN.posisi, x.posisi, "kanan-bawah"),
       frekuensi: kodeDalam(PEMBERITAHUAN.frekuensi, x.frekuensi, "sesi"),
       halaman: Array.isArray(x.halaman) ? semua.filter(function (h) { return x.halaman.indexOf(h) >= 0; }) : semua,
-      sembunyikan: x.sembunyikan === true
+      sembunyikan: x.sembunyikan === true,
+      pemicu: kodeDalam(PEMBERITAHUAN.pemicu, x.pemicu, "buka"),
+      pemicuAlamat: String(x.pemicuAlamat || ""),
+      buram: kodeDalam(PEMBERITAHUAN.buram, x.buram, "sedang"),
+      redup: kodeDalam(PEMBERITAHUAN.redup, x.redup, "sedang"),
+      lebar: kodeDalam(PEMBERITAHUAN.lebar, x.lebar, "sedang"),
+      tombolLanjut: String(x.tombolLanjut || ""), tombolTutup: String(x.tombolTutup || ""),
+      tutupLatar: x.tutupLatar === true,
+      wajibBaca: x.wajibBaca === true, teksBaca: String(x.teksBaca || "")
     };
     ["mulai", "selesai"].forEach(function (f) { if (/^\d{4}-\d{2}-\d{2}$/.test(String(x[f] || ""))) o[f] = x[f]; });
     return o;
