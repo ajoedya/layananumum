@@ -556,6 +556,53 @@ function keLembar(halNo, x, y) {
   return { x: t[0], y: t[1], rotate: PDFLib.degrees(hal.putar) };
 }
 
+/* ========== 8. Meluruskan halaman yang diputar ==========
+   Halaman landskap sering disimpan sebagai kertas tegak dengan /Rotate 90. Aplikasi TTE
+   salah menghitung letak QR pada halaman seperti itu: tinggi QR sudah benar, tetapi letak
+   mendatarnya tercermin (x QR = lebar halaman - x penanda), jadi QR jatuh jauh dari namanya.
+   Karena itu setiap halaman yang diputar disimpan ulang sebagai halaman lurus seukuran
+   tampilannya: isi lama dibungkus satu transformasi yang sama dengan putaran tampilannya,
+   lalu /Rotate dibuang. Tampilannya tidak berubah, tetapi aplikasi TTE kini melihat halaman
+   biasa tanpa putaran, sama seperti dokumen tegak yang QR-nya selalu tepat. */
+function luruskanHalaman(dok, semua) {
+  const lurus = new Set();
+  const N = (s) => PDFLib.PDFName.of(s);
+  const angka = (v) => Number(v.toFixed(4));
+  semua.forEach((lb, i) => {
+    const hal = halaman[i];
+    if (!hal || !hal.putar) return;
+    // vt memetakan ruang asli ke layar (asal kiri atas). Matriks M memetakannya ke ruang
+    // halaman lurus (asal kiri bawah): u = vx, v = tinggi - vy.
+    const [a, b, c, d, e, f] = hal.vt, L = hal.lebarPt, T = hal.tinggiPt;
+    const M = [a, -b, c, -d, e, T - f].map(angka);
+    const peta = (x, y) => [M[0] * x + M[2] * y + M[4], M[1] * x + M[3] * y + M[5]];
+    lb.node.normalize();
+    const awal = dok.context.register(dok.context.stream("q " + M.join(" ") + " cm\n"));
+    const akhir = dok.context.register(dok.context.stream("\nQ\n"));
+    if (!lb.node.wrapContentStreams(awal, akhir)) return;
+    lb.setRotation(PDFLib.degrees(0));
+    lb.setMediaBox(0, 0, L, T);
+    lb.setCropBox(0, 0, L, T);
+    ["BleedBox", "TrimBox", "ArtBox"].forEach((k) => lb.node.delete(N(k)));
+    // Kotak tautan dan anotasi lain ikut dipindah supaya tetap menempel pada isinya.
+    const annots = lb.node.Annots();
+    if (annots) {
+      for (let j = 0; j < annots.size(); j++) {
+        const an = dok.context.lookup(annots.get(j));
+        const r = an && an.get && an.get(N("Rect"));
+        const kotak = r && dok.context.lookup(r);
+        if (!kotak || !kotak.asRectangle) continue;
+        const k = kotak.asRectangle();
+        const p1 = peta(k.x, k.y), p2 = peta(k.x + k.width, k.y + k.height);
+        an.set(N("Rect"), dok.context.obj([Math.min(p1[0], p2[0]), Math.min(p1[1], p2[1]),
+                                           Math.max(p1[0], p2[0]), Math.max(p1[1], p2[1])].map(angka)));
+      }
+    }
+    lurus.add(i + 1);
+  });
+  return lurus;
+}
+
 const bisaDigambar = (s) => /^[\x20-\x7E\xA0-\xFF\u2013\u2014\u2018\u2019\u201C\u201D\u2026]*$/.test(s);
 
 async function terapkanGeseran(semuaGeseran) {
@@ -840,10 +887,10 @@ el("simpan").addEventListener("click", async () => {
     const dok = await PDFLib.PDFDocument.load(bytesKerja.slice(0));
     const font = await dok.embedFont(PDFLib.StandardFonts.Helvetica);
     const semua = dok.getPages();
+    const lurus = luruskanHalaman(dok, semua);
     penandaList.forEach((p) => {
-      semua[p.halamanNo - 1].drawText(TEKS, {
-        ...keLembar(p.halamanNo, p.x, p.y), size: UKURAN, font, color: PDFLib.rgb(...ABU)
-      });
+      const letak = lurus.has(p.halamanNo) ? { x: p.x, y: p.y } : keLembar(p.halamanNo, p.x, p.y);
+      semua[p.halamanNo - 1].drawText(TEKS, { ...letak, size: UKURAN, font, color: PDFLib.rgb(...ABU) });
     });
     Bersama.unduh(await dok.save(), Bersama.tanpaAkhiran(namaAsli) + "-bertanda.pdf");
     const hal = [...new Set(penandaList.map((p) => p.halamanNo))].sort((a, b) => a - b);
