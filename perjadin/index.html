@@ -481,12 +481,13 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
   var GOLONGAN = {
     "sudah dibayar": "dibayar",
     "on hold": "tertahan",
+    "perbaikan": "tertahan",
     "": "belum"
   };
   var JUDUL_GOLONGAN = {
     dibayar: "Sudah dibayar",
     proses: "Dalam verifikasi",
-    tertahan: "Tertahan",
+    tertahan: "Perlu tindakan",
     belum: "Belum ada status"
   };
   var URUTAN_GOLONGAN = { tertahan: 0, belum: 1, proses: 2, dibayar: 3 };
@@ -624,7 +625,9 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
       var st = ambil(b, k.st);
       if (!st) continue;
       var tahap = ambil(b, k.tahap);
-      var gol = GOLONGAN.hasOwnProperty(tahap.toLowerCase()) ? GOLONGAN[tahap.toLowerCase()] : "proses";
+      // Tahap "Perbaikan ..." (berapa pun keterangannya) perlu ditindaklanjuti peserta, sama dengan On Hold.
+      var kecil = tahap.toLowerCase();
+      var gol = GOLONGAN.hasOwnProperty(kecil) ? GOLONGAN[kecil] : /^perbaikan/.test(kecil) ? "tertahan" : "proses";
       var ket = ambil(b, k.ket);
       var berkas = /\.pdf$|^ST-\d+\s+[A-Z]{3}$/i.test(ket);
       // Tautan bukti bayar: dari kolom "Tautan Bukti" bila ada, atau dari sel mana pun di baris itu yang berisi alamat web.
@@ -738,7 +741,7 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
       { kunci: "", kelas: "semua", label: "Seluruh surat tugas", n: data.length, ket: "Ketuk kartu untuk menyaring" },
       { kunci: "dibayar", kelas: "dibayar", label: JUDUL_GOLONGAN.dibayar, n: hitung.dibayar, ket: data.length ? Math.round(hitung.dibayar / data.length * 100) + "% dari seluruh ST" : "" },
       { kunci: "proses", kelas: "proses", label: JUDUL_GOLONGAN.proses, n: hitung.proses, ket: "Di Staf PPK atau bendahara" },
-      { kunci: "tertahan", kelas: "tertahan", label: JUDUL_GOLONGAN.tertahan, n: hitung.tertahan, ket: "Perlu tindakan peserta" },
+      { kunci: "tertahan", kelas: "tertahan", label: JUDUL_GOLONGAN.tertahan, n: hitung.tertahan, ket: "On Hold atau perlu perbaikan" },
       { kunci: "belum", kelas: "belum", label: JUDUL_GOLONGAN.belum, n: hitung.belum, ket: "Belum mulai diproses" }
     ];
     elRingkas.textContent = "";
