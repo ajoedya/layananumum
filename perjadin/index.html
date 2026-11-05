@@ -48,6 +48,7 @@
   --hijau-teks: #1d6b3f; --hijau-latar: #e6f4ec; --hijau-garis: #b9dfc8;
   --biru-teks: #1b4f86;  --biru-latar: #e7f0fa;  --biru-garis: #bcd3ec;
   --merah-teks: #9a2f21; --merah-latar: #fdecea; --merah-garis: #f1c2bb;
+  --kuning-teks: #7a5200; --kuning-latar: #fdf4dc; --kuning-garis: #ecd393;
   --abu-teks: #55636e;   --abu-latar: #eef2f4;   --abu-garis: #d3dce1;
   --tepi: clamp(18px, 4vw, 56px);
 }
@@ -64,6 +65,7 @@
   --hijau-teks: #8fd9ae; --hijau-latar: #12301f; --hijau-garis: #2b5a3f;
   --biru-teks: #9cc6f0;  --biru-latar: #132a42;  --biru-garis: #2c4c6e;
   --merah-teks: #f2a89d; --merah-latar: #3a1915; --merah-garis: #6a3229;
+  --kuning-teks: #f0c060; --kuning-latar: #2e2410; --kuning-garis: #5c4a22;
   --abu-teks: #b0bcc5;   --abu-latar: #1f2b36;   --abu-garis: #344452;
 }
 :root[data-mode="gelap"] .panel { background: rgb(var(--rgb-laut)); color: #fff; }
@@ -196,7 +198,7 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
 .kartu small { color: var(--tinta-lembut); font-size: 12px; line-height: 1.4; }
 .kartu.semua { --warna: var(--laut-tua); }
 .kartu.dibayar { --warna: var(--hijau-teks); }
-.kartu.proses { --warna: var(--biru-teks); }
+.kartu.proses { --warna: var(--kuning-teks); }
 .kartu.tertahan { --warna: var(--merah-teks); }
 .kartu.belum { --warna: var(--abu-teks); }
 
@@ -243,6 +245,11 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
 .lencana.proses { color: var(--biru-teks); background: var(--biru-latar); border-color: var(--biru-garis); }
 .lencana.tertahan { color: var(--merah-teks); background: var(--merah-latar); border-color: var(--merah-garis); }
 .lencana.belum { color: var(--abu-teks); background: var(--abu-latar); border-color: var(--abu-garis); }
+/* Rupa per tahap (menimpa warna golongan): verifikasi kuning, perbaikan merah dengan ikon peringatan, on hold dengan ikon jeda. */
+.lencana.verif { color: var(--kuning-teks); background: var(--kuning-latar); border-color: var(--kuning-garis); }
+.lencana.perbaikan { color: var(--merah-teks); background: var(--merah-latar); border-color: var(--merah-garis); }
+.lencana.berikon::before { display: none; }
+.lencana svg { flex: none; width: 14px; height: 14px; margin-left: -3px; }
 .catatan { color: var(--tinta-lembut); font-size: 13px; line-height: 1.45; overflow-wrap: anywhere; }
 .catatan.penting { color: var(--merah-teks); font-weight: 600; }
 .unduh {
@@ -353,6 +360,13 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
 @media (max-width: 560px) {
   h1 { font-size: 28px; }
   h1 span { font-size: 20px; }
+  /* Kepala halaman diringkas di ponsel supaya pencarian dan daftar ST lebih cepat terlihat. Foto banner tetap tampil,
+     hanya lebih pendek; deskripsi panjang dan semboyan disembunyikan karena judulnya sudah menjelaskan. */
+  .panel { gap: 14px; padding-top: 20px; padding-bottom: 16px; }
+  .panel-deskripsi, .panel-keterangan span:last-child { display: none; }
+  .panel-keterangan { padding-top: 64px; }
+  .panel-foto { height: 150px; }
+  .panel-tabir { height: 190px; }
   .baris { padding: 13px 16px; }
   .ringkas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .kartu.semua { grid-column: 1 / -1; }
@@ -403,6 +417,7 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
       <button type="button" data-kelompok="" aria-pressed="true">Semua <b id="jumlahSemua">0</b></button>
     </nav>
     <p class="keadaan" id="keadaan" role="status" aria-live="polite">Memuat data...</p>
+    <p class="sr-only" id="jumlahHasil" aria-live="polite"></p>
 
     <div class="lipat" id="lipatRingkas">
       <div class="ringkas" id="ringkas" role="group" aria-label="Saring menurut status pembayaran"></div>
@@ -475,6 +490,18 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
     belum: "Belum ada status"
   };
   var URUTAN_GOLONGAN = { tertahan: 0, belum: 1, proses: 2, dibayar: 3 };
+
+  /* Rupa lencana menurut tahap. Golongan (kartu ringkas dan urutan) tetap; yang berubah hanya warna dan ikonnya:
+     semua tahap "Verif ..." (PPK, Staf PPK, BPG) kuning, Perbaikan merah dengan ikon peringatan, On Hold dengan ikon jeda. */
+  var IKON_PERINGATAN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>';
+  var IKON_JEDA = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
+  function rupaTahap(tahap) {
+    var t = String(tahap || "").trim().toLowerCase();
+    if (/^verif/.test(t)) return { kelas: "verif" };
+    if (/^perbaikan/.test(t)) return { kelas: "perbaikan berikon", ikon: IKON_PERINGATAN };
+    if (t === "on hold") return { kelas: "berikon", ikon: IKON_JEDA };
+    return { kelas: "" };
+  }
 
   /* ---------- Banner berganti (sama dengan index.html) ---------- */
   var MENIT_PER_BANNER = 360; // 6 jam
@@ -741,7 +768,10 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
     r.appendChild(p);
 
     var s = buat("div", "status");
-    s.appendChild(buat("span", "lencana " + d.golongan, d.golongan === "belum" ? JUDUL_GOLONGAN.belum : d.tahap));
+    var rupa = d.golongan === "belum" ? { kelas: "" } : rupaTahap(d.tahap);
+    var lencana = buat("span", "lencana " + d.golongan + (rupa.kelas ? " " + rupa.kelas : ""), d.golongan === "belum" ? JUDUL_GOLONGAN.belum : d.tahap);
+    if (rupa.ikon) lencana.insertAdjacentHTML("afterbegin", rupa.ikon);
+    s.appendChild(lencana);
     if (d.catatan) s.appendChild(buat("span", "catatan" + (d.golongan !== "dibayar" ? " penting" : ""), d.catatan));
     if (d.unduh) {
       var a = buat("a", "unduh");
@@ -791,6 +821,18 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
     });
     elKosong.hidden = tampil.length > 0 || !semuaData.length;
     if (typeof aturRingkas === "function") aturRingkas(false);
+    umumkanJumlah(tampil.length);
+  }
+
+  // Jumlah hasil diumumkan ke pembaca layar hanya saat ada saringan atau pencarian, dan ditunda sebentar
+  // supaya tidak berbunyi di setiap ketukan huruf.
+  var elJumlahHasil = document.getElementById("jumlahHasil"), pewaktuJumlah;
+  function umumkanJumlah(n) {
+    clearTimeout(pewaktuJumlah);
+    if (!saringan.kata && !saringan.kelompok && !saringan.golongan) { elJumlahHasil.textContent = ""; return; }
+    pewaktuJumlah = setTimeout(function () {
+      elJumlahHasil.textContent = n ? n + " surat tugas ditemukan." : "Tidak ada surat tugas yang cocok.";
+    }, 600);
   }
 
   function jam(t) {
