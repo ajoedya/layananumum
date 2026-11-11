@@ -1155,9 +1155,16 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
   function gambarStatistik(w, baris) {
     var hari = [], kini = new Date();
     for (var i = 29; i >= 0; i--) { var d = new Date(kini.getFullYear(), kini.getMonth(), kini.getDate() - i); hari.push(tglLokal(d)); }
-    var kunjungan = {}, klik = {}, totalKlik30 = 0;
+    var kunjungan = {}, klik = {}, totalKlik30 = 0, pdfBuka = {}, pdfPakai = {};
     baris.forEach(function (b) {
       if (hari.indexOf(b.t) < 0) return;
+      // Penanda berawalan "pdf-" berasal dari Olah PDF: dibuka (kunjungan) dan dipakai (klik), dihitung terpisah.
+      if (b.id.indexOf("pdf-") === 0) {
+        var alat = b.id.slice(4);
+        if (b.j === "kunjungan") pdfBuka[alat] = (pdfBuka[alat] || 0) + b.n;
+        else if (b.j === "klik") pdfPakai[alat] = (pdfPakai[alat] || 0) + b.n;
+        return;
+      }
       if (b.j === "kunjungan") kunjungan[b.t] = (kunjungan[b.t] || 0) + b.n;
       else if (b.j === "klik") { klik[b.id] = (klik[b.id] || 0) + b.n; totalKlik30 += b.n; }
     });
@@ -1189,6 +1196,24 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
     }
     var sepi = keadaan.konten.tautan.filter(function (t) { return t.tampil && !klik[K.slug(K.polos(t.judul))]; }).map(function (t) { return K.polos(t.judul); });
     if (sepi.length && urut.length) w.appendChild(el("p", { kelas: "petunjuk", style: "margin-top:12px", teks: "Belum diklik dalam 30 hari: " + sepi.join(", ") + "." }));
+
+    // Olah PDF: berapa kali tiap perkakas dibuka dan dipakai (berkas dimasukkan). Isi berkas tidak pernah dicatat.
+    var NAMA_PDF = { beranda: "Beranda Olah PDF", "gabung-pecah": "Gabung/Pecah", "pengubah-uk": "Ubah Ukuran Kertas", gambar: "PDF & Gambar",
+      word: "PDF ke Word", "pdf-excel": "PDF ke Excel", koreksi: "Edit Teks", "tanda-air": "Watermark", penanda: "Penanda TTE",
+      kompres: "Kompres PDF", "rapikan-ocr": "Rapikan & OCR PDF", kunci: "Kunci PDF", metadata: "Pembersih Metadata" };
+    var alatPdf = Object.keys(NAMA_PDF).filter(function (k) { return pdfBuka[k] || pdfPakai[k]; })
+      .sort(function (a, b) { return (pdfPakai[b] || 0) - (pdfPakai[a] || 0) || (pdfBuka[b] || 0) - (pdfBuka[a] || 0); });
+    w.appendChild(el("h3", { teks: "Olah PDF: pemakaian perkakas (30 hari)", style: "margin:20px 0 8px" }));
+    if (!alatPdf.length) w.appendChild(el("div", { kelas: "kosong", teks: "Belum ada pemakaian Olah PDF tercatat." }));
+    else {
+      var tp = el("table", { kelas: "riwayat" }, [el("thead", null, [el("tr", null, [el("th", { teks: "Perkakas" }), el("th", { teks: "Dibuka" }), el("th", { teks: "Dipakai" })])])]);
+      var tpb = el("tbody");
+      alatPdf.forEach(function (k) {
+        tpb.appendChild(el("tr", null, [el("td", { teks: NAMA_PDF[k] }), el("td", { teks: String(pdfBuka[k] || 0) }), el("td", { teks: k === "beranda" ? "-" : String(pdfPakai[k] || 0) })]));
+      });
+      tp.appendChild(tpb); w.appendChild(tp);
+      w.appendChild(el("p", { kelas: "petunjuk", style: "margin-top:8px", teks: "Dibuka dihitung sekali per tab peramban. Dipakai dihitung saat berkas dimasukkan ke perkakas. Nama dan isi berkas tidak pernah dikirim." }));
+    }
   }
 
   /* ---------- Tab Penyunting (admin) ---------- */

@@ -64,7 +64,8 @@ async function buatPekerjaOcr(onLog) {
       if (!window.Tesseract) throw Error("Mesin Tesseract tidak tersedia.");
       const worker = await Tesseract.createWorker(["ind", "eng"], 1, {
         workerPath: new URL("pustaka/tesseract/worker.min.js", location.href).href,
-        corePath: "https://cdn.jsdelivr.net/npm/tesseract.js-core@7.0.0",
+        corePath: new URL("pustaka/tesseract/core", location.href).href,
+        langPath: new URL("pustaka/tesseract/lang", location.href).href,
         logger: m => { if (buatPekerjaOcr.lapor) buatPekerjaOcr.lapor(m); }
       });
       await worker.setParameters({tessedit_pageseg_mode: "3"});

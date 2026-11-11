@@ -323,7 +323,90 @@
   // ============================================================
   // Objek Bersama: Pustaka Utama Penanganan Berkas & Utilities
   // ============================================================
+  /* ---------- Statistik pemakaian ----------
+     Hanya nama perkakas yang dikirim ke Apps Script yang sama dengan statistik beranda: "dibuka" (sekali per tab) dan
+     "dipakai" (sekali per halaman saat berkas pertama diterima). Isi, nama, dan ukuran berkas tidak pernah dikirim.
+     Server lokal untuk pratinjau tidak dihitung. */
+  const LOKAL = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+  function catat(jenis, id) {
+    if (LOKAL || !window.ALAMAT_SKRIP || !window.fetch) return;
+    try {
+      fetch(window.ALAMAT_SKRIP, { method: "POST", mode: "no-cors", keepalive: true, headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ aksi: "catat", jenis: jenis, id: id }) }).catch(() => {});
+    } catch (e) { /* abaikan */ }
+  }
+  const idPerkakas = () => "pdf-" + (namaHalaman() === "index" ? "beranda" : namaHalaman());
+  function catatBuka() {
+    let sudah = false;
+    const kunci = "olahpdf-dibuka-" + namaHalaman();
+    try { sudah = !!sessionStorage.getItem(kunci); sessionStorage.setItem(kunci, "1"); } catch (e) { /* abaikan */ }
+    if (!sudah) catat("kunjungan", idPerkakas());
+  }
+  let sudahPakai = false;
+  function catatPakai() {
+    // Perkakas yang dipakai juga disimpan sebagai "Terakhir dipakai" di beranda (hanya di peramban ini).
+    try {
+      const kini = namaHalaman(), lama = JSON.parse(localStorage.getItem("olahpdf-terakhir") || "[]");
+      localStorage.setItem("olahpdf-terakhir", JSON.stringify([kini].concat(lama.filter((x) => x !== kini)).slice(0, 4)));
+    } catch (e) { /* abaikan */ }
+    if (sudahPakai) return;
+    sudahPakai = true;
+    catat("klik", idPerkakas());
+  }
+
+  /* ---------- Berkas titipan ----------
+     PDF yang dilepas di beranda disimpan sebentar di IndexedDB peramban ini (tidak ke server), lalu diambil
+     sekali oleh halaman perkakas yang dipilih. Titipan lebih tua dari 5 menit dibuang. */
+  const titipan = { diambil: false };
+  function bukaDb() {
+    return new Promise((selesai, gagal) => {
+      if (!window.indexedDB) { gagal(new Error("IndexedDB tidak tersedia")); return; }
+      const r = indexedDB.open("olahpdf", 1);
+      r.onupgradeneeded = () => r.result.createObjectStore("titipan");
+      r.onsuccess = () => selesai(r.result);
+      r.onerror = () => gagal(r.error);
+    });
+  }
+  function titipkan(berkas) {
+    return bukaDb().then((db) => new Promise((selesai, gagal) => {
+      const tx = db.transaction("titipan", "readwrite");
+      tx.objectStore("titipan").put({ berkas: berkas, waktu: Date.now() }, "berkas");
+      tx.oncomplete = () => { db.close(); selesai(); };
+      tx.onerror = () => { db.close(); gagal(tx.error); };
+    }));
+  }
+  function ambilTitipan() {
+    return bukaDb().then((db) => new Promise((selesai) => {
+      const tx = db.transaction("titipan", "readwrite"), toko = tx.objectStore("titipan");
+      const r = toko.get("berkas");
+      r.onsuccess = () => {
+        const isi = r.result;
+        toko.delete("berkas");
+        tx.oncomplete = () => { db.close(); selesai(isi && Date.now() - isi.waktu < 5 * 60000 ? isi.berkas || [] : []); };
+      };
+      r.onerror = () => { db.close(); selesai([]); };
+    })).catch(() => []);
+  }
+
+  /* ---------- Aplikasi offline ----------
+     Service worker (sw.js) menyimpan halaman dan pustaka di peramban, jadi Olah PDF tetap terbuka tanpa internet
+     dan bisa dipasang seperti aplikasi lewat manifest. */
+  function pasangAplikasi() {
+    if (!document.querySelector('link[rel="manifest"]')) {
+      const m = document.createElement("link");
+      m.rel = "manifest"; m.href = "manifest.webmanifest";
+      document.head.appendChild(m);
+    }
+    if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register(new URL("sw.js", location.href.replace(/\/beta\/.*$/, "/")).href).catch(() => {});
+      });
+    }
+  }
+
   window.Bersama = {
+    // Dipakai beranda untuk meneruskan PDF ke perkakas pilihan.
+    titipkan: titipkan,
     // Memasang penanganan klik & drag-and-drop unggah berkas
     pasangJatuhan: function (area, input, callback) {
       if (!area || !input) return;
@@ -363,22 +446,29 @@
         });
       });
 
+      // Setiap berkas yang diterima dihitung sekali sebagai "perkakas dipakai" (hanya nama perkakas yang dicatat).
+      const terima = (berkas) => {
+        if (!berkas.length || typeof callback !== "function") return;
+        catatPakai();
+        callback(berkas);
+      };
+
       // 4. Menerima Berkas dari Drag & Drop
       area.addEventListener("drop", (e) => {
-        const berkas = Array.from(e.dataTransfer.files || []);
-        if (berkas.length > 0 && typeof callback === "function") {
-          callback(berkas);
-        }
+        terima(Array.from(e.dataTransfer.files || []));
       });
 
       // 5. Menerima Berkas dari Dialog Pilih Berkas (Klik)
       input.addEventListener("change", () => {
-        const berkas = Array.from(input.files || []);
-        if (berkas.length > 0 && typeof callback === "function") {
-          callback(berkas);
-        }
+        terima(Array.from(input.files || []));
         input.value = ""; // Reset pilihan
       });
+
+      // 6. Berkas titipan dari beranda: PDF yang dilepas di beranda diteruskan ke kotak unggah pertama yang menerima PDF.
+      if (/pdf/i.test(input.accept || "") && !titipan.diambil) {
+        titipan.diambil = true;
+        ambilTitipan().then((berkas) => { if (berkas.length) setTimeout(() => terima(berkas), 0); });
+      }
     },
 
     // Penyaring berkas PDF
@@ -493,6 +583,8 @@
   }
 
   // Inisialisasi favicon dan menu saat DOM siap
+  pasangAplikasi();
+  catatBuka();
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", function () {
       pasangFavicon();

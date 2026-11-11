@@ -26,14 +26,15 @@ Kumpulan perkakas PDF untuk pekerjaan sehari-hari di kantor, buatan KPKNL Balikp
 
 Olah PDF adalah situs statis. Pustaka pembaca dan penulis PDF dimuat ke peramban, lalu semua pekerjaan (membaca, menyunting, mengonversi, menyimpan) dikerjakan di komputer pengguna sendiri. Tidak ada server aplikasi, tidak ada akun, dan tidak ada berkas yang dikirim keluar.
 
-Pustaka utama (pdf.js, pdf-lib, fontkit, QPDF versi WebAssembly, dan skrip Tesseract.js) disimpan di folder `pustaka/`, jadi situs hanya memanggil dua alamat luar.
+Semua pustaka disimpan di folder `pustaka/`: pdf.js, pdf-lib, fontkit, QPDF versi WebAssembly, Tesseract.js beserta inti mesin OCR (`tesseract/core`) dan data bahasa Indonesia dan Inggris (`tesseract/lang`), serta huruf Public Sans, Arimo, Tinos, dan Cousine (`huruf/`, lisensinya di `huruf/LISENSI.md`). Situs tidak memuat apa pun dari CDN atau Google.
 
-| Alamat | Untuk apa |
-|---|---|
-| `cdn.jsdelivr.net` | Inti mesin dan data bahasa Tesseract.js untuk OCR, serta huruf Arimo, Tinos, dan Cousine yang ditanam saat menyunting teks |
-| `fonts.googleapis.com` | Huruf Public Sans |
+Satu-satunya alamat luar adalah Apps Script situs utama (`script.google.com`), untuk statistik pemakaian: nama perkakas yang dibuka dan dipakai, dihitung per hari. Nama, isi, dan ukuran berkas tidak pernah dikirim. Setiap halaman memasang *Content Security Policy* yang hanya mengizinkan alamat itu, sehingga skrip dari tempat lain tidak bisa dimuat dan data tidak bisa dikirim ke alamat lain.
 
-Setiap halaman memasang *Content Security Policy* yang hanya mengizinkan kedua alamat itu, sehingga skrip dari tempat lain tidak bisa dimuat dan data tidak bisa dikirim ke alamat lain.
+## Aplikasi offline
+
+`sw.js` adalah *service worker* yang menyimpan halaman, skrip, dan pustaka di peramban. Setelah sekali dibuka, Olah PDF tetap bisa dipakai tanpa internet, dan bisa dipasang seperti aplikasi lewat `manifest.webmanifest` (tombol "Instal" di bilah alamat peramban). Halaman dan skrip situs selalu diambil dari jaringan lebih dulu, jadi perubahan langsung terlihat; pustaka diambil dari simpanan. Naikkan `VERSI` di `sw.js` bila pustaka diganti.
+
+PDF yang dipilih atau dilepas di beranda dititipkan sebentar di IndexedDB peramban, lalu diambil sekali oleh perkakas yang dipilih (`Bersama.titipkan` dan langkah 6 di `Bersama.pasangJatuhan`). Perkakas yang terakhir dipakai disimpan di `localStorage` peramban itu saja.
 
 ## Tampilan
 
@@ -45,3 +46,12 @@ Banner Olah PDF sama dengan beranda Layanan Subbagian Umum. Fotonya diambil dari
 - Tidak ada langkah *build*. Setiap perkakas adalah satu berkas HTML yang berdiri sendiri, ditambah `tema.js`, `gaya.css`, dan `bersama.js` yang dipakai bersama.
 - Untuk mencoba di komputer sendiri, jalankan peladen statis apa pun di folder ini, misalnya `python -m http.server`, lalu buka `http://localhost:8000`. Membuka berkas langsung lewat `file://` tidak akan berjalan karena pembatasan peramban.
 - Rincian berkas, cara menambah perkakas atau tema, pemeriksaan sebelum menyebarkan, dan hal-hal yang sengaja tidak dibuat ada di [PANDUAN-PENGELOLA.md](PANDUAN-PENGELOLA.md).
+
+## Ide perkakas berikutnya
+
+Catatan untuk nanti, belum dikerjakan:
+
+- **Tanda tangan atau cap gambar.** Menempelkan gambar tanda tangan atau stempel ke PDF, untuk dokumen yang bukan TTE.
+- **Putar cepat dan hapus halaman.** Perkakas satu langkah; fungsinya sekarang ada di dalam Gabung/Pecah, tetapi tidak semua orang tahu.
+- **Isi formulir PDF.** Mengisi isian formulir PDF lalu menyimpannya.
+- **Bandingkan dua PDF.** Menyorot perbedaan teks antara dua versi naskah.

@@ -1,0 +1,15 @@
+{
+  "name": "Olah PDF · KPKNL Balikpapan",
+  "short_name": "Olah PDF",
+  "description": "Perkakas PDF untuk pekerjaan kantor. Berkas diproses di perangkat sendiri, tidak diunggah ke server.",
+  "lang": "id",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0f3554",
+  "theme_color": "#0f3554",
+  "icons": [
+    { "src": "favicon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

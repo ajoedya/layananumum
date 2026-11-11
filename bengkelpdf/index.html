@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' blob: data: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob:; worker-src 'self' blob:; connect-src 'self' blob: data: https://script.google.com https://script.googleusercontent.com; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="Olah PDF KPKNL Balikpapan. Gabung, pecah, koreksi, konversi, kompres, kunci, dan kelola PDF langsung di peramban.">
@@ -11,8 +11,7 @@
 <script src="../konten.js"></script>
 <script src="../banner.js"></script>
 <script src="banner-bengkel.js"></script>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap">
+<link rel="stylesheet" href="pustaka/huruf/public-sans.css">
 <link rel="stylesheet" href="gaya.css">
 <style>
 /* Beranda Olah PDF memakai rangka beranda Layanan Subbagian Umum (dasar.css).
@@ -54,6 +53,44 @@ body.rk-beranda .rk-baris::after {
 body.rk-beranda .rk-baris[hidden] { display: none; }
 /* Kelompok tanpa perkakas yang cocok disembunyikan saat mencari (display: flex di dasar.css mengalahkan [hidden]). */
 body.rk-beranda .rk-bagian[hidden] { display: none; }
+/* Kotak "Punya PDF?": seret berkas atau klik, lalu pilih perkakasnya. Saat berkas diseret ke mana pun di halaman,
+   kotak ini ikut menyala. */
+.rk-unggah {
+  display: flex; align-items: center; gap: 14px; padding: 16px 20px; border: 2px dashed var(--garis); border-radius: 14px;
+  background: var(--putih); color: var(--tinta-lembut); font-size: 15px; line-height: 1.5; cursor: pointer;
+  transition: border-color .16s ease, background-color .16s ease;
+}
+.rk-unggah strong { color: var(--biru-tua); }
+.rk-unggah svg { flex: none; width: 34px; height: 34px; padding: 6px; border-radius: 10px; box-sizing: border-box; background: var(--emas-muda);
+  color: var(--emas-tua); fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.rk-unggah:hover, body.rk-seret .rk-unggah { border-color: var(--emas-tua); background: var(--emas-muda); }
+.rk-unggah:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: 3px; }
+.rk-terakhir { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: -4px; }
+.rk-terakhir[hidden] { display: none; }
+.rk-terakhir > span { color: var(--emas-teks); font-size: 12px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; margin-right: 4px; }
+.rk-terakhir a { display: inline-flex; align-items: center; min-height: 36px; padding: 4px 14px; border: 1px solid var(--garis); border-radius: 999px;
+  background: var(--putih); color: var(--biru-tua); font-size: 14px; font-weight: 600; text-decoration: none; }
+.rk-terakhir a:hover { border-color: var(--emas-tua); }
+.rk-terakhir a:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: 2px; }
+/* Jendela pilihan perkakas setelah PDF dipilih atau dilepas. */
+.rk-pilih { width: min(720px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 22px 22px 18px; border: 0; border-radius: 16px;
+  background: var(--latar, var(--putih)); color: var(--tinta); box-shadow: 0 20px 50px rgba(5,16,27,.35); }
+.rk-pilih::backdrop { background: rgba(5,16,27,.55); }
+.rk-pilih h2 { margin: 0; color: var(--biru-tua); font-size: 22px; }
+.rk-pilih p { margin: 4px 0 16px; color: var(--tinta-lembut); font-size: 14px; overflow-wrap: anywhere; }
+.rk-pilih-daftar { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+.rk-pilih-daftar a { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 8px 12px; border: 1px solid var(--garis); border-radius: 12px;
+  background: var(--putih); color: var(--biru-tua); font-size: 15px; font-weight: 700; text-decoration: none; }
+.rk-pilih-daftar a:hover { border-color: var(--emas-tua); }
+.rk-pilih-daftar a:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: 2px; }
+.rk-pilih-daftar svg { flex: none; width: 34px; height: 34px; padding: 6px; border-radius: 9px; box-sizing: border-box; background: var(--emas-muda); color: var(--emas-tua); }
+.rk-pilih-batal { margin-top: 16px; min-height: 44px; padding: 8px 20px; border: 1px solid var(--garis); border-radius: 10px; background: transparent;
+  color: var(--tinta); font: 600 15px var(--huruf-isi, inherit); cursor: pointer; }
+.rk-pilih-batal:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: 2px; }
+@media (max-width: 560px) {
+  .rk-unggah { padding: 14px 16px; font-size: 14px; }
+  .rk-pilih-daftar { grid-template-columns: 1fr; }
+}
 @media (max-width: 560px) {
   /* Di ponsel kartu menyamping: ikon di kiri, teks di kanan, supaya keterangan tetap terbaca utuh. */
   body.rk-beranda .rk-daftar { grid-template-columns: 1fr; gap: 10px; }
@@ -103,6 +140,13 @@ body.rk-beranda .rk-bagian[hidden] { display: none; }
     </div>
     <p class="sr-only" id="jumlahAlat" role="status" aria-live="polite">12 perkakas tersedia</p>
 
+    <div class="rk-unggah" id="unggahBeranda" role="button" tabindex="0" aria-describedby="ketUnggah">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 15V4m0 0L7.5 8.5M12 4l4.5 4.5"/><path d="M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15"/></svg>
+      <span><strong>Punya PDF?</strong> <span id="ketUnggah">Seret ke sini atau klik untuk memilih, lalu pilih perkakasnya.</span></span>
+    </div>
+    <input type="file" id="berkasBeranda" accept="application/pdf,.pdf" multiple hidden>
+    <nav class="rk-terakhir" id="terakhir" aria-label="Perkakas terakhir dipakai" hidden><span>Terakhir dipakai</span></nav>
+
     <section class="rk-bagian" id="susun" aria-labelledby="j-susun">
       <h2 id="j-susun">Susun halaman</h2>
       <div class="rk-daftar">
@@ -149,6 +193,13 @@ body.rk-beranda .rk-bagian[hidden] { display: none; }
       <span>Buka <span aria-hidden="true">↗</span></span>
     </a>
 
+    <dialog class="rk-pilih" id="pilihPerkakas" aria-labelledby="judulPilih">
+      <h2 id="judulPilih">Mau diapakan?</h2>
+      <p id="ketPilih"></p>
+      <div class="rk-pilih-daftar" id="daftarPilih"></div>
+      <button type="button" class="rk-pilih-batal" id="batalPilih">Batal</button>
+    </dialog>
+
     <footer>
       <span>KPKNL Balikpapan · Berintegritas dalam Tugas, Prima dalam Pelayanan.</span>
       <span class="kredit">Dibuat dengan Claude dan GPT <svg class="kredit-hati" viewBox="0 0 24 24" width="14" height="14" role="img" aria-label="cinta"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 5 6.4 5c2 0 3.6 1.1 4.6 2.6l1 1.4 1-1.4C14 6.1 15.6 5 17.6 5 21 5 23.1 8.4 21.6 11.8 19.5 16.4 12 21 12 21z"/></svg></span>
@@ -190,6 +241,69 @@ body.rk-beranda .rk-bagian[hidden] { display: none; }
   input.addEventListener("input", cari);
   input.addEventListener("keydown", function (e) { if (e.key === "Escape" && input.value) { input.value = ""; cari(); } });
   hapus.addEventListener("click", function () { input.value = ""; cari(); input.focus(); });
+
+  /* ---------- Punya PDF? ----------
+     PDF yang dipilih atau dilepas di halaman ini dititipkan di peramban (IndexedDB, bukan server) lalu diteruskan ke
+     perkakas yang dipilih; halaman perkakas mengambilnya sekali dan langsung memprosesnya. */
+  var kotakUnggah = document.getElementById("unggahBeranda");
+  var pilihBerkas = document.getElementById("berkasBeranda");
+  var dialog = document.getElementById("pilihPerkakas");
+  var daftarPilih = document.getElementById("daftarPilih");
+  var titipan = [];
+  function namaKartu(a) { return a.querySelector("strong").textContent; }
+  baris.forEach(function (a) {
+    var pilih = document.createElement("a");
+    pilih.href = a.getAttribute("href");
+    var ikon = a.querySelector(".rk-ikon");
+    if (ikon) pilih.appendChild(ikon.cloneNode(true));
+    pilih.appendChild(document.createTextNode(namaKartu(a)));
+    pilih.addEventListener("click", function (e) {
+      if (!titipan.length || !window.Bersama || !window.Bersama.titipkan) return;
+      e.preventDefault();
+      var tujuan = pilih.href;
+      window.Bersama.titipkan(titipan).then(function () { location.href = tujuan; }, function () { location.href = tujuan; });
+    });
+    daftarPilih.appendChild(pilih);
+  });
+  function bukaPilihan(berkas) {
+    titipan = Array.prototype.filter.call(berkas, function (f) { return /pdf$/i.test(f.type) || /\.pdf$/i.test(f.name); });
+    if (!titipan.length) { alert("Berkas itu bukan PDF. Pilih berkas berakhiran .pdf."); return; }
+    document.getElementById("ketPilih").textContent = titipan.length === 1
+      ? titipan[0].name + " siap diproses. Pilih perkakasnya:"
+      : titipan.length + " berkas PDF siap diproses. Pilih perkakasnya:";
+    if (dialog.showModal) dialog.showModal(); else dialog.setAttribute("open", "");
+    var pertama = daftarPilih.querySelector("a");
+    if (pertama) pertama.focus();
+  }
+  document.getElementById("batalPilih").addEventListener("click", function () { titipan = []; dialog.close(); });
+  kotakUnggah.addEventListener("click", function () { pilihBerkas.click(); });
+  kotakUnggah.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pilihBerkas.click(); } });
+  pilihBerkas.addEventListener("change", function () { if (pilihBerkas.files.length) bukaPilihan(pilihBerkas.files); pilihBerkas.value = ""; });
+  // Berkas boleh dilepas di mana saja di halaman ini.
+  var seret = 0;
+  function adaBerkas(e) { return e.dataTransfer && Array.prototype.indexOf.call(e.dataTransfer.types || [], "Files") >= 0; }
+  document.addEventListener("dragenter", function (e) { if (!adaBerkas(e)) return; e.preventDefault(); seret++; document.body.classList.add("rk-seret"); });
+  document.addEventListener("dragover", function (e) { if (adaBerkas(e)) e.preventDefault(); });
+  document.addEventListener("dragleave", function () { if (--seret <= 0) { seret = 0; document.body.classList.remove("rk-seret"); } });
+  document.addEventListener("drop", function (e) {
+    if (!adaBerkas(e)) return;
+    e.preventDefault(); seret = 0; document.body.classList.remove("rk-seret");
+    bukaPilihan(e.dataTransfer.files);
+  });
+
+  // Terakhir dipakai (hanya tersimpan di peramban ini).
+  try {
+    var terakhir = JSON.parse(localStorage.getItem("olahpdf-terakhir") || "[]");
+    var wadahTerakhir = document.getElementById("terakhir");
+    terakhir.forEach(function (id) {
+      var kartu = baris.filter(function (a) { return a.getAttribute("href") === id; })[0];
+      if (!kartu) return;
+      var a = document.createElement("a");
+      a.href = id; a.textContent = namaKartu(kartu);
+      wadahTerakhir.appendChild(a);
+    });
+    wadahTerakhir.hidden = !wadahTerakhir.querySelector("a");
+  } catch (e) { /* abaikan */ }
 
   // Saklar tema
   var saklar = document.querySelector("[data-tombol-mode]");
