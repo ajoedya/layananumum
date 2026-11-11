@@ -23,6 +23,52 @@ body { margin: 0; }
 </style>
 <link rel="stylesheet" href="../dasar.css">
 <link rel="stylesheet" href="../gerak.css">
+<style>
+/* Perkakas tampil sebagai kartu: ikon besar di petak emas, nama, keterangan, dan ajakan "Buka".
+   Hanya untuk beranda Olah PDF (body.rk-beranda); .rk-baris di halaman lain tetap berupa daftar. */
+body.rk-beranda .rk-daftar {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(232px, 1fr)); gap: 14px;
+  background: none; border: 0; border-radius: 0; box-shadow: none; overflow: visible;
+}
+body.rk-beranda .rk-baris {
+  position: relative; display: grid; grid-template-columns: 52px minmax(0, 1fr); grid-template-rows: auto 1fr auto;
+  grid-template-areas: "ikon nomor" "uraian uraian" "buka buka"; gap: 14px 12px; align-items: start;
+  padding: 18px 18px 16px; border: 1px solid var(--garis); border-radius: 14px; background: var(--putih);
+  box-shadow: 0 1px 6px rgba(15,53,84,.05);
+  transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease, background-color .16s ease;
+}
+body.rk-beranda .rk-baris.pertama { border-top: 1px solid var(--garis); }
+body.rk-beranda .rk-baris:hover { background: var(--putih); border-color: var(--emas-tua); box-shadow: 0 8px 22px rgba(15,53,84,.12); transform: translateY(-2px); }
+body.rk-beranda .rk-baris:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: 3px; }
+body.rk-beranda .rk-ikon {
+  grid-area: ikon; display: block; width: 52px; height: 52px; padding: 11px; border-radius: 12px; box-sizing: border-box;
+  background: var(--emas-muda); color: var(--emas-tua); stroke-width: 1.9;
+}
+body.rk-beranda .rk-nomor { grid-area: nomor; justify-self: end; font-size: 13px; opacity: .85; }
+body.rk-beranda .rk-uraian { grid-area: uraian; gap: 4px; }
+body.rk-beranda .rk-uraian strong { font-size: 17px; }
+body.rk-beranda .rk-uraian span { font-size: 14px; }
+body.rk-beranda .rk-baris::after {
+  content: "Buka perkakas \2192"; grid-area: buka; color: var(--emas-teks); font-size: 13px; font-weight: 700; letter-spacing: .02em;
+}
+body.rk-beranda .rk-baris[hidden] { display: none; }
+/* Kelompok tanpa perkakas yang cocok disembunyikan saat mencari (display: flex di dasar.css mengalahkan [hidden]). */
+body.rk-beranda .rk-bagian[hidden] { display: none; }
+@media (max-width: 560px) {
+  /* Di ponsel kartu menyamping: ikon di kiri, teks di kanan, supaya keterangan tetap terbaca utuh. */
+  body.rk-beranda .rk-daftar { grid-template-columns: 1fr; gap: 10px; }
+  body.rk-beranda .rk-baris {
+    grid-template-columns: 46px minmax(0, 1fr) auto; grid-template-rows: auto auto;
+    grid-template-areas: "ikon uraian nomor" "ikon buka buka"; gap: 6px 14px; padding: 14px 14px 13px;
+  }
+  body.rk-beranda .rk-baris .rk-ikon { display: block; width: 46px; height: 46px; padding: 10px; }
+  body.rk-beranda .rk-nomor { align-self: start; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.rk-beranda .rk-baris { transition: none; }
+  body.rk-beranda .rk-baris:hover { transform: none; }
+}
+</style>
 <script src="../gerak.js"></script>
 </head>
 <body class="rk-beranda">
