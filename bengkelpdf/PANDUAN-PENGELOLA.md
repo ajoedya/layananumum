@@ -12,7 +12,7 @@ Semua berkas duduk sejajar pada lapisan paling atas *repository*. Tidak boleh ad
 |---|---|
 | `index.html` | Beranda: panel banner yang menempel di kiri berisi pencarian, kisi kartu perkakas ringkas di kanan |
 | `gabung-pecah.html` | Gabung/Pecah: gabung dan susun PDF (putar, buang, nomor halaman), ambil halaman tertentu, atau pecah satu berkas per halaman |
-| `koreksi.html` | Edit Teks: ketik langsung, sunting paragraf, huruf tertanam, teks di Form XObject, OCR, gambar asli dan sisipan, bentuk, serta anotasi stabilo, coretan, dan catatan |
+| `koreksi.html` | Edit Konten PDF: ketik langsung, sunting paragraf, huruf tertanam, teks di Form XObject, OCR, gambar asli dan sisipan, bentuk, serta anotasi stabilo, coretan, dan catatan |
 | `tanda-air.html` | Pembubuh tanda air (*watermark*), pratinjau di kiri dan panel pengaturan di kanan |
 | `gambar.html` | PDF ke gambar dan gambar ke PDF |
 | `word.html` | PDF ke Word, termasuk OCR untuk hasil pindaian |

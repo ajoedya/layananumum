@@ -7,7 +7,7 @@
   const HALAMAN = [
     { berkas: "index",       nama: "Beranda" },
     { berkas: "gabung-pecah", nama: "Gabung/Pecah" },
-    { berkas: "koreksi",     nama: "Edit Teks" },
+    { berkas: "koreksi",     nama: "Edit Konten PDF" },
     { berkas: "tanda-air",   nama: "Watermark" },
     { berkas: "gambar",      nama: "PDF dan Gambar" },
     { berkas: "word",        nama: "PDF ke Word" },

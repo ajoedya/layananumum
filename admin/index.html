@@ -1199,7 +1199,7 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
 
     // Olah PDF: berapa kali tiap perkakas dibuka dan dipakai (berkas dimasukkan). Isi berkas tidak pernah dicatat.
     var NAMA_PDF = { beranda: "Beranda Olah PDF", "gabung-pecah": "Gabung/Pecah", "pengubah-uk": "Ubah Ukuran Kertas", gambar: "PDF & Gambar",
-      word: "PDF ke Word", "pdf-excel": "PDF ke Excel", koreksi: "Edit Teks", "tanda-air": "Watermark", penanda: "Penanda TTE",
+      word: "PDF ke Word", "pdf-excel": "PDF ke Excel", koreksi: "Edit Konten PDF", "tanda-air": "Watermark", penanda: "Penanda TTE",
       kompres: "Kompres PDF", "rapikan-ocr": "Rapikan & OCR PDF", kunci: "Kunci PDF", metadata: "Pembersih Metadata" };
     var alatPdf = Object.keys(NAMA_PDF).filter(function (k) { return pdfBuka[k] || pdfPakai[k]; })
       .sort(function (a, b) { return (pdfPakai[b] || 0) - (pdfPakai[a] || 0) || (pdfBuka[b] || 0) - (pdfBuka[a] || 0); });

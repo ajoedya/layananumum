@@ -1,8 +1,10 @@
-/* Kode halaman Edit Teks (koreksi.html), dipisah dari HTML supaya bisa disimpan peramban dan service worker. */
+/* Kode halaman Edit Konten PDF (koreksi.html), dipisah dari HTML supaya bisa disimpan peramban dan service worker. */
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   "pustaka/pdfjs/pdf.worker.min.js";
 
 const el = (id) => document.getElementById(id);
+// Tingkat perbesaran halaman relatif terhadap pas lebar (lihat bagian Perbesaran halaman).
+let perbesar = 1;
 const P = PDFLib;
 const panggung = el("panggung");
 
@@ -1510,10 +1512,13 @@ async function gambarPratinjau() {
   if (data) { js = await pdfjsLib.getDocument({ data, isEvalSupported: false }).promise; hal = await js.getPage(1); }
   else hal = await dokJs.getPage(halKini);
   if (t !== tiketPratinjau) { if (js) js.destroy(); return; }
-  const lebarWadah = Math.min(panggung.parentElement.clientWidth, 900);
+  // Pas lebar: halaman selebar wadahnya (dikurangi sela tepi), lalu dikali tingkat perbesaran pilihan pengguna.
+  const lebarPas = Math.max(240, panggung.parentElement.clientWidth - 6);
+  const lebarWadah = Math.round(lebarPas * perbesar);
   const vp1 = hal.getViewport({ scale: 1 });
   const skala = lebarWadah / vp1.width;
-  const rapat = Math.min(window.devicePixelRatio || 1, 2);
+  // Ketajaman mengikuti layar, tetapi kanvas dibatasi sekitar 6000 piksel lebarnya supaya tidak kehabisan memori.
+  const rapat = Math.max(1, Math.min(window.devicePixelRatio || 1, 2, 6000 / lebarWadah));
   const vp = hal.getViewport({ scale: skala * rapat });
   const kanvas = document.createElement("canvas");
   kanvas.width = Math.ceil(vp.width); kanvas.height = Math.ceil(vp.height);
@@ -2229,10 +2234,11 @@ function letakkanPenyunting() {
   const panel = adalahObjek(s) ? panelObjek : penyunting;
   const k = kotakLayar(sudutSuntingan(s));
   const tinggiP = panel.offsetHeight || 220;
-  const wadahW = panggung.parentElement.clientWidth;
+  // Saat diperbesar, wadah bisa digeser ke samping. Panel dijaga tetap di bagian wadah yang sedang terlihat.
+  const wadah = panggung.parentElement;
   const kiriPanggung = panggung.offsetLeft;
   let left = kiriPanggung + Math.max(0, Math.min(k.x, tampil.lebar - panel.offsetWidth));
-  left = Math.max(0, Math.min(left, wadahW - panel.offsetWidth));
+  left = Math.max(wadah.scrollLeft, Math.min(left, wadah.scrollLeft + wadah.clientWidth - panel.offsetWidth));
   let top = k.y + k.h + 12;
   if (top + tinggiP > panggung.offsetHeight && k.y - tinggiP - 12 > 0) top = k.y - tinggiP - 12;
   panel.style.left = left + "px";
@@ -2635,6 +2641,23 @@ function gambarDaftar() {
 }
 
 window.addEventListener("resize", () => { if (tampil) jadwalkanPratinjau(); });
+
+/* ---------- Perbesaran halaman ----------
+   Dihitung relatif terhadap "pas lebar" (halaman selebar kolom isi). Berlaku untuk semua halaman sampai diubah lagi. */
+const TINGKAT_PERBESAR = [0.5, 0.75, 1, 1.25, 1.5, 2, 2.5, 3];
+function aturPerbesar(nilai) {
+  perbesar = nilai;
+  const i = TINGKAT_PERBESAR.indexOf(perbesar);
+  el("zoomKecil").disabled = i <= 0;
+  el("zoomBesar").disabled = i >= TINGKAT_PERBESAR.length - 1;
+  el("zoomUkur").textContent = perbesar === 1 ? "Pas lebar" : Math.round(perbesar * 100) + "%";
+  if (tampil) jadwalkanPratinjau();
+}
+el("zoomKecil").addEventListener("click", () => { const i = TINGKAT_PERBESAR.indexOf(perbesar); if (i > 0) aturPerbesar(TINGKAT_PERBESAR[i - 1]); });
+el("zoomBesar").addEventListener("click", () => { const i = TINGKAT_PERBESAR.indexOf(perbesar); if (i < TINGKAT_PERBESAR.length - 1) aturPerbesar(TINGKAT_PERBESAR[i + 1]); });
+el("zoomUkur").addEventListener("click", () => aturPerbesar(1));
+// Panel penyunting ikut berpindah saat halaman yang diperbesar digeser ke samping.
+panggung.parentElement.addEventListener("scroll", () => { if (terpilih) letakkanPenyunting(); }, { passive: true });
 
 /* ================================================================
    12. Menyimpan

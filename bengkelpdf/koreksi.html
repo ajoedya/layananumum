@@ -5,7 +5,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob:; worker-src 'self' blob:; connect-src 'self' blob: data: https://script.google.com https://script.googleusercontent.com; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Edit Teks · Olah PDF</title>
+<title>Edit Konten PDF · Olah PDF</title>
 <script src="tema.js"></script>
 <script src="../konten.js"></script>
 <script src="../banner.js"></script>
@@ -33,7 +33,16 @@
   #kabarCari{margin:0 14px 12px;}
 
   /* ---------- Panggung: pratinjau hasil + penanda ---------- */
-  .panggung-wadah{position:relative;display:block;width:100%;}
+  /* Halaman dibuat selebar kolom isi (pas lebar). Saat diperbesar, halaman bisa digeser ke samping di dalam wadahnya. */
+  .panggung-wadah{position:relative;display:block;width:100%;overflow-x:auto;padding:2px 2px 6px;box-sizing:border-box;}
+  .grup-zoom{display:inline-flex;align-items:center;gap:0;border:1px solid var(--garis);border-radius:var(--radius-sm);overflow:hidden;background:var(--putih);}
+  .grup-zoom button{min-width:40px;min-height:40px;padding:4px 10px;border:0;background:transparent;color:var(--biru-tua);
+    font:700 16px var(--huruf-isi, inherit);cursor:pointer;}
+  .grup-zoom button + button{border-left:1px solid var(--garis);}
+  .grup-zoom #zoomUkur{min-width:86px;font-size:14px;}
+  .grup-zoom button:hover:not(:disabled){background:var(--emas-muda);}
+  .grup-zoom button:disabled{opacity:.4;cursor:default;}
+  .grup-zoom button:focus-visible{outline:3px solid var(--emas-tua);outline-offset:-3px;}
   #panggung{position:relative;margin:0 auto;background:var(--kertas);border:1px solid var(--garis);
     box-shadow:var(--bayangan-md);cursor:text;user-select:none;touch-action:pan-y;}
   #panggung.mode-tambah{cursor:copy;}
@@ -129,18 +138,15 @@
   #nilaiPutar{min-width:3em;}
   .catatan-objek{margin:8px 0 0;font-size:13.5px;line-height:1.45;color:var(--tinta-lembut);}
 
-  /* ---------- Ruang kerja: daftar di kiri, pratinjau di kanan ---------- */
+  /* ---------- Ruang kerja: halaman selebar kolom, daftar suntingan di bawahnya ----------
+     Halaman mendapat seluruh lebar supaya tulisannya terbaca, terutama halaman landskap dan tabel rapat. */
   .ruang-kerja{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;align-items:start;}
   .ruang-kerja .samping{order:2;}
   .samping h3{margin:0 0 8px;font-size:16px;color:var(--biru-tua);}
   #jumlahSuntingan{font-weight:600;color:var(--emas-teks);}
   .kecil-lembut{font-size:14px;line-height:1.5;color:var(--tinta-lembut);margin:0;}
   @media (min-width:900px){
-    .ruang-kerja{grid-template-columns:300px minmax(0,1fr);}
-    .ruang-kerja .samping{order:0;position:sticky;top:90px;max-height:calc(100vh - 110px);overflow:auto;padding-right:4px;}
-    .samping #daftarSuntingan{margin-top:0;}
-    .samping #daftarSuntingan li{grid-template-columns:auto 1fr;}
-    .samping #daftarSuntingan .tombolan{grid-column:1 / -1;}
+    .samping #daftarSuntingan{margin-top:0;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));}
   }
 
   /* ---------- Daftar suntingan ---------- */
@@ -171,7 +177,7 @@
 <header class="kop">
   <div class="kop-isi">
     <p class="kop-label"><a href="./">Olah PDF</a> / 06</p>
-    <h1>Edit Teks</h1>
+    <h1>Edit Konten PDF</h1>
     <p>Klik tulisan pada halaman lalu ketik penggantinya langsung di tempat, atau sisipkan teks, gambar, dan bentuk baru. Hanya bagian yang berubah yang ditulis ulang, dengan <em>jenis, tebal, miring, ukuran, dan warna huruf aslinya</em>, sedangkan teks lama dibuang dari isi berkas.</p>
   </div>
 </header>
@@ -192,12 +198,17 @@
 
   <section id="bagianKerja" class="sembunyi">
     <p class="nomor">Langkah 2</p>
-    <h2>Sunting teksnya</h2>
+    <h2>Sunting isinya</h2>
 
     <div class="bilah">
       <button type="button" class="tombol sekunder kecil" id="halSebelum">Sebelumnya</button>
       <span id="labelHalaman" aria-live="polite"></span>
       <button type="button" class="tombol sekunder kecil" id="halSesudah">Berikutnya</button>
+      <span class="grup-zoom" role="group" aria-label="Perbesaran halaman">
+        <button type="button" id="zoomKecil" aria-label="Perkecil" title="Perkecil">−</button>
+        <button type="button" id="zoomUkur" title="Kembalikan ke pas lebar">Pas lebar</button>
+        <button type="button" id="zoomBesar" aria-label="Perbesar" title="Perbesar">+</button>
+      </span>
       <div class="isi-kanan">
         <button type="button" class="tombol sekunder kecil sembunyi" id="tombolOcr" title="Untuk halaman hasil pindaian">Kenali teks (OCR)</button>
         <button type="button" class="tombol sekunder kecil" id="urungkan" title="Ctrl+Z">Urungkan</button>

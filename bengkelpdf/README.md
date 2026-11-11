@@ -11,7 +11,7 @@ Kumpulan perkakas PDF untuk pekerjaan sehari-hari di kantor, buatan KPKNL Balikp
 | No | Perkakas | Kegunaan |
 |---|---|---|
 | 01 | [Gabung/Pecah](https://ajoedya.github.io/layananumum/bengkelpdf/gabung-pecah) | Menggabungkan beberapa PDF, mengurutkan, memutar, dan memberi nomor halaman, lalu menyimpannya sebagai satu berkas, mengambil halaman tertentu, atau memecahnya satu berkas per halaman |
-| 02 | [Edit Teks](https://ajoedya.github.io/layananumum/bengkelpdf/koreksi) | Mengetik langsung di halaman dengan gaya huruf aslinya, menyunting satu paragraf dengan alir ulang dan perataan, mengganti, memutar, atau memotong gambar, menandai dengan stabilo, coretan, dan catatan, mengenali teks pindaian lewat OCR, serta menyisipkan teks, gambar, dan bentuk |
+| 02 | [Edit Konten PDF](https://ajoedya.github.io/layananumum/bengkelpdf/koreksi) | Mengetik langsung di halaman dengan gaya huruf aslinya, menyunting satu paragraf dengan alir ulang dan perataan, mengganti, memutar, atau memotong gambar, menandai dengan stabilo, coretan, dan catatan, mengenali teks pindaian lewat OCR, serta menyisipkan teks, gambar, dan bentuk |
 | 03 | [Watermark](https://ajoedya.github.io/layananumum/bengkelpdf/tanda-air) | Membubuhkan tulisan seperti SALINAN atau KONSEP |
 | 04 | [PDF dan Gambar](https://ajoedya.github.io/layananumum/bengkelpdf/gambar) | Mengubah halaman PDF menjadi JPG, atau menyusun gambar menjadi PDF |
 | 05 | [PDF ke Word](https://ajoedya.github.io/layananumum/bengkelpdf/word) | Mengubah PDF menjadi dokumen Word yang bisa disunting, termasuk hasil pindaian lewat OCR |
@@ -20,7 +20,7 @@ Kumpulan perkakas PDF untuk pekerjaan sehari-hari di kantor, buatan KPKNL Balikp
 | 08 | [Kompres PDF](https://ajoedya.github.io/layananumum/bengkelpdf/kompres) | Memperkecil ukuran berkas dengan teks tetap utuh dan bisa dicari |
 | 09 | [Kunci PDF](https://ajoedya.github.io/layananumum/bengkelpdf/kunci) | Memberi kata sandi (AES-256) dan membatasi izin cetak, salin, atau ubah, atau membuka kunci berkas yang kata sandinya diketahui |
 
-![Edit Teks](dokumentasi/edit-teks.jpg)
+![Edit Konten PDF](dokumentasi/edit-teks.jpg)
 
 ## Privasi
 
