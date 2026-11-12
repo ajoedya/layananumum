@@ -54,7 +54,7 @@ var ZONA_WAKTU = "Asia/Makassar";  // tanggal statistik dan log mengikuti WITA
 var POTONG = 45000;             // panjang teks per sel (batas sel Google Sheets 50.000 karakter)
 // Versi kode dan fitur yang dikenali. Dasbor admin membacanya lewat doGet (aksi=versi) untuk memastikan
 // deployment yang tayang sudah memakai kode ini. Naikkan tanggalnya setiap kali kode diubah.
-var VERSI_SKRIP = "2026-11-12";
+var VERSI_SKRIP = "2026-11-12b";
 var FITUR_SKRIP = ["pemberitahuan", "pengumuman-jendela", "pengumuman-klik", "prognosa", "prognosa-kesesuaian"];
 // Prognosa kegiatan dan pengajuan TUP (prognosa/). Isian per unit di tab Prognosa; aturan dan kunci bersama seksi di Properti Skrip.
 var TAB_PROGNOSA = "Prognosa";
@@ -494,6 +494,8 @@ function periksa_(k) {
     pemberitahuan: pemberitahuan_(k.pemberitahuan),
     gaya: gaya_(k.gaya),
     banner: {
+      // koleksi ikut disimpan; tanpa itu konten.js menganggap daftar ini milik koleksi lama dan memakai daftar bawaan.
+      koleksi: teks_(b.koleksi, 40),
       menit: Math.min(240, Math.max(1, Number(b.menit) || 10)),
       siang: daftar_(b.siang, 30).map(banner_),
       malam: daftar_(b.malam, 30).map(banner_)

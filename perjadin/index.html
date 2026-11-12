@@ -522,15 +522,22 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
   var MENIT_PER_BANNER = 360; // 6 jam
   var DAFTAR_BANNER = [
     { berkas: "banner-teluk-senja.jpg", posisi: "48% center", uraian: "Teluk Balikpapan saat senja dengan hutan hujan di kiri, gedung kota di tengah, kapal tanker di laut, dan burung enggang terbang" },
+    { berkas: "banner-pelabuhan-pagi.jpg", posisi: "50% center", uraian: "Kapal penumpang putih bersandar di pelabuhan Balikpapan pada pagi hari, dengan derek dan perbukitan kota di belakang" },
     { berkas: "banner-jembatan-pagi.jpg", posisi: "50% center", uraian: "Jembatan Pulau Balang pada pagi hari membentang di atas teluk, dikelilingi hutan bakau dan perbukitan berkabut" },
-    { berkas: "banner-speedboat-pagi.jpg", posisi: "60% center", uraian: "Speedboat penyeberangan Balikpapan ke Penajam melaju di teluk pada pagi hari, dengan dermaga kayu di kiri" }
+    { berkas: "banner-kilang-sore.jpg", posisi: "50% center", uraian: "Kilang minyak di seberang Teluk Balikpapan saat matahari terbenam, dengan perahu nelayan di laut yang tenang" },
+    { berkas: "banner-speedboat-pagi.jpg", posisi: "60% center", uraian: "Speedboat penyeberangan Balikpapan ke Penajam melaju di teluk pada pagi hari, dengan dermaga kayu di kiri" },
+    { berkas: "banner-mangrove-pagi.jpg", posisi: "55% center", uraian: "Jembatan kayu berkelok di tengah hutan bakau Balikpapan pada pagi hari yang berkabut" },
+    { berkas: "banner-kota-senja.jpg", posisi: "40% center", uraian: "Kota Balikpapan di tepi teluk saat senja, dengan gedung, dermaga kecil, dan perahu nelayan" }
   ];
-  /* Banner mode gelap: versi malam dari tiga pemandangan siang, berganti dengan jadwal yang sama.
+  /* Banner mode gelap: foto malam, berganti dengan jadwal yang sama.
      Saat mode berganti lewat saklar tema, banner langsung ikut berganti. */
   var DAFTAR_MALAM = [
     { berkas: "banner-teluk-malam.jpg", posisi: "45% center", uraian: "Teluk Balikpapan pada malam hari dengan lampu kota dan kilang yang terpantul di air, berlatar bulan sabit" },
+    { berkas: "banner-pelabuhan-malam.jpg", posisi: "50% center", uraian: "Kapal penumpang berlampu bersandar di pelabuhan Balikpapan pada malam hari, dengan lampu kota di perbukitan" },
     { berkas: "banner-jembatan-malam.jpg", posisi: "50% center", uraian: "Jembatan Pulau Balang pada malam hari dengan menara dan lampu jalan berwarna keemasan terpantul di teluk" },
-    { berkas: "banner-speedboat-malam.jpg", posisi: "60% center", uraian: "Speedboat penyeberangan Balikpapan ke Penajam melaju di teluk pada malam hari, dengan dermaga berlampu di kiri" }
+    { berkas: "banner-mangrove-malam.jpg", posisi: "50% center", uraian: "Jembatan kayu berlampu di tengah hutan bakau Balikpapan pada malam hari, diterangi cahaya bulan" },
+    { berkas: "banner-speedboat-malam.jpg", posisi: "60% center", uraian: "Speedboat penyeberangan Balikpapan ke Penajam melaju di teluk pada malam hari, dengan dermaga berlampu di kiri" },
+    { berkas: "banner-kilang-malam.jpg", posisi: "45% center", uraian: "Kilang minyak di seberang Teluk Balikpapan pada malam hari, lampunya terpantul di air, dengan kapal-kapal berlabuh di depan" }
   ];
   function daftarAktif() { return document.documentElement.getAttribute("data-mode") === "gelap" ? DAFTAR_MALAM : DAFTAR_BANNER; }
 

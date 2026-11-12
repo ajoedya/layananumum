@@ -81,17 +81,24 @@ window.KONTEN_BAWAAN = {
       "alamat": "https://forms.gle/MLRRTcoCkZ9Mc31AA", "kunci": "arsip perjadin perjalanan dinas formulir form lama versi 1" }
   ],
   "banner": {
-    "koleksi": "2026-10-kaltim",
+    "koleksi": "2026-11-kaltim",
     "menit": 360,
     "siang": [
       {"tampil": true, "berkas": "banner-teluk-senja.jpg", "posisi": 48, "uraian": "Teluk Balikpapan saat senja dengan hutan hujan di kiri, gedung kota di tengah, kapal tanker di laut, dan burung enggang terbang"},
+      {"tampil": true, "berkas": "banner-pelabuhan-pagi.jpg", "posisi": 50, "uraian": "Kapal penumpang putih bersandar di pelabuhan Balikpapan pada pagi hari, dengan derek dan perbukitan kota di belakang"},
       {"tampil": true, "berkas": "banner-jembatan-pagi.jpg", "posisi": 50, "uraian": "Jembatan Pulau Balang pada pagi hari membentang di atas teluk, dikelilingi hutan bakau dan perbukitan berkabut"},
-      {"tampil": true, "berkas": "banner-speedboat-pagi.jpg", "posisi": 60, "uraian": "Speedboat penyeberangan Balikpapan ke Penajam melaju di teluk pada pagi hari, dengan dermaga kayu di kiri"}
+      {"tampil": true, "berkas": "banner-kilang-sore.jpg", "posisi": 50, "uraian": "Kilang minyak di seberang Teluk Balikpapan saat matahari terbenam, dengan perahu nelayan di laut yang tenang"},
+      {"tampil": true, "berkas": "banner-speedboat-pagi.jpg", "posisi": 60, "uraian": "Speedboat penyeberangan Balikpapan ke Penajam melaju di teluk pada pagi hari, dengan dermaga kayu di kiri"},
+      {"tampil": true, "berkas": "banner-mangrove-pagi.jpg", "posisi": 55, "uraian": "Jembatan kayu berkelok di tengah hutan bakau Balikpapan pada pagi hari yang berkabut"},
+      {"tampil": true, "berkas": "banner-kota-senja.jpg", "posisi": 40, "uraian": "Kota Balikpapan di tepi teluk saat senja, dengan gedung, dermaga kecil, dan perahu nelayan"}
     ],
     "malam": [
       {"tampil": true, "berkas": "banner-teluk-malam.jpg", "posisi": 45, "uraian": "Teluk Balikpapan pada malam hari dengan lampu kota dan kilang yang terpantul di air, berlatar bulan sabit"},
+      {"tampil": true, "berkas": "banner-pelabuhan-malam.jpg", "posisi": 50, "uraian": "Kapal penumpang berlampu bersandar di pelabuhan Balikpapan pada malam hari, dengan lampu kota di perbukitan"},
       {"tampil": true, "berkas": "banner-jembatan-malam.jpg", "posisi": 50, "uraian": "Jembatan Pulau Balang pada malam hari dengan menara dan lampu jalan berwarna keemasan terpantul di teluk"},
-      {"tampil": true, "berkas": "banner-speedboat-malam.jpg", "posisi": 60, "uraian": "Speedboat penyeberangan Balikpapan ke Penajam melaju di teluk pada malam hari, dengan dermaga berlampu di kiri"}
+      {"tampil": true, "berkas": "banner-mangrove-malam.jpg", "posisi": 50, "uraian": "Jembatan kayu berlampu di tengah hutan bakau Balikpapan pada malam hari, diterangi cahaya bulan"},
+      {"tampil": true, "berkas": "banner-speedboat-malam.jpg", "posisi": 60, "uraian": "Speedboat penyeberangan Balikpapan ke Penajam melaju di teluk pada malam hari, dengan dermaga berlampu di kiri"},
+      {"tampil": true, "berkas": "banner-kilang-malam.jpg", "posisi": 45, "uraian": "Kilang minyak di seberang Teluk Balikpapan pada malam hari, lampunya terpantul di air, dengan kapal-kapal berlabuh di depan"}
     ]
   }
 };
@@ -129,9 +136,9 @@ window.Konten = (function () {
 
   /* Foto banner bawaan repo punya salinan WebP yang jauh lebih ringan: berkas.webp untuk layar lebar (ukuran asli)
      dan berkas-hp.webp (lebar 1200 piksel) untuk layar sempit, karena di sana foto hanya setinggi sekitar 120 piksel.
-     Hanya enam foto bawaan yang diganti; banner lain dari dasbor admin dipakai apa adanya. Berkas JPG tetap disimpan
+     Hanya foto bawaan di pola ini yang diganti; banner lain dari dasbor admin dipakai apa adanya. Berkas JPG tetap disimpan
      untuk pratinjau tautan (og:image) dan peramban lama. */
-  var BANNER_RINGAN = /(^|\/)(banner-(?:teluk-senja|teluk-malam|jembatan-pagi|jembatan-malam|speedboat-pagi|speedboat-malam))\.jpg$/;
+  var BANNER_RINGAN = /(^|\/)(banner-(?:teluk-senja|teluk-malam|jembatan-pagi|jembatan-malam|speedboat-pagi|speedboat-malam|pelabuhan-pagi|pelabuhan-malam|kilang-sore|mangrove-pagi|mangrove-malam|kota-senja|kilang-malam))\.jpg$/;
   function bannerRingan(a) {
     a = String(a || "");
     if (/^https?:/i.test(a)) { try { if (new URL(a).origin !== location.origin) return a; } catch (e) { return a; } }
