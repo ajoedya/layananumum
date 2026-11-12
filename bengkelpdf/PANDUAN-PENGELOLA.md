@@ -76,6 +76,10 @@ Menu atas ditulis sekali saja di dalam `bersama.js`, pada senarai `HALAMAN` di b
 
 Halaman baru cukup memuat `tema.js` dan `gaya.css` pada bagian kepala (dengan urutan itu) serta `bersama.js` pada bagian bawah, lalu seluruh warna, tema, dan menunya mengikuti sendiri.
 
+Rangka kop (tautan kembali `.rk-kembali`, label "Perkakas NN", daftar langkah `.rk-langkah`) dan kotak keterangan `.rk-keterangan` di awal `.bungkus` ditulis langsung di HTML, supaya tampilan tidak bergeser di HP saat halaman dibuka. Salin bentuknya dari `kompres.html`. `bersama.js` hanya menghidupkan tombol langkah; bila rangka itu tidak ada di HTML, `bersama.js` masih membuatnya sendiri, tetapi tampilannya akan bergeser sesaat.
+
+Tiap halaman juga memuat meta pratinjau tautan (`og:title`, `og:description`, `og:image` ke `../og-para.jpg`). Salin blok itu dari halaman lain dan sesuaikan judul, keterangan, dan alamatnya.
+
 ### Alamat pendek
 
 Tautan antarhalaman ditulis tanpa akhiran `.html`, misalnya `pecah` alih-alih `pecah.html`. GitHub Pages melayani keduanya, dan `bersama.js` merapikan alamat di bilah peramban bila pengguna membuka versi berakhiran `.html`. Pertahankan cara ini saat menambah tautan baru.

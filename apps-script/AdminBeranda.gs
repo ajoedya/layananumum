@@ -36,7 +36,10 @@ var PROPERTI_KUNCI = "SIDIK_KUNCI_ADMIN";
 var BATAS_GAGAL = 10;           // jumlah kunci salah sebelum penyimpanan dikunci sementara
 var MENIT_KUNCI = 15;           // lama penguncian setelah terlalu banyak kunci salah
 var BATAS_RIWAYAT = 200;        // baris riwayat terlama dihapus bila melewati jumlah ini
-var DETIK_CACHE = 60;           // isi beranda disimpan sementara supaya beranda cepat termuat
+// Isi beranda, data realisasi, dan ringkasan prognosa publik disimpan sementara supaya halaman cepat termuat.
+// Setiap penyimpanan lewat dasbor admin langsung menghapus simpanan ini, jadi masa simpan boleh panjang. Bila spreadsheet
+// disunting langsung, pakai menu Dasbor Beranda > Segarkan situs supaya perubahannya langsung tampil.
+var DETIK_CACHE = 3600;
 var TAB_REALISASI = "Realisasi";
 var TAB_RIWAYAT_REALISASI = "RiwayatRealisasi";
 var BATAS_RIWAYAT_REALISASI = 60;   // riwayat data realisasi terlama dihapus bila melewati jumlah ini
@@ -46,11 +49,12 @@ var TAB_PENYUNTING = "Penyunting";
 var TAB_LOG = "Log";
 var BATAS_LOG = 500;            // baris log terlama dihapus bila melewati jumlah ini
 var BATAS_BARIS_STATISTIK = 20000; // batas pengaman supaya tab Statistik tidak membengkak
+var HARI_SIMPAN_STATISTIK = 400;   // bila batas tercapai, baris yang lebih tua dari ini dihapus supaya pencatatan tidak berhenti
 var ZONA_WAKTU = "Asia/Makassar";  // tanggal statistik dan log mengikuti WITA
 var POTONG = 45000;             // panjang teks per sel (batas sel Google Sheets 50.000 karakter)
 // Versi kode dan fitur yang dikenali. Dasbor admin membacanya lewat doGet (aksi=versi) untuk memastikan
 // deployment yang tayang sudah memakai kode ini. Naikkan tanggalnya setiap kali kode diubah.
-var VERSI_SKRIP = "2026-10-31.1";
+var VERSI_SKRIP = "2026-11-12";
 var FITUR_SKRIP = ["pemberitahuan", "pengumuman-jendela", "pengumuman-klik", "prognosa", "prognosa-kesesuaian"];
 // Prognosa kegiatan dan pengajuan TUP (prognosa/). Isian per unit di tab Prognosa; aturan dan kunci bersama seksi di Properti Skrip.
 var TAB_PROGNOSA = "Prognosa";
@@ -64,6 +68,7 @@ function onOpen() {
   SpreadsheetApp.getUi().createMenu("Dasbor Beranda")
     .addItem("Setel kunci admin", "setelKunciAdmin")
     .addItem("Buka kunci penyimpanan (bila terkunci)", "bukaKunciPenyimpanan")
+    .addItem("Segarkan situs (setelah menyunting spreadsheet langsung)", "segarkanSitus")
     .addSeparator()
     .addItem("Pasang pengingat impor bulanan (surel)", "pasangPengingatImpor")
     .addItem("Hapus pengingat impor bulanan", "hapusPengingatImpor")
@@ -78,6 +83,11 @@ function setelKunciAdmin() {
   if (kunci.length < 10) { ui.alert("Kunci terlalu pendek. Gunakan minimal 10 karakter."); return; }
   PropertiesService.getScriptProperties().setProperty(PROPERTI_KUNCI, sidik_(kunci));
   ui.alert("Kunci admin tersimpan.");
+}
+
+function segarkanSitus() {
+  CacheService.getScriptCache().removeAll(["konten", "realisasi", "prognosaPublik"]);
+  SpreadsheetApp.getUi().alert("Simpanan sementara dikosongkan. Situs memakai isi spreadsheet terbaru mulai sekarang.");
 }
 
 function bukaKunciPenyimpanan() {
@@ -357,12 +367,32 @@ function catat_(minta) {
       var t = tab_(TAB_STATISTIK, ["Kunci", "Tanggal", "Jenis", "Penanda", "Jumlah"]);
       var tgl = Utilities.formatDate(new Date(), ZONA_WAKTU, "yyyy-MM-dd");
       var kunci = tgl + "|" + jenis + "|" + id;
-      var temu = t.createTextFinder(kunci).matchEntireCell(true).findNext();
+      // Pencarian hanya di kolom Kunci, supaya tetap cepat saat tabnya sudah panjang.
+      var temu = t.getRange(1, 1, Math.max(1, t.getLastRow()), 1).createTextFinder(kunci).matchEntireCell(true).findNext();
       if (temu) { var sel = t.getRange(temu.getRow(), 5); sel.setValue(Number(sel.getValue() || 0) + 1); }
-      else if (t.getLastRow() - 1 < BATAS_BARIS_STATISTIK) t.appendRow([kunci, tgl, jenis, id, 1]);
+      else {
+        if (t.getLastRow() - 1 >= BATAS_BARIS_STATISTIK) pangkasStatistik_(t);
+        if (t.getLastRow() - 1 < BATAS_BARIS_STATISTIK) t.appendRow([kunci, tgl, jenis, id, 1]);
+      }
     } finally { kunciTulis.releaseLock(); }
     return balas_({ ok: true });
   } catch (galat) { return balas_({ ok: false }); }
+}
+// Baris statistik ditambahkan berurutan menurut tanggal, jadi baris tertua ada di atas. Yang dihapus hanya baris yang lebih tua
+// dari HARI_SIMPAN_STATISTIK; bila itu belum cukup, baris yang lebih tua dari jangkauan tab Statistik di dasbor (120 hari).
+function pangkasStatistik_(t) {
+  var n = t.getLastRow() - 1;
+  if (n < 1) return;
+  var tanggal = t.getRange(2, 2, n, 1).getValues().map(function (r) {
+    return r[0] instanceof Date ? Utilities.formatDate(r[0], ZONA_WAKTU, "yyyy-MM-dd") : String(r[0]);
+  });
+  [HARI_SIMPAN_STATISTIK, 130].some(function (hari) {
+    var batas = Utilities.formatDate(new Date(Date.now() - hari * 86400000), ZONA_WAKTU, "yyyy-MM-dd");
+    var tua = 0;
+    while (tua < tanggal.length && tanggal[tua] < batas) tua++;
+    if (tua) { t.deleteRows(2, tua); tanggal = tanggal.slice(tua); }
+    return tanggal.length < BATAS_BARIS_STATISTIK;
+  });
 }
 function bacaStatistik_(hari) {
   var t = SpreadsheetApp.getActive().getSheetByName(TAB_STATISTIK);

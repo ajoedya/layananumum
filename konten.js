@@ -127,6 +127,18 @@ window.Konten = (function () {
   }
   function luar(a) { return /^https:\/\//i.test(a); }
 
+  /* Foto banner bawaan repo punya salinan WebP yang jauh lebih ringan: berkas.webp untuk layar lebar (ukuran asli)
+     dan berkas-hp.webp (lebar 1200 piksel) untuk layar sempit, karena di sana foto hanya setinggi sekitar 120 piksel.
+     Hanya enam foto bawaan yang diganti; banner lain dari dasbor admin dipakai apa adanya. Berkas JPG tetap disimpan
+     untuk pratinjau tautan (og:image) dan peramban lama. */
+  var BANNER_RINGAN = /(^|\/)(banner-(?:teluk-senja|teluk-malam|jembatan-pagi|jembatan-malam|speedboat-pagi|speedboat-malam))\.jpg$/;
+  function bannerRingan(a) {
+    a = String(a || "");
+    if (/^https?:/i.test(a)) { try { if (new URL(a).origin !== location.origin) return a; } catch (e) { return a; } }
+    var sempit = (window.innerWidth || 1024) <= 700;
+    return a.replace(BANNER_RINGAN, function (m, awal, nama) { return awal + nama + (sempit ? "-hp" : "") + ".webp"; });
+  }
+
   function salin(o) { return JSON.parse(JSON.stringify(o)); }
 
   /* ---------- Pop up pemberitahuan ----------
@@ -389,6 +401,6 @@ window.Konten = (function () {
 
   return { ELEMEN: ELEMEN, HURUF: HURUF, PRESET_TEMA: PRESET_TEMA, TEBAL: TEBAL, UTAMA_BAWAAN: UTAMA_BAWAAN, AKSEN_BAWAAN: AKSEN_BAWAAN,
     rapikanGaya: rapikanGaya, rapikanButir: rapikanButir, punyaGaya: punyaGaya, periksaGaya: periksaGaya, cssGaya: cssGaya, alamatHuruf: alamatHuruf, kontras: kontras,
-    isiTeks: isiTeks, polos: polos, alamatAman: alamatAman, luar: luar, salin: salin, rapikan: rapikan, slug: slug, statusJadwal: statusJadwal, dalamJadwal: dalamJadwal, hariIni: hariIni,
+    isiTeks: isiTeks, polos: polos, alamatAman: alamatAman, bannerRingan: bannerRingan, luar: luar, salin: salin, rapikan: rapikan, slug: slug, statusJadwal: statusJadwal, dalamJadwal: dalamJadwal, hariIni: hariIni,
     PEMBERITAHUAN: PEMBERITAHUAN, rapikanButirPemberitahuan: rapikanButirPemberitahuan };
 })();

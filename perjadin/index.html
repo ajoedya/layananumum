@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://docs.google.com https://script.google.com https://*.googleusercontent.com; frame-src https://drive.google.com; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self' https://docs.google.com https://script.google.com https://*.googleusercontent.com; frame-src https://drive.google.com; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="Monitoring E-Perjadin KPKNL Balikpapan: status pembayaran surat tugas perjalanan dinas yang diperbarui langsung dari Google Sheets.">
 <link rel="icon" type="image/x-icon" href="../favicon.ico">
@@ -16,7 +16,18 @@
 <script src="../popup.js"></script>
 <style>html, body { margin: 0; padding: 0; } [hidden] { display: none !important; }</style>
 <title>Monitoring E-Perjadin | KPKNL Balikpapan</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap">
+<!-- Pratinjau tautan (WhatsApp dan media sosial). Gambarnya JPG karena tidak semua aplikasi membaca WebP. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Layanan Subbagian Umum KPKNL Balikpapan">
+<meta property="og:title" content="Monitoring E-Perjadin | KPKNL Balikpapan">
+<meta property="og:description" content="Monitoring E-Perjadin KPKNL Balikpapan: status pembayaran surat tugas perjalanan dinas yang diperbarui langsung dari Google Sheets.">
+<meta property="og:url" content="https://para.my.id/perjadin/">
+<meta property="og:image" content="https://para.my.id/og-para.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="id_ID">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../bengkelpdf/pustaka/huruf/public-sans.css">
 <style>
 /* Halaman ini mengikuti tata letak index.html: panel samping biru laut dengan banner yang berganti,
    lalu kolom isi. Data dibaca langsung dari CSV Google Sheets yang diterbitkan (lihat URL_CSV di skrip). */
@@ -107,7 +118,7 @@ body {
   display: flex; flex-direction: column; gap: 18px;
 }
 .panel-foto, .panel-tabir { position: absolute; left: 0; right: 0; bottom: 0; }
-.panel-foto { height: 50%; z-index: -2; background: url("../banner-teluk-senja.jpg") 48% center / cover no-repeat; transition: opacity .5s ease; }
+.panel-foto { height: 50%; z-index: -2; background: transparent 48% center / cover no-repeat; transition: opacity .5s ease; }
 .panel-foto.memudar { opacity: 0; }
 .panel-tabir {
   height: 56%; z-index: -1;
@@ -173,6 +184,8 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
 }
 .seksi button[aria-pressed="true"] b { background: rgba(255,255,255,.2); color: var(--putih); }
 .keadaan { margin: -6px 0 0; color: var(--tinta-lembut); font-size: 14px; }
+@media (max-width: 559px) { .keadaan:not(.galat) { min-height: 3.2em; } }
+.kartu:disabled { cursor: default; }
 .keadaan.galat { background: var(--merah-latar); border-left: 3px solid var(--merah-teks); border-radius: 4px; padding: 12px 18px; margin: 0; color: var(--merah-teks); }
 .keadaan.galat a { color: inherit; font-weight: 700; }
 
@@ -420,7 +433,8 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
     <p class="sr-only" id="jumlahHasil" aria-live="polite"></p>
 
     <div class="lipat" id="lipatRingkas">
-      <div class="ringkas" id="ringkas" role="group" aria-label="Saring menurut status pembayaran"></div>
+      <!-- Kartu sementara dengan ukuran yang sama, supaya daftar di bawahnya tidak bergeser saat data selesai dimuat. -->
+      <div class="ringkas" id="ringkas" role="group" aria-label="Saring menurut status pembayaran" aria-busy="true"><button type="button" class="kartu semua" disabled><span>Seluruh surat tugas</span><strong>&middot;</strong><small>Ketuk kartu untuk menyaring</small></button><button type="button" class="kartu dibayar" disabled><span>Sudah dibayar</span><strong>&middot;</strong><small>Menghitung...</small></button><button type="button" class="kartu proses" disabled><span>Dalam verifikasi</span><strong>&middot;</strong><small>Di Staf PPK atau bendahara</small></button><button type="button" class="kartu tertahan" disabled><span>Perlu tindakan</span><strong>&middot;</strong><small>On Hold atau perlu perbaikan</small></button><button type="button" class="kartu belum" disabled><span>Belum ada status</span><strong>&middot;</strong><small>Belum mulai diproses</small></button></div>
     </div>
 
     <div class="kepala" id="kepala" role="group" aria-label="Urutkan daftar surat tugas">
@@ -436,7 +450,7 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
 
     <footer class="kaki">
       <span>Ada yang keliru? Hubungi Bendahara Pengeluaran.</span>
-      <span class="kredit">Built with Claude ft. GPT <svg class="kredit-hati" viewBox="0 0 24 24" width="14" height="14" role="img" aria-label="cinta"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 5 6.4 5c2 0 3.6 1.1 4.6 2.6l1 1.4 1-1.4C14 6.1 15.6 5 17.6 5 21 5 23.1 8.4 21.6 11.8 19.5 16.4 12 21 12 21z"/></svg></span>
+      <span class="kredit">Dibangun dengan Umpan Cantik dari Claude <svg class="kredit-hati" viewBox="0 0 24 24" width="14" height="14" role="img" aria-label="cinta"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 5 6.4 5c2 0 3.6 1.1 4.6 2.6l1 1.4 1-1.4C14 6.1 15.6 5 17.6 5 21 5 23.1 8.4 21.6 11.8 19.5 16.4 12 21 12 21z"/></svg></span>
     </footer>
   </main>
 </div>
@@ -528,8 +542,10 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
     var daftar = daftarAktif();
     var banner = daftar[Math.floor(waktuSetempat(new Date()) / JEDA) % daftar.length];
     if (banner.berkas === terpasang) return;
+    var berkas = "../" + banner.berkas;
+    if (window.Konten && Konten.bannerRingan) berkas = Konten.bannerRingan(berkas);
     function tampil() {
-      foto.style.backgroundImage = 'url("../' + banner.berkas + '")';
+      foto.style.backgroundImage = 'url("' + berkas + '")';
       foto.style.backgroundPosition = banner.posisi;
       foto.setAttribute("aria-label", banner.uraian);
       foto.classList.remove("memudar");
@@ -538,7 +554,7 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
     if (terpasang === "") { tampil(); return; }
     var muat = new Image();
     muat.onload = muat.onerror = function () { foto.classList.add("memudar"); setTimeout(tampil, 500); };
-    muat.src = "../" + banner.berkas;
+    muat.src = berkas;
   }
   function jadwalBanner() {
     setTimeout(function () { pasangBanner(); jadwalBanner(); }, JEDA - (waktuSetempat(new Date()) % JEDA) + 1000);
@@ -745,6 +761,7 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
       { kunci: "belum", kelas: "belum", label: JUDUL_GOLONGAN.belum, n: hitung.belum, ket: "Belum mulai diproses" }
     ];
     elRingkas.textContent = "";
+    elRingkas.removeAttribute("aria-busy");
     kartu.forEach(function (k) {
       var t = buat("button", "kartu " + k.kelas);
       t.type = "button";
@@ -863,7 +880,7 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
         elKeadaan.className = "keadaan galat";
         elKeadaan.textContent = "";
         elKeadaan.appendChild(document.createTextNode("Data belum bisa dimuat (" + e.message + "). " + (semuaData.length ? "Yang tampil adalah data terakhir. " : "") + "Coba muat ulang beberapa saat lagi, atau hubungi Bendahara Pengeluaran."));
-        if (!semuaData.length) elHasil.textContent = "";
+        if (!semuaData.length) { elHasil.textContent = ""; elRingkas.textContent = ""; elRingkas.removeAttribute("aria-busy"); }
       })
       .then(function () {
         sedangMuat = false;

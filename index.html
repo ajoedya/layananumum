@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="Layanan Subbagian Umum KPKNL Balikpapan: perjalanan dinas, keuangan, dan perkakas kerja dalam satu halaman.">
 <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -18,7 +18,18 @@
 <script src="gerak.js"></script>
 <style>html, body { margin: 0; padding: 0; } img { max-width: 100%; } [hidden] { display: none !important; }</style>
 <title>Layanan Subbagian Umum | KPKNL Balikpapan</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap">
+<!-- Pratinjau tautan (WhatsApp dan media sosial). Gambarnya JPG karena tidak semua aplikasi membaca WebP. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Layanan Subbagian Umum KPKNL Balikpapan">
+<meta property="og:title" content="Layanan Subbagian Umum | KPKNL Balikpapan">
+<meta property="og:description" content="Layanan Subbagian Umum KPKNL Balikpapan: perjalanan dinas, keuangan, dan perkakas kerja dalam satu halaman.">
+<meta property="og:url" content="https://para.my.id/">
+<meta property="og:image" content="https://para.my.id/og-para.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="id_ID">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="bengkelpdf/pustaka/huruf/public-sans.css">
 <style>
 /* Tata letak: panel samping biru laut (merek, judul, menu kelompok, foto banner yang berganti)
    dan kolom isi berupa baris layanan bernomor per kelompok. Satu tampilan terang.
@@ -111,7 +122,7 @@ i { font-style: italic; }
 .panel-foto { height: 58%; }
 .panel-tabir { height: 64%; }
 .panel-foto {
-  z-index: -2; background: url("banner-teluk-senja.jpg") 48% center / cover no-repeat;
+  z-index: -2; background: transparent 48% center / cover no-repeat;
   transition: opacity .5s ease;
 }
 .panel-foto.memudar { opacity: 0; }
@@ -467,7 +478,7 @@ h1 .judul-utama { display: inline; margin: 0; color: inherit; font-size: inherit
     var daftar = daftarAktif();
     if (!daftar.length) { foto.style.backgroundImage = "none"; terpasang = ""; return; }
     var banner = daftar[nomorBanner(new Date(), daftar.length)];
-    var berkas = K.alamatAman(banner.berkas), kunci = berkas + "|" + banner.posisi;
+    var berkas = K.bannerRingan(K.alamatAman(banner.berkas)), kunci = berkas + "|" + banner.posisi;
     if (kunci === terpasang) return;
     function tampil() {
       foto.style.backgroundImage = 'url("' + berkas.replace(/"/g, "%22") + '")';

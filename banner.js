@@ -18,7 +18,7 @@
   if (window.BannerBersama) return;
 
   var KUNCI_SIMPAN = "layanan-konten";
-  var ALAMAT_SITUS = "https://ajoedya.github.io/layananumum/";
+  var ALAMAT_SITUS = "https://para.my.id/";
 
   // Folder beranda. Di situs: folder induk dari halaman ini (berkas ini ada di akar situs).
   // Dari berkas lokal (file:), atau bila skrip disisipkan langsung ke halaman: alamat situs publik.
@@ -71,7 +71,9 @@
       var k = konfigurasi(), d = daftarAktif(k);
       if (!d.length) return null;
       var b = d[Math.floor(waktuSetempat(new Date()) / jeda()) % d.length];
-      return { url: alamatAman(b.berkas), posisi: Number(b.posisi) || 50, uraian: b.uraian || "" };
+      var url = alamatAman(b.berkas);
+      if (window.Konten && Konten.bannerRingan) url = Konten.bannerRingan(url);
+      return { url: url, posisi: Number(b.posisi) || 50, uraian: b.uraian || "" };
     }
     function segarkan() {
       var b = sekarang();

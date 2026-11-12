@@ -78,8 +78,9 @@ Tab Parameter hanya ada di file induk. Di sana tersimpan pemetaan 22 rincian out
 
 ### Teknis
 
-- Satu berkas HTML mandiri, termasuk gambar, ikon, dan foto kop.
-- Pustaka [SheetJS](https://sheetjs.com/) dimuat dari cdnjs untuk membaca ekspor Excel di file induk dan untuk tombol Ekspor ke Excel di Quick Report. Tanpa internet, ekspor Quick Report beralih ke CSV.
+- Satu berkas HTML, termasuk ikon dan data cadangan. Huruf Public Sans diambil dari salinan lokal di `../bengkelpdf/pustaka/huruf/`, dan foto banner dari akar situs (WebP, lihat `Konten.bannerRingan` di `konten.js`).
+- Pustaka [ExcelJS](https://github.com/exceljs/exceljs) 4.4.0 untuk tombol Ekspor ke Excel di Quick Report disimpan di `pustaka/exceljs.min.js` (lisensi MIT di `pustaka/exceljs.LICENSE.txt`) dan baru dimuat saat tombol ditekan. [SheetJS](https://sheetjs.com/) di `pustaka/xlsx.full.min.js` dipakai dasbor admin untuk membaca Laporan Fa.
+- Halaman memasang *Content Security Policy* yang hanya mengizinkan sambungan ke Apps Script situs; tidak ada skrip dari CDN.
 - Diterbitkan lewat GitHub Pages dari cabang `main`.
 
 ## Tren, target, dan ekspor (dasbor admin)

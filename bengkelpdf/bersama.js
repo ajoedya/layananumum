@@ -166,7 +166,9 @@
   function pasangRangkaAlat() {
     const kini = namaHalaman();
     const kopIsi = document.querySelector(".kop .kop-isi");
-    if (kopIsi) {
+    // Tautan kembali, label, langkah, dan kotak keterangan sudah ditulis di HTML tiap perkakas supaya tampilan tidak bergeser
+    // saat halaman dibuka. Kode di bawah hanya melengkapi halaman yang belum memuatnya.
+    if (kopIsi && !kopIsi.querySelector(".rk-kembali")) {
       const kembali = document.createElement("a");
       kembali.className = "rk-kembali";
       kembali.href = "./";
@@ -176,8 +178,8 @@
       const label = kopIsi.querySelector(".kop-label");
       const urut = label && label.textContent.match(/(\d+)\s*$/);
       if (urut) label.textContent = "Perkakas " + urut[1];
-      pasangLangkah(kopIsi);
     }
+    if (kopIsi) pasangLangkah(kopIsi);
 
     let atas = document.querySelector(".rk-alat-atas");
     if (!atas) {
@@ -291,7 +293,9 @@
     }
     segarkan();
     new MutationObserver(segarkan).observe(document.querySelector(".bungkus"), { attributes: true, attributeFilter: ["class", "hidden"], subtree: true });
-    kopIsi.appendChild(daftar);
+    // Daftar langkah yang sudah ada di HTML diganti di tempat (ukurannya sama), supaya tombolnya hidup tanpa menggeser tampilan.
+    const lama = kopIsi.querySelector(".rk-langkah");
+    if (lama) lama.replaceWith(daftar); else kopIsi.appendChild(daftar);
   }
 
   // Perilaku buka-tutup yang sama untuk semua menu tarik-turun di bilah atas:
