@@ -4,26 +4,24 @@
    tetapi hanya setelah gerak.js memasangnya (kelas .pil-aktif), jadi tanpa JavaScript tampilan lama tetap berlaku.
    ============================================================ */
 .pil-aktif { position: relative; }
-.pil-aktif > a, .pil-aktif > button { position: relative; z-index: 1; }
+.pil-aktif > a, .pil-aktif > button { position: relative; z-index: 1; transition: color .2s ease .28s; }
+/* Pil berupa cairan emas pejal di belakang menu. Menu aktif dibuat bening supaya cairannya terlihat, dan tulisannya navy. */
 .pil-menu {
-  position: absolute; left: 0; top: 0; z-index: 2; pointer-events: none;
-  border: 1px solid var(--emas-terang, #ffd27a);
-  box-shadow: inset 3px 0 0 var(--emas-terang, #ffd27a), 0 4px 16px rgba(var(--rgb-gelap, 10, 40, 66), .32);
+  position: absolute; left: 0; top: 0; z-index: 0; pointer-events: none;
+  background: linear-gradient(135deg, #ffe4a3 0%, var(--emas-terang, #ffd27a) 45%, #f2b44a 100%);
+  box-shadow: 0 6px 18px rgba(242, 180, 74, .35), inset 0 1px 0 rgba(255, 255, 255, .6), inset 0 -2px 5px rgba(160, 100, 15, .25);
 }
 
-/* Menu kelompok Olah PDF (.rk-kelompok): garis emas dan batang kiri dipindahkan ke pil. */
+/* Menu kelompok Olah PDF (.rk-kelompok). */
 .rk-kelompok.pil-aktif a[aria-current="true"] {
-  border-color: rgba(255, 255, 255, .30);
-  box-shadow: 0 4px 16px rgba(var(--rgb-gelap, 10, 40, 66), .28), inset 0 1px 0 rgba(255, 255, 255, .12);
+  background: transparent; border-color: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none;
+  color: #0f3554; text-shadow: none;
 }
+.rk-kelompok.pil-aktif a[aria-current="true"] b { background: #0f3554; color: var(--emas-terang, #ffd27a); box-shadow: none; }
 /* Tab panel Monitoring Realisasi Anggaran. */
-.jk .jk-panel nav.tab.pil-aktif button[aria-selected="true"] { box-shadow: none; }
+.jk .jk-panel nav.tab.pil-aktif button[aria-selected="true"] { background: transparent; border-color: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; color: #0f3554; text-shadow: none; }
+.jk .jk-panel nav.tab.pil-aktif button[aria-selected="true"] .lencana { background: #0f3554; color: var(--emas-terang, #ffd27a); }
 
-@media (max-width: 920px) {
-  /* Di layar sempit menu berupa chip bulat; pil hanya garis tipis. */
-  .pil-menu { box-shadow: none; }
-  .rk-kelompok.pil-aktif a[aria-current="true"] { box-shadow: none; }
-}
 @media (prefers-reduced-motion: reduce) {
   .pil-menu { transition: none; }
 }

@@ -15,8 +15,8 @@
 
   var kurangGerak = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  /* Gerak cair: pil bergerak seperti tetesan. Ujung depan melar lebih dulu sampai menu tujuan (pil memanjang dan sedikit
-     menipis), lalu ujung belakang menyusul, sedikit memantul, dan pil kembali ke ukuran menu. Sumbu gerak mengikuti arah
+  /* Gerak cair: pil bergerak seperti tetesan. Ujung depan menjulur lalu melar sampai menu tujuan (pil memanjang, menipis,
+     dan ujungnya membulat), lalu ujung belakang menyusul, memantul, dan pil kembali ke ukuran menu. Sumbu gerak mengikuti arah
      perpindahan terbesar, jadi berlaku untuk menu tegak (panel kiri) maupun mendatar (chip di layar sempit).
      Bila pil sedang bergerak lalu tujuan berubah lagi (misalnya saat menggulir cepat), gerak baru dimulai dari posisi pil
      yang sedang terlihat, bukan melompat dari tujuan lama. */
@@ -32,25 +32,34 @@
     }
     var tegak = Math.abs(ke.y - dari.y) >= Math.abs(ke.x - dari.x);
     var maju = tegak ? ke.y > dari.y : ke.x > dari.x;
-    function bingkai(x, y, w, h) { return { width: w + "px", height: h + "px", transform: "translate(" + x + "px," + y + "px)" }; }
-    var awal = bingkai(dari.x, dari.y, dari.w, dari.h), akhir = bingkai(ke.x, ke.y, ke.w, ke.h), melar, pantul;
+    var sudut = getComputedStyle(pil).borderRadius || "12px";
+    function bingkai(x, y, w, h, r) { return { width: w + "px", height: h + "px", transform: "translate(" + x + "px," + y + "px)", borderRadius: r || sudut }; }
+    var awal = bingkai(dari.x, dari.y, dari.w, dari.h), akhir = bingkai(ke.x, ke.y, ke.w, ke.h), tarik, melar, pantul;
     if (tegak) {
-      // Melar: rentang dari tepi lama sampai tepi baru, sedikit lebih ramping di sisi kiri dan kanan.
-      var atas = Math.min(dari.y, ke.y), bawah = Math.max(dari.y + dari.h, ke.y + ke.h), w = Math.min(dari.w, ke.w), susut = Math.min(6, w * 0.04);
-      melar = bingkai((maju ? dari.x : ke.x) + susut, atas, w - susut * 2, bawah - atas);
-      // Pantul: sedikit melewati tujuan searah gerak, lalu memipih.
-      var lebih = Math.min(4, ke.h * 0.1);
-      pantul = bingkai(ke.x - 1, ke.y + (maju ? lebih : -lebih), ke.w + 2, ke.h - lebih);
+      var atas = Math.min(dari.y, ke.y), bawah = Math.max(dari.y + dari.h, ke.y + ke.h), w = Math.min(dari.w, ke.w);
+      var susut = Math.min(14, w * 0.09), jarak = Math.abs(ke.y - dari.y);
+      // Tarik: ujung depan mulai menjulur sepertiga jalan, badan sedikit menipis, ujung belakang masih di tempat.
+      tarik = maju ? bingkai(dari.x + susut / 2, dari.y, dari.w - susut, dari.h + jarak * 0.35, "999px")
+                   : bingkai(dari.x + susut / 2, dari.y - jarak * 0.35, dari.w - susut, dari.h + jarak * 0.35, "999px");
+      // Melar: cairan membentang dari menu lama sampai menu baru, paling ramping di tengah perjalanan.
+      melar = bingkai((maju ? dari.x : ke.x) + susut, atas, w - susut * 2, bawah - atas, "999px");
+      // Pantul: ujung depan sedikit kelewatan, badan melebar dan memipih, lalu kembali ke ukuran menu.
+      var lebih = Math.min(7, ke.h * 0.16);
+      pantul = bingkai(ke.x - 3, ke.y + (maju ? lebih : -lebih), ke.w + 6, ke.h - lebih);
     } else {
-      var kiri = Math.min(dari.x, ke.x), kanan = Math.max(dari.x + dari.w, ke.x + ke.w), h = Math.min(dari.h, ke.h), susutH = Math.min(4, h * 0.08);
-      melar = bingkai(kiri, (maju ? dari.y : ke.y) + susutH, kanan - kiri, h - susutH * 2);
-      var lebihX = Math.min(6, ke.w * 0.06);
-      pantul = bingkai(ke.x + (maju ? lebihX : -lebihX), ke.y - 1, ke.w - lebihX, ke.h + 2);
+      var kiri = Math.min(dari.x, ke.x), kanan = Math.max(dari.x + dari.w, ke.x + ke.w), h = Math.min(dari.h, ke.h);
+      var susutH = Math.min(8, h * 0.14), jarakX = Math.abs(ke.x - dari.x);
+      tarik = maju ? bingkai(dari.x, dari.y + susutH / 2, dari.w + jarakX * 0.35, dari.h - susutH, "999px")
+                   : bingkai(dari.x - jarakX * 0.35, dari.y + susutH / 2, dari.w + jarakX * 0.35, dari.h - susutH, "999px");
+      melar = bingkai(kiri, (maju ? dari.y : ke.y) + susutH, kanan - kiri, h - susutH * 2, "999px");
+      var lebihX = Math.min(10, ke.w * 0.08);
+      pantul = bingkai(ke.x + (maju ? lebihX : -lebihX), ke.y - 2, ke.w - lebihX, ke.h + 4);
     }
-    melar.offset = 0.42; melar.easing = "cubic-bezier(.3,0,.2,1)";
-    pantul.offset = 0.78; pantul.easing = "cubic-bezier(.3,.7,.4,1)";
-    awal.easing = "cubic-bezier(.55,0,.35,1)";
-    pil._gerak = pil.animate([awal, melar, pantul, akhir], { duration: 620 });
+    awal.easing = "cubic-bezier(.5,0,.75,.4)";
+    tarik.offset = 0.2; tarik.easing = "cubic-bezier(.3,.2,.3,1)";
+    melar.offset = 0.5; melar.easing = "cubic-bezier(.4,0,.2,1)";
+    pantul.offset = 0.78; pantul.easing = "cubic-bezier(.35,1.4,.5,1)";
+    pil._gerak = pil.animate([awal, tarik, melar, pantul, akhir], { duration: 760 });
   }
 
   function pilMenu(menu, opsi) {
