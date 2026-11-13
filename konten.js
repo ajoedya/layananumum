@@ -22,11 +22,11 @@ window.KONTEN_BAWAAN = {
   "umum": {
     "label": "Layanan / Umum / Bubuhan BPP",
     "judul": "Layanan Subbagian Umum",
-    "subjudul": "untuk urusan kantor yang lebih mudah.",
+    "subjudul": "",
     "deskripsi": "Perjalanan dinas, keuangan, dan perkakas kerja pegawai KPKNL Balikpapan dalam satu halaman.",
     "keteranganAtas": "KPKNL BALIKPAPAN",
-    "keteranganBawah": "Layanan sederhana untuk pekerjaan yang lebih Josjis.",
-    "kaki": "KPKNL Balikpapan · Berintegritas dalam Tugas, Prima dalam Pelayanan.",
+    "keteranganBawah": "",
+    "kaki": "KPKNL Balikpapan",
     "gerbang": { "tampil": true, "teks": "Gerbang Internal (Old)", "alamat": "https://sites.google.com/view/gerbanginternal/halaman-muka" },
     "detikPerInfo": 7
   },
