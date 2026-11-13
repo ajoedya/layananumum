@@ -571,8 +571,8 @@ h1 .judul-utama { display: inline; margin: 0; color: inherit; font-size: inherit
     clearTimeout(pewaktuKlik);
     pewaktuKlik = setTimeout(function () { kunciKlik = null; }, 1200);
   }
-  /* Bingkai emas mengalir dari menu lama ke menu baru (gerak cair dari gerak.js). Animasinya hanya transform, lebar, dan
-     tinggi pada satu elemen kecil; bila pengguna mengurangi gerak, bingkai langsung pindah. */
+  /* Bingkai emas mengalir dari menu lama ke menu baru (gerak tetes kental dari gerak.js), yang
+     digerakkan pegas di lapisan sementara; bila pengguna mengurangi gerak, bingkai langsung pindah. */
   var pilMenu = el("span", "pil-menu"); pilMenu.setAttribute("aria-hidden", "true");
   var kurangGerak = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   function geserPilMenu(tanpaGerak) {
@@ -583,7 +583,7 @@ h1 .judul-utama { display: inline; margin: 0; color: inherit; font-size: inherit
     var ke = { x: a.offsetLeft, y: a.offsetTop, w: a.offsetWidth, h: a.offsetHeight }, dari = pilMenu._p;
     pilMenu.style.width = ke.w + "px"; pilMenu.style.height = ke.h + "px"; pilMenu.style.transform = "translate(" + ke.x + "px," + ke.y + "px)";
     pilMenu.style.borderRadius = getComputedStyle(a).borderRadius;
-    // Gerak cair bersama (gerak.js): pil melar ke menu tujuan lalu menyusul dan memantul, seperti tetesan.
+    // Gerak cair bersama (gerak.js): pil mengalir ke menu tujuan seperti tetes kental, digerakkan pegas.
     if (dari && !tanpaGerak && !kurangGerak && window.Gerak && (dari.x !== ke.x || dari.y !== ke.y || dari.w !== ke.w)) window.Gerak.animasiCair(pilMenu, dari, ke);
     pilMenu._p = ke;
   }

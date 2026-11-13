@@ -5,7 +5,7 @@
    ============================================================ */
 .pil-aktif { position: relative; }
 .pil-aktif > a, .pil-aktif > button { position: relative; z-index: 1; transition: color .2s ease .28s; }
-/* Pil berupa cairan emas pejal di belakang menu. Menu aktif dibuat bening supaya cairannya terlihat, dan tulisannya navy. */
+/* Pil berupa cairan emas di belakang menu; saat bergerak, gerak.js menggambarnya sebagai tetes kental di lapisan sementara. Menu aktif dibuat bening supaya cairannya terlihat, dan tulisannya navy. */
 .pil-menu {
   position: absolute; left: 0; top: 0; z-index: 0; pointer-events: none;
   background: linear-gradient(135deg, #ffe4a3 0%, var(--emas-terang, #ffd27a) 45%, #f2b44a 100%);

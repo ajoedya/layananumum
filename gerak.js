@@ -1,5 +1,5 @@
 /* ============================================================
-   Gerak bersama: pil emas yang bergeser mulus antar menu
+   Gerak bersama: pil emas yang mengalir seperti tetes kental antar menu
    Beranda memakai pil ini untuk menu kelompok di panel kiri. Berkas ini memberi gerakan yang sama pada halaman turunan
    (menu kelompok Olah PDF dan tab panel Monitoring Realisasi Anggaran) tanpa mengubah cara tiap halaman menandai menu aktif:
    pil hanya memantau atribut penanda (bawaan aria-current) dan berpindah ke butir yang ditandai. Gayanya ada di gerak.css.
@@ -15,51 +15,100 @@
 
   var kurangGerak = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  /* Gerak cair: pil bergerak seperti tetesan. Ujung depan menjulur lalu melar sampai menu tujuan (pil memanjang, menipis,
-     dan ujungnya membulat), lalu ujung belakang menyusul, memantul, dan pil kembali ke ukuran menu. Sumbu gerak mengikuti arah
-     perpindahan terbesar, jadi berlaku untuk menu tegak (panel kiri) maupun mendatar (chip di layar sempit).
-     Bila pil sedang bergerak lalu tujuan berubah lagi (misalnya saat menggulir cepat), gerak baru dimulai dari posisi pil
-     yang sedang terlihat, bukan melompat dari tujuan lama. */
+  /* Gerak cair "tetes kental": pil bergerak seperti tetesan madu. Kepala melesat ke menu tujuan, ekor tertinggal, dan
+     keduanya tersambung leher yang makin tipis; bila jaraknya jauh, leher putus menjadi dua tetes lalu menyatu kembali.
+     Kepala, ekor, dan leher digambar di lapisan sementara yang dilebur filter SVG (kabur lalu dipertegas), jadi tepinya
+     menyatu seperti cairan. Selama bergerak pil asli disembunyikan; setelah tenang lapisan dilepas dan pil asli tampil lagi.
+     Posisi digerakkan pegas teredam (bukan durasi tetap), jadi bila tujuan berubah di tengah jalan (misalnya saat menggulir
+     cepat) tetesan langsung berbelok dari posisinya sekarang. Pemanggil sudah menaruh pil asli di tujuan sebelum memanggil. */
+  var ID_LEBUR = "gerak-lebur";
+  function pasangFilter() {
+    if (document.getElementById(ID_LEBUR)) return;
+    var ns = "http://www.w3.org/2000/svg", svg = document.createElementNS(ns, "svg");
+    svg.setAttribute("width", "0"); svg.setAttribute("height", "0"); svg.setAttribute("aria-hidden", "true"); svg.setAttribute("focusable", "false");
+    svg.style.position = "absolute"; svg.style.width = "0"; svg.style.height = "0"; svg.style.overflow = "hidden";
+    svg.innerHTML = '<filter id="' + ID_LEBUR + '" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">' +
+      '<feGaussianBlur in="SourceGraphic" stdDeviation="7" result="kabur"/>' +
+      '<feColorMatrix in="kabur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 24 -10" result="lebur"/>' +
+      '<feComposite in="SourceGraphic" in2="lebur" operator="atop"/></filter>';
+    document.body.appendChild(svg);
+  }
+
+  // Pegas teredam: kekakuan k dan rasio redaman z (di bawah 1 berarti sedikit memantul).
+  function Pegas(x, k, z) { this.x = x; this.v = 0; this.t = x; this.k = k; this.z = z; }
+  Pegas.prototype.langkah = function (dt) {
+    this.v += (-this.k * (this.x - this.t) - 2 * Math.sqrt(this.k) * this.z * this.v) * dt;
+    this.x += this.v * dt;
+  };
+  Pegas.prototype.diam = function () { return Math.abs(this.x - this.t) < .2 && Math.abs(this.v) < 2; };
+
+  function lapisanLebur(pil) {
+    if (pil._lebur && pil._lebur.parentNode === pil.parentNode) return pil._lebur;
+    pasangFilter();
+    var g = document.createElement("span"), gaya = getComputedStyle(pil);
+    g.setAttribute("aria-hidden", "true");
+    g.style.cssText = "position:absolute;left:0;top:0;right:0;bottom:0;z-index:0;pointer-events:none;" +
+      "filter:url(#" + ID_LEBUR + ") drop-shadow(0 6px 12px rgba(242,180,74,.3))";
+    for (var i = 0; i < 3; i++) {
+      var b = document.createElement("span");
+      b.style.cssText = "position:absolute;left:0;top:0;width:0;height:0;will-change:transform,width,height";
+      // Kepala dan ekor memakai gradien pil; leher berwarna rata supaya batang yang diputar tidak tampak sebagai pita terang.
+      if (i < 2) b.style.backgroundImage = gaya.backgroundImage; else b.style.background = "var(--emas-terang, #ffd27a)";
+      g.appendChild(b);
+    }
+    pil.parentNode.insertBefore(g, pil);
+    pil._lebur = g;
+    return g;
+  }
+
   function animasiCair(pil, dari, ke) {
-    if (!pil.animate) return;
-    if (pil._gerak && pil._gerak.playState === "running") {
-      var r = pil.getBoundingClientRect(), induk = pil.offsetParent;
-      if (induk) {
-        var ri = induk.getBoundingClientRect();
-        dari = { x: r.left - ri.left - induk.clientLeft + induk.scrollLeft, y: r.top - ri.top - induk.clientTop + induk.scrollTop, w: r.width, h: r.height };
+    if (!pil.parentNode || !window.requestAnimationFrame) return;
+    var g = lapisanLebur(pil), bentuk = g.children, k = pil._kental;
+    if (!k) {
+      k = pil._kental = {
+        kx: new Pegas(dari.x + dari.w / 2, 300, .62), ky: new Pegas(dari.y + dari.h / 2, 300, .62),
+        ex: new Pegas(dari.x + dari.w / 2, 95, .9), ey: new Pegas(dari.y + dari.h / 2, 95, .9),
+        w: new Pegas(dari.w, 260, .9), h: new Pegas(dari.h, 260, .9)
+      };
+    }
+    k.kx.t = k.ex.t = ke.x + ke.w / 2; k.ky.t = k.ey.t = ke.y + ke.h / 2; k.w.t = ke.w; k.h.t = ke.h;
+    var sudut = getComputedStyle(pil).borderTopLeftRadius || "12px";
+    bentuk[0].style.borderRadius = bentuk[1].style.borderRadius = sudut; bentuk[2].style.borderRadius = "999px";
+    pil.style.visibility = "hidden"; g.style.display = "";
+    if (k.jalan) return; // Sudah bergerak: pegas cukup diberi tujuan baru.
+    var pegas = [k.kx, k.ky, k.ex, k.ey, k.w, k.h], akhir = null;
+    function taruh(el, cx, cy, w, h) {
+      el.style.width = w + "px"; el.style.height = h + "px";
+      el.style.transform = "translate(" + (cx - w / 2) + "px," + (cy - h / 2) + "px)";
+    }
+    function gambar() {
+      var dx = k.kx.x - k.ex.x, dy = k.ky.x - k.ey.x, d = Math.hypot(dx, dy), w = k.w.x, h = k.h.x;
+      // Volume tetap: makin jauh kepala dan ekor terpisah, makin kecil keduanya. Beda ukuran memudar saat keduanya menyatu.
+      var skala = 1 - Math.min(.28, d / 520), beda = Math.min(1, d / 40);
+      taruh(bentuk[0], k.kx.x, k.ky.x, w * (skala + .06 * beda), h * (skala + .06 * beda));
+      taruh(bentuk[1], k.ex.x, k.ey.x, w * (skala - .04 * beda), h * (skala - .04 * beda));
+      // Leher hanya ada saat kepala dan ekor berjauhan; makin jauh makin tipis, lalu putus.
+      var silang = Math.abs(dx) > Math.abs(dy) ? h : w, tebal = Math.max(0, silang * .55 - d * .16), leher = bentuk[2];
+      if (tebal < 3 || d < silang * .5) { leher.style.width = "0px"; leher.style.height = "0px"; return; }
+      leher.style.width = d + "px"; leher.style.height = tebal + "px";
+      leher.style.transform = "translate(" + ((k.kx.x + k.ex.x) / 2 - d / 2) + "px," + ((k.ky.x + k.ey.x) / 2 - tebal / 2) + "px) rotate(" + Math.atan2(dy, dx) + "rad)";
+    }
+    function bingkai(kini) {
+      var dt = Math.min(48, kini - (akhir || kini - 16)) / 1000; akhir = kini;
+      // Langkah kecil supaya pegas kaku tetap stabil.
+      for (var n = Math.ceil(dt / .004), i = 0; i < n; i++) for (var j = 0; j < pegas.length; j++) pegas[j].langkah(dt / n);
+      gambar();
+      var tenang = true;
+      for (j = 0; j < pegas.length; j++) if (!pegas[j].diam()) { tenang = false; break; }
+      // Menu yang tersembunyi di tengah gerak (panel menyusut) juga mengakhiri gerak.
+      if (tenang || !pil.parentNode || !pil.offsetParent) {
+        g.style.display = "none"; pil.style.visibility = ""; pil._kental = null;
+        return;
       }
-      pil._gerak.cancel();
+      k.jalan = requestAnimationFrame(bingkai);
     }
-    var tegak = Math.abs(ke.y - dari.y) >= Math.abs(ke.x - dari.x);
-    var maju = tegak ? ke.y > dari.y : ke.x > dari.x;
-    var sudut = getComputedStyle(pil).borderRadius || "12px";
-    function bingkai(x, y, w, h, r) { return { width: w + "px", height: h + "px", transform: "translate(" + x + "px," + y + "px)", borderRadius: r || sudut }; }
-    var awal = bingkai(dari.x, dari.y, dari.w, dari.h), akhir = bingkai(ke.x, ke.y, ke.w, ke.h), tarik, melar, pantul;
-    if (tegak) {
-      var atas = Math.min(dari.y, ke.y), bawah = Math.max(dari.y + dari.h, ke.y + ke.h), w = Math.min(dari.w, ke.w);
-      var susut = Math.min(14, w * 0.09), jarak = Math.abs(ke.y - dari.y);
-      // Tarik: ujung depan mulai menjulur sepertiga jalan, badan sedikit menipis, ujung belakang masih di tempat.
-      tarik = maju ? bingkai(dari.x + susut / 2, dari.y, dari.w - susut, dari.h + jarak * 0.35, "999px")
-                   : bingkai(dari.x + susut / 2, dari.y - jarak * 0.35, dari.w - susut, dari.h + jarak * 0.35, "999px");
-      // Melar: cairan membentang dari menu lama sampai menu baru, paling ramping di tengah perjalanan.
-      melar = bingkai((maju ? dari.x : ke.x) + susut, atas, w - susut * 2, bawah - atas, "999px");
-      // Pantul: ujung depan sedikit kelewatan, badan melebar dan memipih, lalu kembali ke ukuran menu.
-      var lebih = Math.min(7, ke.h * 0.16);
-      pantul = bingkai(ke.x - 3, ke.y + (maju ? lebih : -lebih), ke.w + 6, ke.h - lebih);
-    } else {
-      var kiri = Math.min(dari.x, ke.x), kanan = Math.max(dari.x + dari.w, ke.x + ke.w), h = Math.min(dari.h, ke.h);
-      var susutH = Math.min(8, h * 0.14), jarakX = Math.abs(ke.x - dari.x);
-      tarik = maju ? bingkai(dari.x, dari.y + susutH / 2, dari.w + jarakX * 0.35, dari.h - susutH, "999px")
-                   : bingkai(dari.x - jarakX * 0.35, dari.y + susutH / 2, dari.w + jarakX * 0.35, dari.h - susutH, "999px");
-      melar = bingkai(kiri, (maju ? dari.y : ke.y) + susutH, kanan - kiri, h - susutH * 2, "999px");
-      var lebihX = Math.min(10, ke.w * 0.08);
-      pantul = bingkai(ke.x + (maju ? lebihX : -lebihX), ke.y - 2, ke.w - lebihX, ke.h + 4);
-    }
-    awal.easing = "cubic-bezier(.5,0,.75,.4)";
-    tarik.offset = 0.2; tarik.easing = "cubic-bezier(.3,.2,.3,1)";
-    melar.offset = 0.5; melar.easing = "cubic-bezier(.4,0,.2,1)";
-    pantul.offset = 0.78; pantul.easing = "cubic-bezier(.35,1.4,.5,1)";
-    pil._gerak = pil.animate([awal, tarik, melar, pantul, akhir], { duration: 760 });
+    gambar();
+    k.jalan = requestAnimationFrame(bingkai);
   }
 
   function pilMenu(menu, opsi) {
