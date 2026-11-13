@@ -22,11 +22,11 @@ window.KONTEN_BAWAAN = {
   "umum": {
     "label": "Layanan / Umum / Bubuhan BPP",
     "judul": "Layanan Subbagian Umum",
-    "subjudul": "",
+    "subjudul": "untuk urusan kantor yang lebih mudah.",
     "deskripsi": "Perjalanan dinas, keuangan, dan perkakas kerja pegawai KPKNL Balikpapan dalam satu halaman.",
     "keteranganAtas": "KPKNL BALIKPAPAN",
-    "keteranganBawah": "",
-    "kaki": "KPKNL Balikpapan",
+    "keteranganBawah": "Layanan sederhana untuk pekerjaan yang lebih Josjis.",
+    "kaki": "KPKNL Balikpapan · Berintegritas dalam Tugas, Prima dalam Pelayanan.",
     "gerbang": { "tampil": true, "teks": "Gerbang Internal (Old)", "alamat": "https://sites.google.com/view/gerbanginternal/halaman-muka" },
     "detikPerInfo": 7
   },
@@ -71,7 +71,7 @@ window.KONTEN_BAWAAN = {
       "alamat": "https://s.kemenkeu.go.id/CaputBPN2026",
       "kunci": "keuangan caput capaian output keluaran pic seksi" },
     { "tampil": true, "kelompok": "perkakas", "judul": "Olah PDF",
-      "uraian": "Edit teks, gabung, pecah, dan beri tanda air langsung di peramban tanpa mengunggah berkas.",
+      "uraian": "Edit teks, gabung, pecah, dan beri tanda air pada PDF.",
       "alamat": "bengkelpdf/", "kunci": "olah bengkel perkakas pdf kunci sandi password protect edit teks gabung pecah watermark tanda air kompres word naskah" },
     { "tampil": true, "kelompok": "arsip", "judul": "Monitoring E-Perjadin v1",
       "uraian": "Pemantauan SPD untuk perjalanan dinas sebelum **27 Juli 2026**.",
