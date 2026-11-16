@@ -1,0 +1,39 @@
+/* Aksen Natal di panel biru beranda. Semua lapisan hanya hiasan: tidak bisa diklik dan disembunyikan dari pembaca layar.
+   Diatur oleh natal.js lewat kelas di <html>: natal-salju, natal-lampu, natal-hiasan, natal-ucapan. */
+
+/* Salju: kanvas di antara foto banner dan teks panel. */
+.natal-salju-kanvas { position: absolute; inset: 0; z-index: -1; width: 100%; height: 100%; pointer-events: none; }
+
+/* Untaian lampu di tepi atas panel. Isi panel diturunkan sedikit supaya tidak tertimpa. */
+.natal-lampu-untai { position: absolute; top: 0; left: 0; right: 0; height: 46px; z-index: 1; pointer-events: none; overflow: visible; }
+.natal-lampu-untai path { fill: none; stroke: #0a1d2d; stroke-width: 1.6; stroke-linecap: round; }
+.natal-lampu-untai .bola { animation: natal-kedip 2.6s ease-in-out infinite; }
+.natal-lampu-untai .bola ellipse { stroke: rgba(0,0,0,.25); stroke-width: .6; }
+.natal-lampu-untai .bola rect { fill: #5b6b78; }
+@keyframes natal-kedip {
+  0%, 100% { opacity: 1; filter: drop-shadow(0 0 4px var(--cahaya)); }
+  50% { opacity: .45; filter: none; }
+}
+:root.natal-lampu .panel-dalam { padding-top: 54px; }
+@media (max-width: 920px) { :root.natal-lampu .panel-dalam { padding-top: 50px; } }
+
+/* Bola hiasan yang tergantung di pojok kanan atas panel dan berayun pelan. */
+.natal-hiasan-gantung { position: absolute; top: 0; right: 22px; z-index: 1; display: flex; gap: 14px; align-items: flex-start; pointer-events: none; }
+.natal-hiasan-gantung span { display: block; transform-origin: 50% 0; animation: natal-ayun 5s ease-in-out infinite; }
+.natal-hiasan-gantung span:nth-child(2) { animation-duration: 6.2s; animation-delay: -2s; }
+.natal-hiasan-gantung span:nth-child(3) { animation-duration: 5.6s; animation-delay: -3.4s; }
+.natal-hiasan-gantung svg { display: block; overflow: visible; }
+@keyframes natal-ayun { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
+@media (max-width: 920px) { .natal-hiasan-gantung { right: 14px; gap: 10px; } .natal-hiasan-gantung svg { transform: scale(.82); transform-origin: 50% 0; } }
+
+/* Ucapan kecil di bawah judul panel. */
+.natal-ucapan-lencana {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; margin: 0;
+  padding: 5px 12px 5px 8px; border: 1px solid rgba(255,210,122,.45); border-radius: 999px;
+  background: rgba(255,255,255,.06); color: var(--emas-terang, #ffd27a); font-size: 13px; font-weight: 600;
+}
+.natal-ucapan-lencana svg { width: 18px; height: 18px; flex: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .natal-lampu-untai .bola, .natal-hiasan-gantung span { animation: none; }
+}
