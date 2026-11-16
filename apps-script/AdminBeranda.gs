@@ -54,8 +54,8 @@ var ZONA_WAKTU = "Asia/Makassar";  // tanggal statistik dan log mengikuti WITA
 var POTONG = 45000;             // panjang teks per sel (batas sel Google Sheets 50.000 karakter)
 // Versi kode dan fitur yang dikenali. Dasbor admin membacanya lewat doGet (aksi=versi) untuk memastikan
 // deployment yang tayang sudah memakai kode ini. Naikkan tanggalnya setiap kali kode diubah.
-var VERSI_SKRIP = "2026-11-12b";
-var FITUR_SKRIP = ["pemberitahuan", "pengumuman-jendela", "pengumuman-klik", "prognosa", "prognosa-kesesuaian"];
+var VERSI_SKRIP = "2026-11-16a";
+var FITUR_SKRIP = ["pemberitahuan", "pengumuman-jendela", "pengumuman-klik", "prognosa", "prognosa-kesesuaian", "tahun-baru"];
 // Prognosa kegiatan dan pengajuan TUP (prognosa/). Isian per unit di tab Prognosa; aturan dan kunci bersama seksi di Properti Skrip.
 var TAB_PROGNOSA = "Prognosa";
 var PROPERTI_KUNCI_PROGNOSA = "SIDIK_KUNCI_PROGNOSA";
@@ -217,6 +217,10 @@ function doPost(e) {
         return tetapkanPrognosa_(minta, who);
       case "prognosaStatus":
         return statusPrognosaSimpan_(minta, who);
+      case "tahunBaruCek":
+        return balas_(cekTahunBaru_());
+      case "tahunBaruPrognosa":
+        return arsipkanPrognosa_(minta, who);
       default:
         return balas_({ ok: false, pesan: "Aksi tidak dikenal" });
     }
@@ -263,6 +267,7 @@ function simpan_(minta, who) {
 var IZIN_ = { cekRealisasi: "admin", simpanRealisasi: "admin", riwayatRealisasi: "admin", ambilRiwayatRealisasi: "admin",
               daftarPenyunting: "admin", tambahPenyunting: "admin", aturPenyunting: "admin", log: "admin",
               prognosaAtur: "admin", prognosaBayar: "admin", prognosaTetapkan: "admin",
+              tahunBaruCek: "admin", tahunBaruPrognosa: "admin",
               prognosaBaca: "seksi", prognosaSimpan: "seksi", prognosaStatus: "seksi" };
 
 // Mengembalikan { peran, nama } bila kunci cocok: kunci admin, atau kunci penyunting terdaftar yang aktif.
@@ -771,12 +776,13 @@ function balas_(isi) {
 var BATAS_ISIAN_PROGNOSA = 45000;
 function tanggal_(v) { v = String(v || ""); return /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : ""; }
 function hariIniWita_() { return Utilities.formatDate(new Date(), ZONA_WAKTU, "yyyy-MM-dd"); }
+function tahunWita_() { return Number(Utilities.formatDate(new Date(), ZONA_WAKTU, "yyyy")); }
 
 function aturanPrognosa_() {
   var a = {};
   try { a = JSON.parse(PropertiesService.getScriptProperties().getProperty(PROPERTI_ATURAN_PROGNOSA) || "{}") || {}; } catch (galat) { a = {}; }
   return {
-    terbuka: a.terbuka === true, batas: tanggal_(a.batas), sampai: tanggal_(a.sampai) || "2026-12-15",
+    terbuka: a.terbuka === true, batas: tanggal_(a.batas), sampai: tanggal_(a.sampai) || (tahunWita_() + "-12-15"),
     saldoUp: angka_(a.saldoUp), judul: teks_(a.judul, 120) || "Prognosa kegiatan untuk pengajuan TUP"
   };
 }
@@ -1107,4 +1113,51 @@ function bacaKesesuaianPublik_() {
   var teks = JSON.stringify(isi);
   if (teks.length < 95000) cache.put("prognosaPublik", teks, DETIK_CACHE);
   return ContentService.createTextOutput(teks).setMimeType(ContentService.MimeType.JSON);
+}
+
+/* ---------- Pergantian tahun anggaran ----------
+   Prognosa dan pengajuan TUP berlaku untuk satu tahun anggaran. Di awal tahun, admin mengarsipkan isian, penetapan,
+   dan status kegiatan tahun lalu lewat modul Tahun baru di dasbor: tab Prognosa, PrognosaTetap, dan StatusPrognosa
+   diberi akhiran tahun (misalnya "Prognosa 2026"), lalu tab kosong dibuat lagi saat seksi mulai mengisi.
+   Tidak ada data yang dihapus. Data realisasi tidak perlu diarsipkan karena riwayatnya sudah tersimpan per penerbitan. */
+var TAB_ARSIP_PROGNOSA_ = [TAB_PROGNOSA, TAB_PROGNOSA_TETAP, TAB_STATUS_PROGNOSA];
+
+function cekTahunBaru_() {
+  var arsip = [];
+  SpreadsheetApp.getActive().getSheets().forEach(function (t) {
+    var m = /^(Prognosa|PrognosaTetap|StatusPrognosa) (\d{4})$/.exec(t.getName());
+    if (m && arsip.indexOf(Number(m[2])) < 0) arsip.push(Number(m[2]));
+  });
+  var r = bacaRealisasi_().data;
+  return {
+    ok: true, tahunIni: tahunWita_(), arsipPrognosa: arsip.sort(),
+    isianPrognosa: isianPrognosa_().length, prognosaDitetapkan: !!bacaTetap_(), aturan: aturanPrognosa_(),
+    tahunRealisasi: r && r.mentah ? (Number(r.mentah.tahun) || null) : null, bulanRealisasi: r ? (Number(r.bulan) || null) : null
+  };
+}
+
+function arsipkanPrognosa_(minta, who) {
+  var tahun = Math.round(Number(minta.tahun));
+  if (!(tahun >= 2020 && tahun <= 2100)) throw new Error("Tahun arsip tidak sah.");
+  var ss = SpreadsheetApp.getActive();
+  var kunciTulis = LockService.getScriptLock();
+  if (!kunciTulis.tryLock(10000)) throw new Error("Sedang ada penyimpanan lain. Coba lagi.");
+  try {
+    TAB_ARSIP_PROGNOSA_.forEach(function (nama) {
+      if (ss.getSheetByName(nama + " " + tahun)) throw new Error("Arsip prognosa " + tahun + " sudah ada. Pilih tahun lain atau ganti nama tab arsipnya di spreadsheet.");
+    });
+    var dipindah = [];
+    TAB_ARSIP_PROGNOSA_.forEach(function (nama) {
+      var t = ss.getSheetByName(nama);
+      if (t) { t.setName(nama + " " + tahun); dipindah.push(nama); }
+    });
+    var lama = aturanPrognosa_();
+    PropertiesService.getScriptProperties().setProperty(PROPERTI_ATURAN_PROGNOSA,
+      JSON.stringify({ terbuka: false, batas: "", sampai: (tahun + 1) + "-12-15", saldoUp: 0, judul: lama.judul }));
+    CacheService.getScriptCache().remove("prognosaPublik");
+    catatLog_(minta.penyunting, who.peran, "Mengarsipkan prognosa", "Tahun " + tahun + (dipindah.length ? ": " + dipindah.join(", ") : ", tanpa tab berisi"));
+    var hasil = cekTahunBaru_();
+    hasil.dipindah = dipindah;
+    return balas_(hasil);
+  } finally { kunciTulis.releaseLock(); }
 }

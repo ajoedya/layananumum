@@ -1,6 +1,6 @@
 # Monitoring Realisasi Anggaran
 
-Dashboard pemantauan penyerapan anggaran KPKNL Balikpapan untuk Tahun Anggaran 2026. Halaman ini menampilkan pagu, realisasi, dan sisa anggaran satker, lalu membandingkan capaiannya dengan target penyerapan triwulanan.
+Dashboard pemantauan penyerapan anggaran KPKNL Balikpapan. Tahun anggaran yang tampil mengikuti data Laporan Fa terbitan terakhir. Halaman ini menampilkan pagu, realisasi, dan sisa anggaran satker, lalu membandingkan capaiannya dengan target penyerapan triwulanan.
 
 **Buka di [ajoedya.github.io/layananumum/realisasi](https://ajoedya.github.io/layananumum/realisasi/)** (alamat lama `/jagakas/` otomatis dialihkan ke sini).
 
@@ -85,7 +85,8 @@ Tab Parameter hanya ada di file induk. Di sana tersimpan pemetaan 22 rincian out
 
 ## Tren, target, dan ekspor (dasbor admin)
 
-- Tiap penerbitan menambah satu titik tren (`tren` di data) untuk bulan itu. Kartu "Penyerapan antarbulan" tampil di rekap lengkap setelah ada dua titik.
+- Tiap penerbitan menambah satu titik tren (`tren` di data) untuk bulan itu. Kartu "Penyerapan antarbulan" tampil di rekap lengkap setelah ada dua titik. Grafik hanya memuat titik tahun anggaran data yang tayang, karena realisasi kumulatif mulai dari nol setiap Januari; titik tahun sebelumnya tetap tersimpan.
+- Pergantian tahun anggaran (target baru, arsip prognosa, sumber CSV Perjadin) dipandu modul Tahun baru di dasbor admin. Lihat juga `PANDUAN-SERAH-TERIMA.md` di akar repo.
 - Target dan ambang per kelompok belanja dan triwulan bisa diubah di menu Monev anggaran, lalu diterbitkan tanpa impor ulang.
 - Tombol "Unduh ringkasan (.xlsx)" membuat ringkasan bulanan (empat lembar).
 - Pengingat impor: bilah di dasbor muncul mulai tanggal 5 bila data belum memuat bulan lalu. Surel pengingat dipasang lewat menu Dasbor Beranda di spreadsheet.

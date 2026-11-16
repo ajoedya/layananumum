@@ -227,6 +227,18 @@ details.gaya > .kisi { padding: 4px 14px 14px; }
 .gaya-baris input[type="range"] { height: 44px; }
 table.target input { min-height: 44px; }
 .lencana.jadwal { background: #fff1d6; color: #7a4a05; }
+/* Daftar periksa pergantian tahun anggaran (modul Tahun baru). */
+.periksa { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.periksa > li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; padding: 12px 14px; border: 1px solid var(--garis); border-radius: 8px; background: var(--putih); }
+.periksa > li.beres { background: var(--hijau-muda); border-color: transparent; }
+.periksa .tanda { grid-row: span 3; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 14px; font-weight: 800; background: var(--emas-muda); color: var(--emas-teks); }
+.periksa li.beres .tanda { background: var(--hijau); color: #fff; }
+.periksa h4 { margin: 2px 0 0; font-size: 15px; }
+.periksa p { margin: 0; color: var(--lembut); font-size: 14px; }
+.periksa .aksi { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 6px; }
+.periksa .aksi label { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; }
+.periksa ul.usang { margin: 6px 0 0; padding-left: 18px; font-size: 14px; }
+.periksa ul.usang li { margin: 2px 0; }
 .pengingat { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; max-width: 1120px; margin: 0; padding: 10px 16px; border-left: 3px solid var(--emas); border-radius: 4px; background: var(--emas-muda); color: #5a3a06; font-size: 14px; }
 .pengingat span { flex: 1 1 260px; }
 table.target input { width: 76px; min-height: 36px; padding: 4px 8px; border: 1px solid var(--kolom); border-radius: 6px; background: var(--putih); text-align: right; }
@@ -268,6 +280,7 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
     <nav class="modul" id="modul" aria-label="Bagian dasbor" hidden>
       <button type="button" data-modul="beranda" aria-pressed="true">Beranda</button>
       <button type="button" data-modul="monev" aria-pressed="false">Monev anggaran</button>
+      <button type="button" data-modul="tahun" aria-pressed="false">Tahun baru</button>
     </nav>
     <div class="rk-kelompok" role="tablist" aria-label="Bagian beranda" id="tabBaris" hidden></div>
     <p class="rk-ket">KPKNL BALIKPAPAN</p>
@@ -313,6 +326,10 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
 
 <div class="wadah" id="layarMonev" hidden>
   <div id="panelMonev"></div>
+</div>
+
+<div class="wadah" id="layarTahun" hidden>
+  <div id="panelTahun"></div>
 </div>
  </main>
 </div>
@@ -456,6 +473,7 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
     if (keadaan.uji) $("tombolTerbit").disabled = true;
     gambarTab(); berubah(true);
     periksaPengingat();
+    periksaTahunBaru();
   }
 
   /* ---------- Perubahan, draf, dan pratinjau ---------- */
@@ -1454,12 +1472,13 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
     if (b) pilihModul(b.getAttribute("data-modul"));
   });
   function pilihModul(m) {
-    var monevAktif = m === "monev";
-    $("layarSunting").hidden = monevAktif; $("tabBaris").hidden = monevAktif;
-    $("layarMonev").hidden = !monevAktif;
-    ["status", "tombolPratinjau", "tombolTerbit"].forEach(function (id) { $(id).hidden = monevAktif; });
+    var monevAktif = m === "monev", tahunAktif = m === "tahun", berandaAktif = !monevAktif && !tahunAktif;
+    $("layarSunting").hidden = !berandaAktif; $("tabBaris").hidden = !berandaAktif;
+    $("layarMonev").hidden = !monevAktif; $("layarTahun").hidden = !tahunAktif;
+    ["status", "tombolPratinjau", "tombolTerbit"].forEach(function (id) { $(id).hidden = !berandaAktif; });
     [].forEach.call($("modul").querySelectorAll("button"), function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-modul") === m)); });
     if (monevAktif && !monev.dimuat && !monev.memuat) muatMonev();
+    if (tahunAktif && !tahunBaru.memuat) muatTahunBaru();
   }
 
   function muatMonev() {
@@ -2117,6 +2136,150 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
     n.appendChild(el("button", { type: "button", kelas: "tombol kecil utama", teks: "Buka Monev anggaran", onclick: function () { pilihModul("monev"); } }));
     n.appendChild(el("button", { type: "button", kelas: "tombol kecil", teks: "Tutup", onclick: function () { try { sessionStorage.setItem(tanda, "1"); } catch (e) { /* abaikan */ } n.hidden = true; } }));
   }
+  /* ---------- Pergantian tahun anggaran (modul Tahun baru) ----------
+     Daftar periksa awal tahun anggaran. Sebagian butir diperiksa otomatis dari server (data realisasi, arsip prognosa)
+     dan dari isi beranda (teks yang menyebut tahun lalu); sisanya dicentang admin dan disimpan di peramban ini saja.
+     Mulai Desember daftar ini menyiapkan tahun anggaran berikutnya. */
+  var tahunBaru = { memuat: false, data: null, galat: "", sibuk: false };
+  function taSasaran(kini) { kini = kini || new Date(); return kini.getMonth() === 11 ? kini.getFullYear() + 1 : kini.getFullYear(); }
+  function centangTahun(ta) { try { return JSON.parse(bacaLokal("layanan-tahun-baru-" + ta) || "{}") || {}; } catch (e) { return {}; } }
+
+  // Informasi, tautan, dan pop up yang masih tayang tetapi menyebut tahun sebelum tahun anggaran sasaran.
+  function isiUsang(konten, ta) {
+    var hasil = [], k = konten || {};
+    function periksa(daftar, tab, jenis, teks) {
+      (daftar || []).forEach(function (x, i) {
+        if (!x || x.tampil === false || K.statusJadwal(x) === "lewat") return;
+        var tahun = (teks(x).match(/\b20\d\d\b/g) || []).map(Number).filter(function (t) { return t < ta; });
+        if (!tahun.length) return;
+        hasil.push({ tab: tab, jenis: jenis, judul: String(x.judul || x.label || "(tanpa judul)").replace(/[*_]/g, ""), tahun: Math.max.apply(null, tahun), selesai: x.selesai || "" });
+      });
+    }
+    periksa(k.info, "info", "Informasi", function (x) { return [x.label, x.judul, x.isi].join(" "); });
+    periksa(k.tautan, "tautan", "Tautan", function (x) { return [x.judul, x.uraian, x.alamat].join(" "); });
+    periksa(k.pemberitahuan, "pemberitahuan", "Pop up", function (x) { return [x.judul, x.isi].join(" "); });
+    return hasil;
+  }
+
+  function muatTahunBaru() {
+    tahunBaru.memuat = true; tahunBaru.galat = "";
+    gambarTahunBaru();
+    kirim({ aksi: "tahunBaruCek" }).then(function (h) {
+      tahunBaru.memuat = false;
+      if (!h.ok) {
+        tahunBaru.galat = h.pesan === "Aksi tidak dikenal"
+          ? "Kode Apps Script yang tayang belum memuat fitur Tahun baru. Tempel apps-script/AdminBeranda.gs terbaru lalu deploy versi baru (Kelola deployment > ikon pensil > Versi baru)."
+          : (h.pesan || "Status tahun anggaran gagal dimuat.");
+      } else tahunBaru.data = h;
+      gambarTahunBaru();
+    });
+  }
+
+  // Status butir otomatis. Dipakai daftar periksa dan pengingat di bilah atas.
+  function butirTahunBaru(d, ta, kini) {
+    kini = kini || new Date();
+    var lalu = ta - 1, sudahMasuk = kini.getFullYear() >= ta;
+    var arsipBeres = d && (d.arsipPrognosa.indexOf(lalu) >= 0 || (!d.isianPrognosa && !d.prognosaDitetapkan));
+    var usang = isiUsang(keadaan.konten, ta);
+    return [
+      { id: "realisasi", judul: "Terbitkan data realisasi TA " + ta,
+        isi: "Impor Laporan Fa pertama tahun " + ta + " di Monev anggaran. Halaman Monitoring dan sisa pagu Prognosa baru memakai pagu TA " + ta + " setelah data ini terbit. Sampai saat itu halaman masih menampilkan data TA " + lalu + ".",
+        otomatis: true, beres: !!(d && d.tahunRealisasi === ta),
+        status: d ? (d.tahunRealisasi ? "Data yang tayang: " + (d.bulanRealisasi ? BULAN_ID[d.bulanRealisasi - 1] + " " : "") + d.tahunRealisasi + "." : "Belum ada data terbitan.") : "",
+        tombol: ["Buka Monev anggaran", function () { pilihModul("monev"); }] },
+      { id: "target", judul: "Periksa target dan ambang penyerapan",
+        isi: "Sesuaikan target per triwulan dan toleransi belanja pegawai dengan ketentuan Ditjen Perbendaharaan untuk TA " + ta + ". Acuan terakhir yang dipakai halaman Monitoring: PER-5/PB/2024 dan ND-145/PB.2/2026. Ubah di kotak Target pada Monev anggaran.",
+        tombol: ["Buka Monev anggaran", function () { pilihModul("monev"); }] },
+      { id: "arsip", judul: "Arsipkan prognosa TA " + lalu,
+        isi: "Isian, penetapan, dan status kegiatan prognosa TA " + lalu + " dipindah ke tab arsip berakhiran " + lalu + " di spreadsheet, lalu pengisian prognosa ditutup. Tidak ada data yang dihapus. Lakukan setelah pengajuan TUP TA " + lalu + " selesai.",
+        otomatis: true, beres: !!arsipBeres,
+        status: d ? (d.arsipPrognosa.indexOf(lalu) >= 0 ? "Arsip " + lalu + " sudah ada." : (d.isianPrognosa || d.prognosaDitetapkan) ? d.isianPrognosa + " unit punya isian" + (d.prognosaDitetapkan ? ", prognosa sudah ditetapkan." : ".") : "Tidak ada isian prognosa.") : "",
+        tombol: d && !arsipBeres ? ["Arsipkan prognosa " + lalu, function () { arsipkanPrognosa(lalu); }, !sudahMasuk, sudahMasuk ? "" : "Tersedia mulai 1 Januari " + ta + "."] : null },
+      { id: "prognosa", judul: "Atur prognosa TA " + ta,
+        isi: "Setel tanggal batas pengisian, batas kegiatan, dan saldo UP baru di kotak Pengajuan TUP pada Monev anggaran sebelum membuka pengisian untuk seksi.",
+        tombol: ["Buka Monev anggaran", function () { pilihModul("monev"); }] },
+      { id: "perjadin", judul: "Periksa sumber data Monitoring E-Perjadin",
+        isi: "Halaman Perjadin dan daftar ST di Prognosa membaca CSV tab E-Perjadin yang diterbitkan (Publish to web). Bila TA " + ta + " memakai tab atau spreadsheet baru, terbitkan tab itu sebagai CSV, lalu ganti SUMBER_CSV_PERJADIN di konten.js. Pasang juga apps-script/TautanBukti.gs di spreadsheet itu dan sesuaikan ID_TAB dengan gid tab barunya." },
+      { id: "isi", judul: "Tinjau isi beranda yang menyebut tahun lalu",
+        isi: usang.length ? "Isi berikut masih tayang dan menyebut tahun sebelum " + ta + ". Perbarui teksnya, beri tanggal tayang sampai, atau sembunyikan." : "Tidak ada informasi, tautan, atau pop up tayang yang menyebut tahun sebelum " + ta + ".",
+        otomatis: true, beres: !usang.length, usang: usang },
+      { id: "akun", judul: "Periksa akun, domain, dan kunci",
+        isi: "Pastikan domain para.my.id masih aktif dan diperpanjang, akun GitHub dan Google pemilik Apps Script masih bisa diakses pengelola, dan ganti kunci admin serta kunci prognosa bila ada pergantian pengelola. Rinciannya di PANDUAN-SERAH-TERIMA.md." }
+    ];
+  }
+
+  function arsipkanPrognosa(tahun) {
+    if (!confirm("Arsipkan prognosa TA " + tahun + "?\n\nTab Prognosa, PrognosaTetap, dan StatusPrognosa diganti namanya menjadi \"... " + tahun + "\", lalu pengisian prognosa ditutup dan aturannya dikosongkan. Data tidak dihapus, tetapi tidak tampil lagi di dasbor maupun halaman Prognosa.")) return;
+    tahunBaru.sibuk = true; gambarTahunBaru();
+    kirim({ aksi: "tahunBaruPrognosa", tahun: tahun, penyunting: keadaan.nama }).then(function (h) {
+      tahunBaru.sibuk = false;
+      if (!h.ok) { kabar(h.pesan || "Arsip gagal.", true); gambarTahunBaru(); return; }
+      tahunBaru.data = h; monev.dimuat = false;   // kotak Pengajuan TUP di Monev perlu dimuat ulang
+      kabar("Prognosa TA " + tahun + " sudah diarsipkan.");
+      gambarTahunBaru(); periksaTahunBaru();
+    });
+  }
+
+  function gambarTahunBaru() {
+    var p = $("panelTahun"), ta = taSasaran(), centang = centangTahun(ta);
+    p.textContent = "";
+    p.appendChild(judulBagian("Tahun anggaran " + ta));
+    p.appendChild(el("p", { kelas: "petunjuk", teks: "Daftar persiapan pergantian tahun anggaran. Butir bertanda otomatis diperiksa dari data yang tayang; butir lain dicentang sendiri setelah dikerjakan (centangnya tersimpan di peramban ini). Mulai Desember daftar ini menyiapkan tahun anggaran berikutnya." }));
+    if (tahunBaru.galat) p.appendChild(el("p", { kelas: "pesan galat", role: "alert", style: "margin-bottom:14px", teks: tahunBaru.galat }));
+    if (tahunBaru.memuat) { p.appendChild(el("p", { kelas: "petunjuk", teks: "Memuat status tahun anggaran..." })); return; }
+    var d = tahunBaru.data, daftar = butirTahunBaru(d, ta);
+    var ol = el("ol", { kelas: "periksa" });
+    daftar.forEach(function (b, i) {
+      var beres = b.otomatis ? b.beres : !!centang[b.id];
+      var aksi = el("div", { kelas: "aksi" });
+      if (b.status) aksi.appendChild(el("span", { kelas: "petunjuk", style: "margin:0", teks: b.status }));
+      if (b.tombol) {
+        aksi.appendChild(el("button", { type: "button", kelas: "tombol kecil" + (b.id === "arsip" ? " utama" : ""), teks: tahunBaru.sibuk && b.id === "arsip" ? "Mengarsipkan..." : b.tombol[0], disabled: !!b.tombol[2] || tahunBaru.sibuk, onclick: b.tombol[1] }));
+        if (b.tombol[3]) aksi.appendChild(el("span", { kelas: "petunjuk", style: "margin:0", teks: b.tombol[3] }));
+      }
+      if (!b.otomatis) {
+        var c = el("input", { type: "checkbox" }); c.checked = !!centang[b.id];
+        c.addEventListener("change", function () { centang[b.id] = c.checked; simpanLokal("layanan-tahun-baru-" + ta, centang); gambarTahunBaru(); periksaTahunBaru(); });
+        aksi.appendChild(el("label", null, [c, "Sudah dikerjakan"]));
+      }
+      var isi = [el("span", { kelas: "tanda", "aria-hidden": "true", teks: beres ? "✓" : String(i + 1) }),
+        el("h4", { teks: b.judul + (beres ? " (beres)" : "") }), el("p", { teks: b.isi })];
+      if (b.usang && b.usang.length) {
+        isi.push(el("ul", { kelas: "usang" }, b.usang.map(function (u) {
+          return el("li", null, [u.jenis + ": " + u.judul + " (menyebut " + u.tahun + ") ",
+            el("button", { type: "button", kelas: "tombol kecil", teks: "Sunting", onclick: function () { pilihModul("beranda"); keadaan.tab = u.tab; gambarTab(); gambarPanel(); } })]);
+        })));
+      }
+      if (aksi.childNodes.length) isi.push(aksi);
+      ol.appendChild(el("li", { kelas: beres ? "beres" : "" }, isi));
+    });
+    var sisa = daftar.filter(function (b) { return !(b.otomatis ? b.beres : centang[b.id]); }).length;
+    p.appendChild(el("p", { kelas: "pesan " + (sisa ? "info" : "baik"), role: "status", style: "margin-bottom:14px", teks: sisa ? sisa + " dari " + daftar.length + " butir belum beres." : "Semua persiapan TA " + ta + " sudah beres." }));
+    p.appendChild(ol);
+    p.appendChild(el("div", { kelas: "bagian-judul", style: "margin:14px 0 0" }, [el("button", { type: "button", kelas: "tombol kecil", teks: "Periksa ulang", onclick: muatTahunBaru })]));
+  }
+
+  // Bilah pengingat 1 Desember sampai akhir Februari, selama butir otomatis belum beres.
+  function periksaTahunBaru() {
+    if (keadaan.uji || keadaan.peran !== "admin") return;
+    var kini = new Date(), bulan = kini.getMonth();
+    if (!(bulan === 11 || bulan <= 1)) return;
+    var ta = taSasaran(kini), tanda = "layanan-pengingat-ta-" + ta;
+    var ditutup = false; try { ditutup = !!sessionStorage.getItem(tanda); } catch (e) { /* abaikan */ }
+    function pasang(d) {
+      var n = $("pengingatTahun");
+      if (!n) { n = el("div", { id: "pengingatTahun", kelas: "pengingat", role: "status", hidden: true }); document.querySelector(".alat-admin").insertAdjacentElement("afterend", n); }
+      var sisa = butirTahunBaru(d, ta, kini).filter(function (b) { return b.otomatis && !b.beres; }).length;
+      n.textContent = ""; n.hidden = ditutup || !sisa;
+      if (n.hidden) return;
+      n.appendChild(el("span", { teks: bulan === 11 ? "Tahun anggaran " + ta + " dimulai 1 Januari. Lihat daftar persiapannya." : "Persiapan tahun anggaran " + ta + " belum beres (" + sisa + " butir otomatis)." }));
+      n.appendChild(el("button", { type: "button", kelas: "tombol kecil utama", teks: "Buka Tahun baru", onclick: function () { pilihModul("tahun"); } }));
+      n.appendChild(el("button", { type: "button", kelas: "tombol kecil", teks: "Tutup", onclick: function () { try { sessionStorage.setItem(tanda, "1"); } catch (e) { /* abaikan */ } n.hidden = true; } }));
+    }
+    if (tahunBaru.data) { pasang(tahunBaru.data); return; }
+    kirim({ aksi: "tahunBaruCek" }).then(function (h) { if (h.ok) { tahunBaru.data = h; pasang(h); } });
+  }
+
   // Diperiksa diam-diam sekali setelah admin masuk, supaya pengingat muncul tanpa membuka Monev.
   function periksaPengingat() {
     if (keadaan.uji || keadaan.peran !== "admin") return;
@@ -2125,8 +2288,10 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
 
   // Grafik tren di dasbor: batang persentase per bulan dengan titik target.
   function kotakTren(d) {
-    var tren = d && Array.isArray(d.tren) ? d.tren : [];
-    var kotak = el("div", { kelas: "kotak", style: "margin-bottom:16px" }, [el("h3", { kelas: "sub", teks: "Tren penyerapan" })]);
+    // Hanya tahun anggaran data yang tayang; titik tahun sebelumnya tetap tersimpan di data tren.
+    var ta = Number(d && d.mentah && d.mentah.tahun) || 0;
+    var tren = (d && Array.isArray(d.tren) ? d.tren : []).filter(function (x) { return !ta || !x.tahun || Number(x.tahun) === ta; });
+    var kotak = el("div", { kelas: "kotak", style: "margin-bottom:16px" }, [el("h3", { kelas: "sub", teks: "Tren penyerapan" + (ta ? " TA " + ta : "") })]);
     if (tren.length < 2) { kotak.appendChild(el("p", { kelas: "petunjuk", style: "margin:0", teks: "Tren tampil setelah dua bulan diterbitkan lewat dasbor. Titik bulan ini tercatat otomatis saat Anda menerbitkan data." })); return kotak; }
     var rows = tren.slice(-12);
     kotak.appendChild(el("div", { kelas: "grafik", role: "img", "aria-label": "Persentase realisasi per bulan, " + rows.map(function (x) { return BULAN_ID[x.bulan - 1] + " " + persenTeks(x.sd, x.pagu); }).join(", ") },

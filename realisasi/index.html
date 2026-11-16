@@ -3342,10 +3342,12 @@ function hitungUlang(){
 }
 
 /* ---- tren penyerapan antarbulan ----
-   Data tren dikumpulkan dasbor admin tiap kali data diterbitkan (satu titik per bulan). Kartu tampil bila ada dua titik atau lebih. */
+   Data tren dikumpulkan dasbor admin tiap kali data diterbitkan (satu titik per bulan). Kartu tampil bila ada dua titik atau lebih.
+   Hanya titik tahun anggaran data yang tayang yang digambar, karena realisasi kumulatif mulai lagi dari nol setiap Januari. */
 function gambarTren(){
   const kotak=el('panelTren'); if(!kotak) return;
-  const t=(TREN||[]).filter(x=>x&&x.pagu>0).slice(-24);
+  const ta=Number(MENTAH&&MENTAH.tahun)||0;
+  const t=(TREN||[]).filter(x=>x&&x.pagu>0&&(!ta||!x.tahun||Number(x.tahun)===ta)).slice(-12);
   kotak.hidden=t.length<2;
   if(t.length<2) return;
   const lebar=940,tinggi=250,kiri=44,kanan=16,atas=22,bawah=34;

@@ -15,6 +15,11 @@
      **tebal**  → tebal
      _miring_   → miring (untuk istilah asing)
    ============================================================ */
+/* Sumber data Monitoring E-Perjadin dan daftar ST di Prognosa: tautan "Publish to web" (format CSV) tab E-Perjadin.
+   Bila tahun anggaran baru memakai tab atau spreadsheet lain, terbitkan tab itu sebagai CSV lalu ganti tautan ini saja.
+   Tautan ini hanya dibaca halaman, tidak pernah ditampilkan sebagai tautan di situs. */
+window.SUMBER_CSV_PERJADIN = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT7jvGq4u-PBVeEj5rCZrEnPVSfexxR8dypEBulFs80iZI-ODhj0JPDPJrfWW5PxlYkdtva-ehkKcyt/pub?gid=734508134&single=true&output=csv";
+
 window.ALAMAT_SKRIP = "https://script.google.com/macros/s/AKfycbz-jSdem8YddXJkAImPtBItSmyDafm8FSTmAZSuH0ixwV4pfQTLBko6pWAmCmK1SPtM/exec";
 
 window.KONTEN_BAWAAN = {
