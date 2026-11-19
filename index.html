@@ -15,8 +15,10 @@
     if (/[?&]mode=biasa\b/.test(q)) localStorage.removeItem("layanan-arkade");
     else if (!/[?&]pratinjau=1\b/.test(q) && localStorage.getItem("layanan-arkade") === "1") location.replace("arkade/" + location.hash);
   } catch (e) { /* abaikan */ }
+  try { if (sessionStorage.getItem("layanan-tirai")) { sessionStorage.removeItem("layanan-tirai"); var h = document.documentElement; h.classList.add("tirai"); setTimeout(function () { h.classList.remove("tirai"); }, 3000); } } catch (e) { /* abaikan */ }
 })();
 </script>
+<style>/* Tirai piksel sesudah pindah dari atau ke mode arkade; dibuka skrip halaman, dengan batas waktu sebagai pengaman. */html.tirai::after { content: ""; position: fixed; inset: 0; z-index: 2147483646; background: #efe6d2; } html.tirai[data-mode="gelap"]::after { background: #0a1420; }</style>
 <meta name="description" content="Layanan Subbagian Umum KPKNL Balikpapan: perjalanan dinas, keuangan, dan perkakas kerja dalam satu halaman.">
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">

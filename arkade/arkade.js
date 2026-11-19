@@ -195,9 +195,76 @@
     s.babak = ids[(ids.indexOf(s.babak) + arah + ids.length) % ids.length]; s.pilih = 0; bunyi(440, .06);
     gambar(document.activeElement && document.activeElement.id === "cariPx");
   }
-  function keluar() {
+
+  /* ---------- Tirai piksel ----------
+     Masuk dan keluar mode arkade ditandai layar yang tertutup kotak-kotak piksel. Halaman tujuan membuka tirainya
+     lagi (sessionStorage "layanan-tirai"). Warnanya mengikuti mode terang atau gelap. */
+  function warnaTirai() { return document.documentElement.getAttribute("data-mode") === "gelap" ? ["#0a1420", "#0f2236", "#13304b"] : ["#efe6d2", "#f1e5c8", "#fbf5e8"]; }
+  function kanvasTirai() {
+    var k = document.createElement("canvas");
+    k.setAttribute("aria-hidden", "true");
+    k.style.cssText = "position:fixed;inset:0;width:100%;height:100%;z-index:2147483647;pointer-events:none;image-rendering:pixelated";
+    k.width = window.innerWidth; k.height = window.innerHeight;
+    document.body.appendChild(k);
+    var ukuran = Math.max(24, Math.round(Math.min(k.width, k.height) / 14)), kotak = [];
+    for (var y = 0; y < k.height; y += ukuran) for (var x = 0; x < k.width; x += ukuran) kotak.push([x, y]);
+    return { el: k, c: k.getContext("2d"), ukuran: ukuran, kotak: kotak };
+  }
+  // Menutup layar mulai dari titik (ax, ay), lalu memanggil selesai.
+  function tutupTirai(ax, ay, selesai) {
+    var t = kanvasTirai(), w = warnaTirai(), i = 0;
+    t.kotak.forEach(function (k) { k[2] = Math.hypot(k[0] - ax, k[1] - ay) + Math.random() * t.ukuran * 6; });
+    t.kotak.sort(function (a, b) { return a[2] - b[2]; });
+    var per = Math.ceil(t.kotak.length / 30);
+    (function langkah() {
+      for (var n = 0; n < per && i < t.kotak.length; n++, i++) {
+        t.c.fillStyle = Math.random() < .04 ? "#f2b44a" : w[(Math.random() * w.length) | 0];
+        t.c.fillRect(t.kotak[i][0], t.kotak[i][1], t.ukuran, t.ukuran);
+      }
+      if (i < t.kotak.length) requestAnimationFrame(langkah); else selesai(t.el);
+    })();
+  }
+  // Membuka tirai yang dipasang <head> (kelas "tirai"): kotak-kotak menghilang acak dari titik (ax, ay).
+  function bukaTirai(ax, ay) {
+    var h = document.documentElement;
+    if (!h.classList.contains("tirai")) return;
+    var t = kanvasTirai(), w = warnaTirai(), i = 0;
+    t.kotak.forEach(function (k) { t.c.fillStyle = w[(Math.random() * w.length) | 0]; t.c.fillRect(k[0], k[1], t.ukuran, t.ukuran); k[2] = Math.hypot(k[0] - ax, k[1] - ay) + Math.random() * t.ukuran * 6; });
+    h.classList.remove("tirai");
+    if (diam) { t.el.remove(); return; }
+    t.kotak.sort(function (a, b) { return a[2] - b[2]; });
+    var per = Math.ceil(t.kotak.length / 26);
+    setTimeout(function langkah() {
+      for (var n = 0; n < per && i < t.kotak.length; n++, i++) t.c.clearRect(t.kotak[i][0], t.kotak[i][1], t.ukuran, t.ukuran);
+      if (i < t.kotak.length) requestAnimationFrame(langkah); else t.el.remove();
+    }, 120);
+  }
+
+  // Keluar: beruang pamit, nada turun, layar tertutup piksel dari tombol KELUAR, lalu "SAMPAI JUMPA!" sebelum pindah.
+  var sedangKeluar = false;
+  function keluar(tombol) {
+    if (sedangKeluar) return;
+    sedangKeluar = true;
     try { localStorage.removeItem(KUNCI_ARKADE); } catch (e) { /* abaikan */ }
-    location.href = new URL("./", document.baseURI).href;
+    var tujuan = new URL("./", document.baseURI).href;
+    if (diam) { location.href = tujuan; return; }
+    try { sessionStorage.setItem("layanan-tirai", "1"); } catch (e) { /* abaikan */ }
+    var g = layar.querySelector(".gelembung");
+    if (g) { g.textContent = "DAH!"; g.style.animation = "none"; g.style.opacity = "1"; }
+    [660, 523, 392, 262].forEach(function (f, i) { setTimeout(function () { bunyi(f, .09); }, 110 * i); });
+    var r = tombol ? tombol.getBoundingClientRect() : { left: window.innerWidth, top: 0, width: 0, height: 0 };
+    setTimeout(function () {
+      tutupTirai(r.left + r.width / 2, r.top + r.height / 2, function (kanvas) {
+        var pesan = document.createElement("p");
+        pesan.textContent = "SAMPAI JUMPA!";
+        var gelapnya = document.documentElement.getAttribute("data-mode") === "gelap";
+        pesan.style.cssText = "position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;z-index:2147483647;font:700 clamp(28px,6vw,56px)/1 var(--px);letter-spacing:.06em;white-space:nowrap;" +
+          "color:" + (gelapnya ? "#ffd27a" : "#b8700f") + ";text-shadow:4px 4px 0 " + (gelapnya ? "#b8700f" : "#f2d49a");
+        document.body.appendChild(pesan);
+        bunyi(196, .2);
+        setTimeout(function () { location.href = tujuan; }, 650);
+      });
+    }, 380);
   }
 
   layar.addEventListener("input", function (e) { if (e.target.id !== "cariPx") return; s.cari = e.target.value; s.pilih = 0; gambar(true); });
@@ -212,7 +279,7 @@
       try { localStorage.setItem("arkade-suara", s.suara ? "1" : "0"); } catch (er) { /* abaikan */ }
       gambar(); bunyi(990, .06);
     }
-    if (b.hasAttribute("data-keluar")) { bunyi(330, .08); keluar(); }
+    if (b.hasAttribute("data-keluar")) keluar(b);
     if (b.hasAttribute("data-tema") && window.Tema) { bunyi(770, .06); Tema.alihMode(); }
   });
   layar.addEventListener("mouseover", function (e) { var a = e.target.closest("a[data-i]"); if (a && Number(a.dataset.i) !== s.pilih) pilihKe(Number(a.dataset.i)); });
@@ -262,6 +329,8 @@
   document.addEventListener("modeberubah", function () { var t = document.activeElement && document.activeElement.hasAttribute && document.activeElement.hasAttribute("data-tema"); gambar(); if (t) { var x = layar.querySelector("[data-tema]"); if (x) x.focus(); } });
   try { if (localStorage.getItem("arkade-suara") === "0") s.suara = false; } catch (e) { /* abaikan */ }
   siapkan();
+  // Datang dari beranda lewat beruang: tirai dibuka dari pojok kanan bawah, tempat beruang berdiri.
+  bukaTirai(window.innerWidth, window.innerHeight);
   if (window.Popup) Popup.mulai({ halaman: "beranda", cache: false });
   if (window.Popup) Popup.perbarui(konten);
   gambar();

@@ -230,8 +230,34 @@
     }, 700);
   }
 
+  // Kembali dari mode arkade: tirai piksel yang dipasang <head> (kelas "tirai") dibuka acak dari pojok beruang.
+  function bukaTirai() {
+    var h = document.documentElement;
+    if (!h.classList.contains("tirai")) return;
+    var gelap = h.getAttribute("data-mode") === "gelap";
+    var warna = gelap ? ["#0a1420", "#0f2236", "#13304b"] : ["#efe6d2", "#f1e5c8", "#fbf5e8"];
+    var k = document.createElement("canvas");
+    k.className = "beruang-tabir";
+    k.width = window.innerWidth; k.height = window.innerHeight;
+    document.body.appendChild(k);
+    var c = k.getContext("2d"), ukuran = Math.max(24, Math.round(Math.min(k.width, k.height) / 14)), kotak = [];
+    for (var y = 0; y < k.height; y += ukuran) for (var x = 0; x < k.width; x += ukuran) {
+      c.fillStyle = warna[(Math.random() * warna.length) | 0]; c.fillRect(x, y, ukuran, ukuran);
+      kotak.push([x, y, Math.hypot(x - k.width, y - k.height) + Math.random() * ukuran * 6]);
+    }
+    h.classList.remove("tirai");
+    if (diam) { k.remove(); return; }
+    kotak.sort(function (a, b) { return a[2] - b[2]; });
+    var i = 0, per = Math.ceil(kotak.length / 26);
+    setTimeout(function langkah() {
+      for (var n = 0; n < per && i < kotak.length; n++, i++) c.clearRect(kotak[i][0], kotak[i][1], ukuran, ukuran);
+      if (i < kotak.length) requestAnimationFrame(langkah); else k.remove();
+    }, 120);
+  }
+
   function mulai() {
     buat();
+    bukaTirai();
     tampil("diam");
     var x = xPojok(pojok);
     aturNaik(cariNaik(pojok));
@@ -247,7 +273,7 @@
     iseng();
   }
 
-  // Transisi: layar tertutup kotak-kotak piksel navy yang menyebar dari beruang, lalu pindah ke mode arkade.
+  // Transisi: layar tertutup kotak-kotak piksel (navy atau krem mengikuti tema) yang menyebar dari beruang, lalu pindah ke mode arkade.
   function masukArkade() {
     if (sudah) return;
     sudah = true;
@@ -268,7 +294,8 @@
     var bx = posisi + tombol.offsetWidth / 2, by = T - 40;
     kotak.forEach(function (k) { k[2] = Math.hypot(k[0] - bx, k[1] - by) + Math.random() * ukuran * 6; });
     kotak.sort(function (a, b) { return a[2] - b[2]; });
-    var warna = ["#0a1420", "#0f2236", "#13304b"];
+    var warna = document.documentElement.getAttribute("data-mode") === "gelap" ? ["#0a1420", "#0f2236", "#13304b"] : ["#efe6d2", "#f1e5c8", "#fbf5e8"];
+    try { sessionStorage.setItem("layanan-tirai", "1"); } catch (e) { /* abaikan */ }
     var i = 0, perBingkai = Math.ceil(kotak.length / 32);
     setTimeout(function langkah() {
       for (var n = 0; n < perBingkai && i < kotak.length; n++, i++) {

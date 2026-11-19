@@ -26,6 +26,12 @@
 <!-- Huruf piksel (Pixelify Sans, disimpan di repo) untuk judul dan label. -->
 <link rel="stylesheet" href="arkade/huruf/pixelify-sans.css">
 <link rel="stylesheet" href="popup.css">
+<script>
+(function () {
+  try { if (sessionStorage.getItem("layanan-tirai")) { sessionStorage.removeItem("layanan-tirai"); var h = document.documentElement; h.classList.add("tirai"); setTimeout(function () { h.classList.remove("tirai"); }, 3000); } } catch (e) { /* abaikan */ }
+})();
+</script>
+<style>/* Tirai piksel sesudah pindah dari atau ke mode arkade; dibuka skrip halaman, dengan batas waktu sebagai pengaman. */html.tirai::after { content: ""; position: fixed; inset: 0; z-index: 2147483646; background: #efe6d2; } html.tirai[data-mode="gelap"]::after { background: #0a1420; }</style>
 <script src="tema.js"></script>
 <script src="konten.js"></script>
 <script src="popup.js"></script>
