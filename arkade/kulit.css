@@ -71,12 +71,26 @@ html.arkade .panel-foto, html.arkade #latarFoto, html.arkade .rk-foto { backgrou
 html.arkade #latarFoto > :not(canvas), html.arkade .halaman-alat .kop::after { display: none !important; }
 html.arkade .arkade-kop-foto { position: absolute; left: 0; right: 0; bottom: 0; height: 44%; z-index: -2; background: #0a1420; }
 /* Di layar lebar adegan tampil utuh sebagai pita di dasar panel; di layar sempit fotonya hanya setinggi pita, jadi dipotong. */
+html.arkade canvas.arkade-adegan.arkade-alur { display: none; }
 html.arkade canvas.arkade-adegan { position: absolute; left: 0; right: 0; bottom: 0; top: auto; width: 100%; height: auto; aspect-ratio: 16 / 9; display: block; image-rendering: pixelated; }
 /* Keterangan di dasar panel diberi alas supaya tetap terbaca di atas adegan. */
 html.arkade :is(.panel-keterangan, .rk-ket, .jk-diperbarui) { position: relative; z-index: 1; align-self: flex-start; padding: 4px 8px !important; background: #0a1420; color: #e8f1f8; text-shadow: none !important; }
 /* Tabir pelembut foto diganti peralihan bertangga ala piksel. */
 html.arkade :is(.rk-tabir, .panel-tabir), html.arkade body.halaman-alat .kop.kop::before {
   background: linear-gradient(to bottom, #0f2236 0 30%, rgba(15, 34, 54, .75) 30% 36%, rgba(15, 34, 54, .45) 36% 42%, rgba(15, 34, 54, .2) 42% 48%, transparent 48%) !important;
+}
+/* Layar lebar: adegan mendapat ruang sendiri di dasar panel, jadi isi panel (menu, langkah) selalu berhenti di atasnya
+   dan tidak menindih beruang walau layarnya pendek. Tabir peralihan tidak dipakai karena adegan tidak lagi berada di balik isi. */
+@media (min-width: 921px) {
+  html.arkade :is(.panel-foto, #latarFoto, .rk-foto) { background: transparent !important; }
+  html.arkade :is(.rk-tabir, .panel-tabir), html.arkade body.halaman-alat .kop.kop::before { display: none !important; }
+  html.arkade .rk-panel.rk-bingkai .rk-dalam { padding-bottom: calc(56.25% + 16px) !important; }
+  html.arkade .panel::after { content: ""; display: block; flex: none; width: calc(100% + 72px); aspect-ratio: 16 / 9; margin: 0 -36px -30px; }
+  /* Realisasi: panelnya bergulir sendiri, jadi adegan dipasang sebagai bagian terakhir isi panel (ikut bergulir), bukan di balik isi. */
+  html.arkade #latarFoto { display: none !important; }
+  html.arkade canvas.arkade-adegan.arkade-alur { display: block; position: static; flex: none; width: calc(100% + 64px); height: auto; aspect-ratio: 16 / 9; margin: auto -32px -24px; }
+  html.arkade body.halaman-alat > .kop > .kop-isi { padding-bottom: 16px !important; margin-bottom: 56.25%; }
+  html.arkade .arkade-kop-foto { height: auto; aspect-ratio: 16 / 9; background: transparent; }
 }
 @media (max-width: 920px) {
   html.arkade .arkade-kop-foto { height: 120px; }
@@ -121,8 +135,8 @@ html.arkade :is(.tombol:not(.sekunder), .pratinjau-aksi .utama, .urut[aria-press
 html.arkade :is(input, select, textarea):not([type="checkbox"]):not([type="radio"]):not([type="range"]) { border-width: 2px !important; }
 html.arkade :is(.rk-cari, .cari) { border: 3px solid var(--ak-garis) !important; }
 /* Saklar tema diberi bentuk tombol piksel. */
-html.arkade :is(.saklar-tema, .menu-mode) { border: 3px solid var(--ak-garis) !important; box-shadow: 3px 3px 0 var(--ak-bayang-tombol) !important; }
-html.arkade :is(.rk-panel, .panel) :is(.saklar-tema, .menu-mode) { border-color: #e8f1f8 !important; box-shadow: 3px 3px 0 #f2b44a !important; }
+html.arkade :is(.saklar-tema, .menu-mode) { color: var(--ak-tinta) !important; background: var(--ak-kartu) !important; border: 3px solid var(--ak-garis) !important; box-shadow: 3px 3px 0 var(--ak-bayang-tombol) !important; }
+html.arkade :is(.rk-panel, .panel) :is(.saklar-tema, .menu-mode) { color: #e8f1f8 !important; background: #0f2236 !important; border-color: #e8f1f8 !important; box-shadow: 3px 3px 0 #f2b44a !important; }
 
 /* ---------- Kartu, daftar, dan kotak isi ---------- */
 html.arkade :is(.rk-daftar, .rk-keterangan, .rk-gerbang, .rk-kosong, .daftar, .kartu, .catatan, .keadaan, .kepala, .pratinjau,

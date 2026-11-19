@@ -43,6 +43,15 @@
       w.appendChild(c);
       if (window.BannerBeruang) BannerBeruang(c, { diam: diam });
     });
+    // Realisasi: di layar lebar adegan ikut mengalir di dasar isi panel (lihat kulit.css), karena panelnya bergulir sendiri.
+    var latar = document.getElementById("latarFoto");
+    if (latar && latar.parentElement) {
+      var alur = document.createElement("canvas");
+      alur.className = "arkade-adegan arkade-alur";
+      alur.setAttribute("aria-hidden", "true");
+      latar.parentElement.appendChild(alur);
+      if (window.BannerBeruang) BannerBeruang(alur, { diam: diam });
+    }
     var pindai = document.createElement("div");
     pindai.className = "arkade-pindai";
     pindai.setAttribute("aria-hidden", "true");
