@@ -4,6 +4,17 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+// Mode arkade dipilih lewat beruang di pojok beranda (beruang.js) dan diingat di perangkat ini.
+// Selama dipilih, beranda langsung membuka arkade/. ?mode=biasa mengembalikan beranda biasa.
+(function () {
+  try {
+    var q = location.search;
+    if (/[?&]mode=biasa/.test(q)) localStorage.setItem("layanan-mode", "biasa");
+    else if (!/[?&]pratinjau=1/.test(q) && localStorage.getItem("layanan-mode") === "arkade") location.replace("arkade/" + location.hash);
+  } catch (e) { /* abaikan */ }
+})();
+</script>
 <meta name="description" content="Layanan Subbagian Umum KPKNL Balikpapan: perjalanan dinas, keuangan, dan perkakas kerja dalam satu halaman.">
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -19,6 +30,7 @@
 <!-- Aksen Natal (salju, lampu, hiasan) di panel biru, tampil sendiri 1 Desember sampai 6 Januari. -->
 <link rel="stylesheet" href="natal.css">
 <script src="natal.js"></script>
+<script src="beruang.js" defer></script>
 <style>html, body { margin: 0; padding: 0; } img { max-width: 100%; } [hidden] { display: none !important; }</style>
 <title>Layanan Subbagian Umum | KPKNL Balikpapan</title>
 <!-- Pratinjau tautan (WhatsApp dan media sosial). Gambarnya JPG karena tidak semua aplikasi membaca WebP. -->

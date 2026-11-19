@@ -51,6 +51,8 @@ Buka dasbor admin > **Tahun baru**. Mulai 1 Desember dasbor menampilkan penginga
 
 Aksen Natal di beranda tampil dan hilang sendiri (1 Desember sampai 6 Januari), tidak perlu diurus.
 
+Mode arkade (`arkade/`, dibuka lewat beruang madu di pojok beranda) memakai isi beranda yang sama, jadi tidak perlu diisi terpisah. Pengunjung yang sudah memilih mode arkade langsung dibawa ke sana setiap membuka beranda sampai menekan KELUAR.
+
 ### Setiap tahun
 
 - Perpanjang domain `umumin.id` sebelum masa aktifnya habis.
