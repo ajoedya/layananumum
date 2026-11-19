@@ -18,7 +18,7 @@
   if (window.BannerBersama) return;
 
   var KUNCI_SIMPAN = "layanan-konten";
-  var ALAMAT_SITUS = "https://para.my.id/";
+  var ALAMAT_SITUS = "https://umumin.id/";
 
   // Folder beranda. Di situs: folder induk dari halaman ini (berkas ini ada di akar situs).
   // Dari berkas lokal (file:), atau bila skrip disisipkan langsung ke halaman: alamat situs publik.

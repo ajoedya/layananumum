@@ -1,6 +1,6 @@
 # Panduan serah terima Layanan Subbagian Umum
 
-Panduan ini untuk pengelola berikutnya situs `para.my.id` (Layanan Subbagian Umum KPKNL Balikpapan). Isinya: apa saja yang membuat situs ini berjalan, akses yang harus diserahkan, pekerjaan rutin, dan cara memulihkan bila ada yang putus.
+Panduan ini untuk pengelola berikutnya situs `umumin.id` (Layanan Subbagian Umum KPKNL Balikpapan). Isinya: apa saja yang membuat situs ini berjalan, akses yang harus diserahkan, pekerjaan rutin, dan cara memulihkan bila ada yang putus.
 
 Repo ini terbuka untuk umum. **Jangan menulis kunci, kata sandi, alamat spreadsheet, atau nama akun pribadi di berkas ini.** Catat semua itu di dokumen serah terima internal kantor.
 
@@ -9,7 +9,7 @@ Repo ini terbuka untuk umum. **Jangan menulis kunci, kata sandi, alamat spreadsh
 | Bagian | Fungsinya | Bila putus |
 |---|---|---|
 | Repo GitHub `layananumum` | Seluruh halaman situs. Setiap perubahan di cabang `main` langsung tayang lewat GitHub Pages | Situs tidak bisa diperbarui. Halaman yang sudah tayang tetap jalan |
-| Domain `para.my.id` | Alamat situs. Berkas `CNAME` di repo mengarahkan GitHub Pages ke domain ini | Situs hanya bisa dibuka lewat `ajoedya.github.io/layananumum/` |
+| Domain `umumin.id` | Alamat situs. Berkas `CNAME` di repo mengarahkan GitHub Pages ke domain ini | Situs hanya bisa dibuka lewat `ajoedya.github.io/layananumum/` |
 | Spreadsheet penyimpan beserta Apps Script `AdminBeranda.gs` | Isi beranda, pop up, data realisasi, prognosa, statistik, daftar penyunting, dan log. Dasbor admin menyimpan ke sini | Beranda memakai isi cadangan di `konten.js`. Dasbor admin, Monitoring Realisasi (data terbaru), dan Prognosa tidak bisa dipakai |
 | Spreadsheet Monitoring E-Perjadin beserta `TautanBukti.gs` | Data status pembayaran surat tugas. Tab E-Perjadin diterbitkan sebagai CSV (Publish to web) | Halaman Perjadin kosong dan daftar ST di Prognosa tidak muncul |
 | Olah PDF (`bengkelpdf/`) | Seluruhnya berjalan di peramban, tanpa server | Tidak bergantung pada akun mana pun selain repo |
@@ -22,8 +22,8 @@ Catat di dokumen internal siapa pemilik setiap akses berikut dan kapan diserahka
 
 | Akses | Cara menyerahkan |
 |---|---|
-| Repo GitHub | Tambahkan pengelola baru sebagai *collaborator* (Settings > Collaborators), atau pindahkan repo ke akun organisasi kantor (Settings > Transfer). Setelah dipindah, periksa Settings > Pages: sumbernya cabang `main` dan domain kustomnya `para.my.id` |
-| Domain `para.my.id` | Catat penyedia domain, tanggal habis masa aktif, dan akun yang membayarnya. Aktifkan perpanjangan otomatis bila tersedia. Domain `.my.id` diperpanjang tahunan |
+| Repo GitHub | Tambahkan pengelola baru sebagai *collaborator* (Settings > Collaborators), atau pindahkan repo ke akun organisasi kantor (Settings > Transfer). Setelah dipindah, periksa Settings > Pages: sumbernya cabang `main` dan domain kustomnya `umumin.id` |
+| Domain `umumin.id` | Catat penyedia domain, tanggal habis masa aktif, dan akun yang membayarnya. Aktifkan perpanjangan otomatis bila tersedia. Domain `.id` diperpanjang tahunan. Domain lama `para.my.id` (dipakai sampai November 2026) cukup diteruskan (*forwarding*) ke `https://umumin.id` di penyedianya selama masih diperpanjang |
 | Spreadsheet penyimpan dan Apps Script | Bagikan spreadsheet sebagai editor kepada pengelola baru. Aplikasi web berjalan **sebagai pemilik deployment**, jadi bila akun pemilik tidak aktif lagi, ikuti langkah di bagian 5 |
 | Spreadsheet Monitoring E-Perjadin | Bagikan sebagai editor kepada pengelola baru. Pemicu `TautanBukti.gs` berjalan atas nama akun yang memasangnya, jadi pasang ulang pemicunya dari akun pengelola baru (fungsi `pasangPemicu`) |
 | Kunci admin | Ganti lewat menu spreadsheet **Dasbor Beranda > Setel kunci admin**. Kunci lama langsung tidak berlaku |
@@ -53,7 +53,7 @@ Aksen Natal di beranda tampil dan hilang sendiri (1 Desember sampai 6 Januari), 
 
 ### Setiap tahun
 
-- Perpanjang domain `para.my.id` sebelum masa aktifnya habis.
+- Perpanjang domain `umumin.id` sebelum masa aktifnya habis.
 - Pastikan akun pemilik deployment Apps Script masih aktif.
 
 ### Fitur yang tidak dipakai
