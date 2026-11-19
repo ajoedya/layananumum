@@ -81,8 +81,8 @@
     ".beruang.kiri .beruang-gelembung{left:4px}.beruang.kiri .beruang-gelembung:after{left:20px}" +
     ".beruang:hover .beruang-gelembung,.beruang:focus-visible .beruang-gelembung,.beruang.bicara .beruang-gelembung{opacity:1}" +
     ".beruang-tabir{position:fixed;inset:0;z-index:100;pointer-events:none}" +
-    "html.ada-beruang body{padding-bottom:84px}" +
-    "@media (max-width:600px){.beruang{width:48px;height:48px}.beruang-gelembung{bottom:60px}html.ada-beruang body{padding-bottom:70px}}";
+    "html.ada-beruang main.isi{padding-bottom:92px}" +
+    "@media (max-width:600px){.beruang{width:48px;height:48px}.beruang-gelembung{bottom:60px}html.ada-beruang main.isi{padding-bottom:76px}}";
 
   var JARAK = 14;   // jarak dari tepi layar (px)
   var tombol, bingkaiSkrg, posisi = 0, pojok = "kanan", naik = 0, waktuJalan = null, sudah = false, sibuk = false;
