@@ -49,7 +49,7 @@ html.arkade *, html.arkade *::before, html.arkade *::after {
 }
 html.arkade ::selection { background: #f2b44a; color: #0a1420; }
 html.arkade :focus-visible { outline: 3px solid var(--ak-fokus) !important; outline-offset: 3px; }
-html.arkade :is(.rk-panel, .panel, .kop) :focus-visible { outline-color: #ffd27a !important; }
+html.arkade :is(.rk-panel, aside.panel, .kop) :focus-visible { outline-color: #ffd27a !important; }
 
 /* ---------- Huruf piksel untuk judul, label, tombol, dan menu ---------- */
 html.arkade :is(h1, h2, h3, h4, th, button, summary, legend, label, .tombol,
@@ -63,8 +63,8 @@ html.arkade :is(h1, h2, h3, h4, th, button, summary, legend, label, .tombol,
 html.arkade h1 { color: #ffd27a; text-shadow: 3px 3px 0 #b8700f, 6px 6px 0 rgba(0, 0, 0, .35) !important; font-weight: 700 !important; letter-spacing: .02em !important; }
 html.arkade h1 span { color: #e8f1f8; text-shadow: 2px 2px 0 rgba(0, 0, 0, .5) !important; }
 html.arkade h2 { color: var(--ak-emas-teks); letter-spacing: .08em !important; }
-html.arkade :is(.rk-panel, .panel, .kop) h2 { color: #ffd27a; }
-html.arkade :is(.rk-panel, .panel, .kop) :is(p, .rk-deskripsi, .panel-deskripsi) { text-shadow: none !important; }
+html.arkade :is(.rk-panel, aside.panel, .kop) h2 { color: #ffd27a; }
+html.arkade :is(.rk-panel, aside.panel, .kop) :is(p, .rk-deskripsi, .panel-deskripsi) { text-shadow: none !important; }
 
 /* ---------- Foto panel diganti adegan beruang madu piksel ---------- */
 html.arkade .panel-foto, html.arkade #latarFoto, html.arkade .rk-foto { background: #0a1420 !important; opacity: 1 !important; }
@@ -85,7 +85,7 @@ html.arkade :is(.rk-tabir, .panel-tabir), html.arkade body.halaman-alat .kop.kop
   html.arkade :is(.panel-foto, #latarFoto, .rk-foto) { background: transparent !important; }
   html.arkade :is(.rk-tabir, .panel-tabir), html.arkade body.halaman-alat .kop.kop::before { display: none !important; }
   html.arkade .rk-panel.rk-bingkai .rk-dalam { padding-bottom: calc(56.25% + 16px) !important; }
-  html.arkade .panel::after { content: ""; display: block; flex: none; width: calc(100% + 72px); aspect-ratio: 16 / 9; margin: 0 -36px -30px; }
+  html.arkade aside.panel::after { content: ""; display: block; flex: none; width: calc(100% + 72px); aspect-ratio: 16 / 9; margin: 0 -36px -30px; }
   /* Realisasi: panelnya bergulir sendiri, jadi adegan dipasang sebagai bagian terakhir isi panel (ikut bergulir), bukan di balik isi. */
   html.arkade #latarFoto { display: none !important; }
   html.arkade canvas.arkade-adegan.arkade-alur { display: block; position: static; flex: none; width: calc(100% + 64px); height: auto; aspect-ratio: 16 / 9; margin: auto -32px -24px; }
@@ -105,7 +105,7 @@ html.arkade .arkade-pindai { position: fixed; inset: 0; z-index: 2147483000; poi
 @media print { html.arkade .arkade-pindai, html.arkade canvas.arkade-adegan { display: none; } }
 
 /* ---------- Panel navy kiri (sama di kedua mode) ---------- */
-html.arkade :is(.rk-panel, .panel, .halaman-alat .kop) { background-color: #0f2236 !important; color: #e8f1f8; border-right: 4px solid var(--ak-garis); }
+html.arkade :is(.rk-panel, aside.panel, .halaman-alat .kop) { background-color: #0f2236 !important; color: #e8f1f8; border-right: 4px solid var(--ak-garis); }
 html.arkade :is(.rk-label, .label, .kop-label) { color: #ffd27a !important; }
 html.arkade :is(.rk-kelompok a, .rk-langkah button, .kelompok a) {
   background: #0f2236 !important; color: #e8f1f8 !important; border: 3px solid #e8f1f8 !important;
@@ -136,7 +136,7 @@ html.arkade :is(input, select, textarea):not([type="checkbox"]):not([type="radio
 html.arkade :is(.rk-cari, .cari) { border: 3px solid var(--ak-garis) !important; }
 /* Saklar tema diberi bentuk tombol piksel. */
 html.arkade :is(.saklar-tema, .menu-mode) { color: var(--ak-tinta) !important; background: var(--ak-kartu) !important; border: 3px solid var(--ak-garis) !important; box-shadow: 3px 3px 0 var(--ak-bayang-tombol) !important; }
-html.arkade :is(.rk-panel, .panel) :is(.saklar-tema, .menu-mode) { color: #e8f1f8 !important; background: #0f2236 !important; border-color: #e8f1f8 !important; box-shadow: 3px 3px 0 #f2b44a !important; }
+html.arkade :is(.rk-panel, aside.panel) :is(.saklar-tema, .menu-mode) { color: #e8f1f8 !important; background: #0f2236 !important; border-color: #e8f1f8 !important; box-shadow: 3px 3px 0 #f2b44a !important; }
 
 /* ---------- Kartu, daftar, dan kotak isi ---------- */
 html.arkade :is(.rk-daftar, .rk-keterangan, .rk-gerbang, .rk-kosong, .daftar, .kartu, .catatan, .keadaan, .kepala, .pratinjau,
