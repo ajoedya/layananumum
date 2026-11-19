@@ -1,11 +1,12 @@
 /* Mode arkade beranda Layanan Subbagian Umum (tata letak Jendela RPG).
    Dibuka dari beruang madu di pojok beranda (beruang.js). Pilihan mode disimpan di localStorage
-   "layanan-mode"; beranda langsung mengalihkan ke sini selama nilainya "arkade", dan tombol KELUAR
-   mengembalikannya ke "biasa". Isi, pop up, dan statistik memakai sumber yang sama dengan beranda. */
+   "layanan-arkade" ("1"); beranda langsung mengalihkan ke sini selama kunci itu ada, dan tombol KELUAR
+   menghapusnya. Terang dan gelap mengikuti saklar tema situs (tema.js, kunci "layanan-mode").
+   Isi, pop up, dan statistik memakai sumber yang sama dengan beranda. */
 (function () {
   "use strict";
   var K = window.Konten, layar = document.getElementById("layar");
-  var KUNCI_MODE = "layanan-mode";
+  var KUNCI_ARKADE = "layanan-arkade";
   var diam = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
   var s = { babak: "semua", cari: "", pilih: 0, kabar: 0, suara: true, diketik: -1 };
 
@@ -110,9 +111,11 @@
   }
 
   /* ---------- Potongan halaman ---------- */
+  function gelap() { return document.documentElement.getAttribute("data-mode") === "gelap"; }
   function hud() {
     return '<header class="hud px"><span>KPKNL <b>BPP</b></span><span class="tengah">LAYANAN <b>' + dua(semua.length) + "</b> · BABAK <b>" + dua(kelompok.length) + "</b></span>" +
       '<span class="kanan"><button type="button" class="tombol-px" data-suara aria-pressed="' + s.suara + '" aria-label="Efek suara">' + (s.suara ? "♪ ON" : "♪ OFF") + "</button>" +
+      '<button type="button" class="tombol-px" data-tema aria-label="' + (gelap() ? "Ganti ke tampilan terang" : "Ganti ke tampilan gelap") + '">' + (gelap() ? "☀" : "☾") + "</button>" +
       '<button type="button" class="tombol-px" data-keluar>KELUAR</button></span></header>';
   }
   function banner() {
@@ -193,7 +196,7 @@
     gambar(document.activeElement && document.activeElement.id === "cariPx");
   }
   function keluar() {
-    try { localStorage.setItem(KUNCI_MODE, "biasa"); } catch (e) { /* abaikan */ }
+    try { localStorage.removeItem(KUNCI_ARKADE); } catch (e) { /* abaikan */ }
     location.href = new URL("./", document.baseURI).href;
   }
 
@@ -210,6 +213,7 @@
       gambar(); bunyi(990, .06);
     }
     if (b.hasAttribute("data-keluar")) { bunyi(330, .08); keluar(); }
+    if (b.hasAttribute("data-tema") && window.Tema) { bunyi(770, .06); Tema.alihMode(); }
   });
   layar.addEventListener("mouseover", function (e) { var a = e.target.closest("a[data-i]"); if (a && Number(a.dataset.i) !== s.pilih) pilihKe(Number(a.dataset.i)); });
   layar.addEventListener("focusin", function (e) { var a = e.target.closest("a[data-i]"); if (a) pilihKe(Number(a.dataset.i)); });
@@ -248,7 +252,14 @@
   });
 
   /* ---------- Mulai ---------- */
-  try { localStorage.setItem(KUNCI_MODE, "arkade"); } catch (e) { /* abaikan */ }
+  try {
+    // Versi pertama sempat menyimpan pilihan ini di "layanan-mode", kunci milik tema terang/gelap. Dipindahkan sekali.
+    var lama = localStorage.getItem("layanan-mode");
+    if (lama === "arkade" || lama === "biasa") localStorage.removeItem("layanan-mode");
+    localStorage.setItem(KUNCI_ARKADE, "1");
+  } catch (e) { /* abaikan */ }
+  // Saklar tema di HUD digambar ulang mengikuti mode yang berlaku.
+  document.addEventListener("modeberubah", function () { var t = document.activeElement && document.activeElement.hasAttribute && document.activeElement.hasAttribute("data-tema"); gambar(); if (t) { var x = layar.querySelector("[data-tema]"); if (x) x.focus(); } });
   try { if (localStorage.getItem("arkade-suara") === "0") s.suara = false; } catch (e) { /* abaikan */ }
   siapkan();
   if (window.Popup) Popup.mulai({ halaman: "beranda", cache: false });

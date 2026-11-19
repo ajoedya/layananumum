@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- Semua alamat relatif di halaman ini (termasuk tautan layanan dari konten) dibaca dari akar situs. -->
 <base href="../">
@@ -18,22 +18,31 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:locale" content="id_ID">
-<meta name="theme-color" content="#0a1420">
+
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="apple-touch-icon" href="favicon-180.png">
 <link rel="stylesheet" href="bengkelpdf/pustaka/huruf/public-sans.css">
-<!-- Huruf piksel untuk judul dan label. Bila gagal dimuat, judul memakai Public Sans. -->
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap">
+<!-- Huruf piksel (Pixelify Sans, disimpan di repo) untuk judul dan label. -->
+<link rel="stylesheet" href="arkade/huruf/pixelify-sans.css">
 <link rel="stylesheet" href="popup.css">
+<script src="tema.js"></script>
 <script src="konten.js"></script>
 <script src="popup.js"></script>
 <style>
 :root {
+  --pindai: rgba(0,0,0,.14);
   --latar: #0a1420; --layar: #0f2236; --layar-2: #13304b; --tinta: #e8f1f8; --redup: #9fc3e0; --emas: #ffd27a; --emas-tua: #f2b44a; --emas-gelap: #b8700f;
   --hijau: #6be3a4; --garis: #e8f1f8; --bayang: #f2b44a; --di-aksen: #0a1420; --sorot: #ffe3a3; --px: "Pixelify Sans", "Public Sans", monospace;
 }
+/* Mode terang mengikuti saklar tema situs (tema.js): krem dengan garis navy. Banner tetap adegan malam. */
+:root:not([data-mode="gelap"]) {
+  --latar: #efe6d2; --layar: #fbf5e8; --layar-2: #f1e5c8; --tinta: #0f2236; --redup: #4f6478; --emas: #8a5208; --emas-tua: #f2b44a; --emas-gelap: #f2d49a;
+  --hijau: #1f7a4c; --garis: #0f2236; --bayang: #0f3554; --di-aksen: #0a1420; --sorot: #fff1cc; --pindai: rgba(15,34,54,.035);
+}
+:root:not([data-mode="gelap"]) .judul-px { color: #b8700f; text-shadow: 3px 3px 0 #f2d49a, 6px 6px 0 rgba(15,34,54,.18); }
+:root:not([data-mode="gelap"]) .bagian-kepala h2, :root:not([data-mode="gelap"]) .jendela > h2 { color: #8a5208; }
+:root:not([data-mode="gelap"]) .jendela { box-shadow: inset 0 0 0 3px var(--layar), inset 0 0 0 5px #b9a47a; }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 body { background: var(--latar); color: var(--tinta); font: 15px/1.5 "Public Sans", system-ui, sans-serif; padding-bottom: 40px; }
@@ -48,7 +57,7 @@ svg.mini { shape-rendering: crispEdges; display: block; }
 
 .kabinet { max-width: 1080px; margin: 0 auto; padding: 18px 18px 0; }
 .layar { position: relative; border: 4px solid var(--garis); box-shadow: 8px 8px 0 var(--bayang); background: var(--layar); }
-.layar::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0,0,0,.14) 0 1px, transparent 1px 3px); z-index: 3; }
+.layar::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, var(--pindai) 0 1px, transparent 1px 3px); z-index: 3; }
 
 /* ---------- Bagian bersama ---------- */
 .hud { position: sticky; top: 0; z-index: 10; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; padding: 10px 16px; background: var(--layar); border-bottom: 4px solid var(--garis); font: 16px/1.2 var(--px); letter-spacing: .06em; }
@@ -63,9 +72,9 @@ svg.mini { shape-rendering: crispEdges; display: block; }
 .banner { position: relative; border: 4px solid var(--garis); background: var(--latar); aspect-ratio: 16 / 9; overflow: hidden; }
 .banner canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
 .banner .stiker { position: absolute; left: 10px; top: 10px; padding: 4px 8px; background: var(--emas-tua); color: var(--di-aksen); font: 14px/1.2 var(--px); letter-spacing: .06em; }
-.gelembung { position: absolute; left: 47%; top: 10%; padding: 6px 10px; background: var(--tinta); color: var(--di-aksen); font: 700 clamp(13px, 2vw, 20px)/1 var(--px); letter-spacing: .06em;
+.gelembung { position: absolute; left: 47%; top: 10%; padding: 6px 10px; background: #e8f1f8; color: #0a1420; font: 700 clamp(13px, 2vw, 20px)/1 var(--px); letter-spacing: .06em;
   box-shadow: 0 -3px 0 var(--di-aksen), 0 3px 0 var(--di-aksen), -3px 0 0 var(--di-aksen), 3px 0 0 var(--di-aksen); animation: muncul 3.2s steps(1) infinite; }
-.gelembung::after { content: ""; position: absolute; left: 8px; top: 100%; width: 8px; height: 8px; background: var(--tinta); box-shadow: -3px 0 0 var(--di-aksen), 3px 0 0 var(--di-aksen), 0 3px 0 var(--di-aksen); }
+.gelembung::after { content: ""; position: absolute; left: 8px; top: 100%; width: 8px; height: 8px; background: #e8f1f8; box-shadow: -3px 0 0 var(--di-aksen), 3px 0 0 var(--di-aksen), 0 3px 0 var(--di-aksen); }
 @keyframes muncul { 0%, 62% { opacity: 1; } 63%, 100% { opacity: 0; } }
 
 .judul-px { margin: 0; font: 700 clamp(40px, 7vw, 76px)/.92 var(--px); letter-spacing: .02em; color: var(--emas); text-shadow: 4px 4px 0 var(--emas-gelap), 8px 8px 0 var(--latar); }

@@ -1,0 +1,145 @@
+/* ============================================================
+   Kulit arkade untuk halaman turunan
+   Dipasang oleh arkade/kulit.js hanya saat mode arkade aktif (<html class="arkade">).
+   Semua aturan diawali html.arkade supaya menang atas gaya halaman tanpa mengubah tampilan biasa.
+   Dua palet mengikuti saklar tema halaman: gelap (navy) dan terang (krem). Panel kiri tetap navy di keduanya.
+   Sudut kotak, bingkai dan bayangan tegas, huruf piksel untuk judul dan label.
+   Isi tabel, angka, dan paragraf tetap Public Sans supaya mudah dibaca.
+   ============================================================ */
+
+/* ---------- Palet terang (bawaan) ---------- */
+html.arkade:root:root {
+  --px: "Pixelify Sans", "Public Sans", monospace;
+  --ak-latar: #efe6d2; --ak-kartu: #fbf5e8; --ak-sorot: #f1e5c8; --ak-garis: #0f2236; --ak-garis-halus: #d9c9a6;
+  --ak-tinta: #0f2236; --ak-redup: #4f6478; --ak-emas: #f2b44a; --ak-emas-teks: #8a5208; --ak-di-aksen: #0a1420;
+  --ak-bayang: #0f3554; --ak-bayang-tombol: #0f3554; --ak-fokus: #0f2236; --ak-pindai: rgba(15, 34, 54, .035);
+
+  --laut-tua: #0f2236; --laut-hover: #13304b; --rgb-laut: 15, 34, 54; --rgb-gelap: 10, 20, 32; --panel-teks: #c9dbe8; --emas-terang: #ffd27a;
+  --latar: #efe6d2; --putih: #fbf5e8; --tombol-polos: #fbf5e8; --jatuhan-latar: #fbf5e8;
+  --tinta: #0f2236; --tinta-lembut: #4f6478; --teks-contoh: #6b7c8c;
+  --biru-tua: #0f2236; --biru: #0f4a78; --biru-muda: #f1e5c8;
+  --emas: #b8700f; --emas-tua: #b8700f; --emas-teks: #8a5208; --emas-muda: #f6ead0; --emas-garis: #d9b26a;
+  --garis: #d9c9a6; --garis-fokus: #b9a47a; --cari-garis: #b9a47a; --kartu-garis: #d9c9a6; --kartu-garis-hover: #b8700f;
+  --hover-hangat: #f1e5c8; --baris-hover: #f1e5c8; --kartu-latar-hover: #f1e5c8; --kaca-sorot: #f1e5c8;
+  --kop-kiri: #efe6d2; --kop-kanan: #fbf5e8; --tautan: #0f4a78;
+  --bayangan-sm: 4px 4px 0 #0f3554; --bayangan-md: 5px 5px 0 #0f3554; --bayangan-lg: 6px 6px 0 #0f3554;
+}
+
+/* ---------- Palet gelap ---------- */
+html.arkade:root:root[data-mode="gelap"] {
+  --ak-latar: #0a1420; --ak-kartu: #0f2236; --ak-sorot: #13304b; --ak-garis: #e8f1f8; --ak-garis-halus: #24496d;
+  --ak-tinta: #e8f1f8; --ak-redup: #9fc3e0; --ak-emas: #f2b44a; --ak-emas-teks: #ffd27a; --ak-di-aksen: #0a1420;
+  --ak-bayang: rgba(0, 0, 0, .5); --ak-bayang-tombol: #f2b44a; --ak-fokus: #ffd27a; --ak-pindai: rgba(0, 0, 0, .1);
+
+  --latar: #0a1420; --putih: #0f2236; --tombol-polos: #0f2236; --jatuhan-latar: #0f2236;
+  --tinta: #e8f1f8; --tinta-lembut: #9fc3e0; --teks-contoh: #7f9bb4;
+  --biru-tua: #e8f1f8; --biru: #9fc3e0; --biru-muda: #13304b;
+  --emas: #f2b44a; --emas-tua: #f2b44a; --emas-teks: #ffd27a; --emas-muda: #13304b; --emas-garis: #b8700f;
+  --garis: #24496d; --garis-fokus: #3b6690; --cari-garis: #3b6690; --kartu-garis: #24496d; --kartu-garis-hover: #f2b44a;
+  --hover-hangat: #13304b; --baris-hover: #13304b; --kartu-latar-hover: #13304b; --kaca-sorot: #13304b;
+  --kop-kiri: #0a1420; --kop-kanan: #0f2236; --tautan: #ffd27a;
+  --bayangan-sm: 4px 4px 0 rgba(0, 0, 0, .45); --bayangan-md: 5px 5px 0 rgba(0, 0, 0, .5); --bayangan-lg: 6px 6px 0 rgba(0, 0, 0, .55);
+}
+html.arkade body { background: var(--ak-latar); }
+
+/* ---------- Kotak piksel: tanpa sudut membulat dan tanpa kaca buram ---------- */
+html.arkade *, html.arkade *::before, html.arkade *::after {
+  border-radius: 0 !important;
+  -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+}
+html.arkade ::selection { background: #f2b44a; color: #0a1420; }
+html.arkade :focus-visible { outline: 3px solid var(--ak-fokus) !important; outline-offset: 3px; }
+html.arkade :is(.rk-panel, .panel, .kop) :focus-visible { outline-color: #ffd27a !important; }
+
+/* ---------- Huruf piksel untuk judul, label, tombol, dan menu ---------- */
+html.arkade :is(h1, h2, h3, h4, th, button, summary, legend, label, .tombol,
+  .rk-merek, .rk-label, .rk-nomor, .rk-ket, .rk-kembali, .rk-kelompok a, .rk-gerbang small, .rk-keterangan-label, .kop-label, .menu-kembali,
+  .merek, .label, .seksi-label, .panel-judul, .kepala-label, .kartu strong, .kartu span, .lencana, .unduh, .urut,
+  .menu-dropdown-btn, nav a, .tab, .rk-langkah button) {
+  font-family: "Pixelify Sans", "Public Sans", monospace !important;
+  letter-spacing: .03em;
+}
+/* Judul besar ada di panel navy, jadi emas di kedua mode. */
+html.arkade h1 { color: #ffd27a; text-shadow: 3px 3px 0 #b8700f, 6px 6px 0 rgba(0, 0, 0, .35) !important; font-weight: 700 !important; letter-spacing: .02em !important; }
+html.arkade h1 span { color: #e8f1f8; text-shadow: 2px 2px 0 rgba(0, 0, 0, .5) !important; }
+html.arkade h2 { color: var(--ak-emas-teks); letter-spacing: .08em !important; }
+html.arkade :is(.rk-panel, .panel, .kop) h2 { color: #ffd27a; }
+html.arkade :is(.rk-panel, .panel, .kop) :is(p, .rk-deskripsi, .panel-deskripsi) { text-shadow: none !important; }
+
+/* ---------- Foto panel diganti adegan beruang madu piksel ---------- */
+html.arkade .panel-foto, html.arkade #latarFoto, html.arkade .rk-foto { background: #0a1420 !important; opacity: 1 !important; }
+html.arkade #latarFoto > :not(canvas), html.arkade .halaman-alat .kop::after { display: none !important; }
+html.arkade .arkade-kop-foto { position: absolute; left: 0; right: 0; bottom: 0; height: 44%; z-index: -2; background: #0a1420; }
+/* Di layar lebar adegan tampil utuh sebagai pita di dasar panel; di layar sempit fotonya hanya setinggi pita, jadi dipotong. */
+html.arkade canvas.arkade-adegan { position: absolute; left: 0; right: 0; bottom: 0; top: auto; width: 100%; height: auto; aspect-ratio: 16 / 9; display: block; image-rendering: pixelated; }
+/* Keterangan di dasar panel diberi alas supaya tetap terbaca di atas adegan. */
+html.arkade :is(.panel-keterangan, .rk-ket, .jk-diperbarui) { position: relative; z-index: 1; align-self: flex-start; padding: 4px 8px !important; background: #0a1420; color: #e8f1f8; text-shadow: none !important; }
+/* Tabir pelembut foto diganti peralihan bertangga ala piksel. */
+html.arkade :is(.rk-tabir, .panel-tabir), html.arkade body.halaman-alat .kop.kop::before {
+  background: linear-gradient(to bottom, #0f2236 0 30%, rgba(15, 34, 54, .75) 30% 36%, rgba(15, 34, 54, .45) 36% 42%, rgba(15, 34, 54, .2) 42% 48%, transparent 48%) !important;
+}
+@media (max-width: 920px) {
+  html.arkade .arkade-kop-foto { height: 120px; }
+  html.arkade canvas.arkade-adegan { top: 0; height: 100%; aspect-ratio: auto; object-fit: cover; object-position: 22% 70%; }
+  html.arkade #latarFoto canvas.arkade-adegan { top: auto; height: 150px; }
+  /* Di Perjadin judul panel berada tepat di atas adegan, jadi adegannya diredupkan supaya judul tetap terbaca. */
+  html.arkade .panel-foto canvas.arkade-adegan { opacity: .45; }
+}
+
+/* Garis pindai layar tabung tipis di seluruh halaman. */
+html.arkade .arkade-pindai { position: fixed; inset: 0; z-index: 2147483000; pointer-events: none; background: repeating-linear-gradient(0deg, var(--ak-pindai) 0 1px, transparent 1px 3px); }
+@media print { html.arkade .arkade-pindai, html.arkade canvas.arkade-adegan { display: none; } }
+
+/* ---------- Panel navy kiri (sama di kedua mode) ---------- */
+html.arkade :is(.rk-panel, .panel, .halaman-alat .kop) { background-color: #0f2236 !important; color: #e8f1f8; border-right: 4px solid var(--ak-garis); }
+html.arkade :is(.rk-label, .label, .kop-label) { color: #ffd27a !important; }
+html.arkade :is(.rk-kelompok a, .rk-langkah button, .kelompok a) {
+  background: #0f2236 !important; color: #e8f1f8 !important; border: 3px solid #e8f1f8 !important;
+  box-shadow: 3px 3px 0 #f2b44a !important; text-shadow: none !important; transition: none !important;
+}
+html.arkade :is(.rk-kelompok a, .rk-langkah button, .kelompok a):hover { background: #13304b !important; }
+html.arkade :is(.rk-kelompok a[aria-current="true"], .rk-langkah button[aria-current="step"], .kelompok a[aria-current="true"]) {
+  background: #f2b44a !important; color: #0a1420 !important; box-shadow: 3px 3px 0 #e8f1f8 !important;
+}
+html.arkade .rk-kelompok b { background: #0a1420 !important; color: #ffd27a !important; box-shadow: none !important; }
+html.arkade .rk-langkah button::before, html.arkade .rk-langkah button[aria-current="step"]::before { background: #0a1420 !important; color: #ffd27a !important; box-shadow: none !important; }
+html.arkade .rk-langkah button[aria-disabled="true"] { border-style: dashed !important; box-shadow: none !important; color: #9fc3e0 !important; }
+
+/* ---------- Tombol di kolom isi ---------- */
+html.arkade .seksi button {
+  background: var(--ak-kartu) !important; color: var(--ak-tinta) !important; border: 3px solid var(--ak-garis) !important;
+  box-shadow: 3px 3px 0 var(--ak-bayang-tombol) !important; transition: none !important;
+}
+html.arkade .seksi button:hover { background: var(--ak-sorot) !important; }
+html.arkade .seksi button[aria-pressed="true"] { background: #f2b44a !important; color: #0a1420 !important; }
+html.arkade .seksi b { background: #0a1420 !important; color: #ffd27a !important; box-shadow: none !important; }
+html.arkade :is(.tombol, .unduh, .urut, .pratinjau-aksi a, .pratinjau-aksi button, .menu-dropdown-btn, .rk-alat-atas button, .alat > button) {
+  border: 3px solid var(--ak-garis) !important; box-shadow: 3px 3px 0 var(--ak-bayang-tombol) !important; transition: none !important;
+}
+html.arkade :is(.tombol, .unduh, .urut, .pratinjau-aksi a, .pratinjau-aksi button, .menu-dropdown-btn):active { transform: translate(3px, 3px); box-shadow: none !important; }
+html.arkade :is(.tombol:not(.sekunder), .pratinjau-aksi .utama, .urut[aria-pressed="true"]) { background: #f2b44a !important; color: #0a1420 !important; }
+html.arkade :is(input, select, textarea):not([type="checkbox"]):not([type="radio"]):not([type="range"]) { border-width: 2px !important; }
+html.arkade :is(.rk-cari, .cari) { border: 3px solid var(--ak-garis) !important; }
+/* Saklar tema diberi bentuk tombol piksel. */
+html.arkade :is(.saklar-tema, .menu-mode) { border: 3px solid var(--ak-garis) !important; box-shadow: 3px 3px 0 var(--ak-bayang-tombol) !important; }
+html.arkade :is(.rk-panel, .panel) :is(.saklar-tema, .menu-mode) { border-color: #e8f1f8 !important; box-shadow: 3px 3px 0 #f2b44a !important; }
+
+/* ---------- Kartu, daftar, dan kotak isi ---------- */
+html.arkade :is(.rk-daftar, .rk-keterangan, .rk-gerbang, .rk-kosong, .daftar, .kartu, .catatan, .keadaan, .kepala, .pratinjau,
+  .jatuhan, .hasil, .bungkus > section, .panel-isi, .kartu-angka, .rekon, .tq-pop, .qr-pop) {
+  border: 3px solid var(--ak-garis) !important; box-shadow: 5px 5px 0 var(--ak-bayang) !important;
+}
+html.arkade :is(.rk-keterangan, .rk-gerbang, .rk-kosong) { border-left: 8px solid #f2b44a !important; }
+html.arkade :is(.rk-baris, .baris) { transition: none !important; }
+html.arkade :is(.rk-baris, .baris):hover { background: var(--ak-sorot) !important; box-shadow: inset 6px 0 0 #f2b44a; }
+html.arkade .rk-nomor { color: var(--ak-emas-teks) !important; }
+html.arkade .kartu[aria-pressed="true"] { background: #f2b44a !important; color: #0a1420 !important; }
+html.arkade .kartu[aria-pressed="true"] :is(span, strong, small) { color: #0a1420 !important; }
+
+/* ---------- Tabel ---------- */
+html.arkade th { color: var(--ak-emas-teks) !important; letter-spacing: .05em; }
+html.arkade table { border-collapse: collapse; }
+
+@media (prefers-reduced-motion: reduce) {
+  html.arkade :is(.tombol, .unduh, .urut):active { transform: none; }
+}

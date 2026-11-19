@@ -5,13 +5,15 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>
-// Mode arkade dipilih lewat beruang di pojok beranda (beruang.js) dan diingat di perangkat ini.
+// Mode arkade dipilih lewat beruang di pojok beranda (beruang.js) dan diingat di perangkat ini (localStorage "layanan-arkade").
 // Selama dipilih, beranda langsung membuka arkade/. ?mode=biasa mengembalikan beranda biasa.
 (function () {
   try {
-    var q = location.search;
-    if (/[?&]mode=biasa/.test(q)) localStorage.setItem("layanan-mode", "biasa");
-    else if (!/[?&]pratinjau=1/.test(q) && localStorage.getItem("layanan-mode") === "arkade") location.replace("arkade/" + location.hash);
+    var q = location.search, lama = localStorage.getItem("layanan-mode");
+    // Versi pertama sempat menyimpan pilihan ini di "layanan-mode", kunci milik tema terang/gelap (tema.js). Dipindahkan sekali.
+    if (lama === "arkade" || lama === "biasa") { if (lama === "arkade") localStorage.setItem("layanan-arkade", "1"); localStorage.removeItem("layanan-mode"); }
+    if (/[?&]mode=biasa\b/.test(q)) localStorage.removeItem("layanan-arkade");
+    else if (!/[?&]pratinjau=1\b/.test(q) && localStorage.getItem("layanan-arkade") === "1") location.replace("arkade/" + location.hash);
   } catch (e) { /* abaikan */ }
 })();
 </script>

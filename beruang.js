@@ -3,7 +3,7 @@
    Sesekali ia melambai atau kacamatanya berkilau. Bila diklik, layar berubah jadi
    piksel dan beranda beralih ke mode arkade.
    Bila pop up tampil di pojok yang sama, beruang pindah ke pojok seberang.
-   Mode arkade ada di arkade/; pilihan mode disimpan di sana (localStorage "layanan-mode").
+   Mode arkade ada di arkade/; pilihan mode disimpan di sana (localStorage "layanan-arkade").
    ?beruang=0 menyembunyikannya. Pratinjau dari dasbor admin (?pratinjau=1) tidak memuatnya. */
 (function () {
   "use strict";
