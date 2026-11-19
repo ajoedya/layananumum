@@ -54,8 +54,8 @@ var ZONA_WAKTU = "Asia/Makassar";  // tanggal statistik dan log mengikuti WITA
 var POTONG = 45000;             // panjang teks per sel (batas sel Google Sheets 50.000 karakter)
 // Versi kode dan fitur yang dikenali. Dasbor admin membacanya lewat doGet (aksi=versi) untuk memastikan
 // deployment yang tayang sudah memakai kode ini. Naikkan tanggalnya setiap kali kode diubah.
-var VERSI_SKRIP = "2026-11-16a";
-var FITUR_SKRIP = ["pemberitahuan", "pengumuman-jendela", "pengumuman-klik", "prognosa", "prognosa-kesesuaian", "tahun-baru"];
+var VERSI_SKRIP = "2026-11-19a";
+var FITUR_SKRIP = ["pemberitahuan", "pengumuman-jendela", "pengumuman-klik", "prognosa", "prognosa-kesesuaian", "tahun-baru", "saklar-fitur"];
 // Prognosa kegiatan dan pengajuan TUP (prognosa/). Isian per unit di tab Prognosa; aturan dan kunci bersama seksi di Properti Skrip.
 var TAB_PROGNOSA = "Prognosa";
 var PROPERTI_KUNCI_PROGNOSA = "SIDIK_KUNCI_PROGNOSA";
@@ -128,7 +128,7 @@ function kirimPengingatImpor() {
 function doGet(e) {
   var aksi = (e && e.parameter && e.parameter.aksi) || "baca";
   if (aksi === "realisasi") return bacaRealisasiPublik_();
-  if (aksi === "prognosa") return bacaKesesuaianPublik_();
+  if (aksi === "prognosa") return fiturMati_().indexOf("tup") >= 0 ? balas_({ ok: true, nonaktif: true }) : bacaKesesuaianPublik_();
   if (aksi === "versi") return balas_({ ok: true, versi: VERSI_SKRIP, fitur: FITUR_SKRIP });
   if (aksi !== "baca") return balas_({ ok: false, pesan: "Aksi tidak dikenal" });
   var cache = CacheService.getScriptCache();
@@ -154,6 +154,7 @@ function doPost(e) {
   if (!sidik) return balas_({ ok: false, pesan: "Kunci admin belum disetel di spreadsheet." });
   var who = masuk_(String(minta.kunci || ""), sidik);
   if (who && who.nonaktif) return balas_({ ok: false, pesan: "Akun penyunting ini dinonaktifkan oleh admin." });
+  if (who && who.peran === "seksi" && fiturMati_().indexOf("tup") >= 0) return balas_({ ok: false, pesan: "Pengisian prognosa sedang dinonaktifkan oleh admin." });
   if (!who) {
     var gagal = Number(cache.get("gagal") || 0) + 1;
     cache.put("gagal", String(gagal), MENIT_KUNCI * 60);
@@ -175,7 +176,7 @@ function doPost(e) {
       case "cek":
         var data = bacaKonten_();
         catatLog_(minta.penyunting, who.peran, "Masuk", "");
-        return balas_({ ok: true, konten: data.konten, diperbarui: data.diperbarui, peran: who.peran, nama: minta.penyunting });
+        return balas_({ ok: true, konten: data.konten, diperbarui: data.diperbarui, peran: who.peran, nama: minta.penyunting, fiturMati: fiturMati_() });
       case "simpan":
         return simpan_(minta, who);
       case "statistik":
@@ -203,6 +204,8 @@ function doPost(e) {
         return balas_({ ok: true, riwayat: daftarRiwayatRealisasi_() });
       case "ambilRiwayatRealisasi":
         return balas_({ ok: true, data: ambilRiwayatRealisasi_(Number(minta.baris)) });
+      case "aturFitur":
+        return aturFitur_(minta, who);
       case "prognosaBaca":
         var bacaP = bacaPrognosa_(who);
         if (minta.masuk) catatLog_(minta.penyunting, who.peran, "Membuka prognosa", "");
@@ -267,7 +270,7 @@ function simpan_(minta, who) {
 var IZIN_ = { cekRealisasi: "admin", simpanRealisasi: "admin", riwayatRealisasi: "admin", ambilRiwayatRealisasi: "admin",
               daftarPenyunting: "admin", tambahPenyunting: "admin", aturPenyunting: "admin", log: "admin",
               prognosaAtur: "admin", prognosaBayar: "admin", prognosaTetapkan: "admin",
-              tahunBaruCek: "admin", tahunBaruPrognosa: "admin",
+              tahunBaruCek: "admin", tahunBaruPrognosa: "admin", aturFitur: "admin",
               prognosaBaca: "seksi", prognosaSimpan: "seksi", prognosaStatus: "seksi" };
 
 // Mengembalikan { peran, nama } bila kunci cocok: kunci admin, atau kunci penyunting terdaftar yang aktif.
@@ -609,7 +612,7 @@ function bacaRealisasiPublik_() {
   var simpanan = cache.get("realisasi");
   if (simpanan) return ContentService.createTextOutput(simpanan).setMimeType(ContentService.MimeType.JSON);
   var r = bacaRealisasi_();
-  var teks = JSON.stringify({ ok: true, data: r.data, diperbarui: r.diperbarui });
+  var teks = JSON.stringify({ ok: true, data: r.data, diperbarui: r.diperbarui, fiturMati: fiturMati_() });
   if (teks.length < 95000) cache.put("realisasi", teks, DETIK_CACHE);
   return ContentService.createTextOutput(teks).setMimeType(ContentService.MimeType.JSON);
 }
@@ -1160,4 +1163,31 @@ function arsipkanPrognosa_(minta, who) {
     hasil.dipindah = dipindah;
     return balas_(hasil);
   } finally { kunciTulis.releaseLock(); }
+}
+
+/* ---------- Saklar fitur ----------
+   Admin bisa mematikan bagian yang tidak dipakai lewat tombol Fitur di dasbor. Daftar fitur yang dimatikan disimpan di
+   Properti Skrip; tidak ada data yang dihapus, jadi fitur bisa dinyalakan lagi kapan saja.
+     tup        Pengajuan TUP dan prognosa seksi: kotak di Monev, halaman prognosa/ (seksi ditolak), tab Prognosa di Monitoring
+     tren       Grafik tren penyerapan di Monev dan kartu tren di halaman Monitoring
+     target     Editor target dan ambang di Monev (target tetap dipakai perhitungan)
+     tahunBaru  Modul Tahun baru dan pengingatnya
+     tab-<id>   Tab di bagian Beranda dasbor (kecuali Umum) */
+var PROPERTI_FITUR = "FITUR_NONAKTIF";
+var POLA_FITUR_ = /^(tup|tren|target|tahunBaru|tab-[a-z]{3,20})$/;
+
+function fiturMati_() {
+  var v = [];
+  try { v = JSON.parse(PropertiesService.getScriptProperties().getProperty(PROPERTI_FITUR) || "[]") || []; } catch (galat) { v = []; }
+  return Array.isArray(v) ? v.filter(function (x) { return POLA_FITUR_.test(String(x)) && x !== "tab-umum"; }) : [];
+}
+
+function aturFitur_(minta, who) {
+  var mati = (Array.isArray(minta.mati) ? minta.mati : []).map(String).filter(function (x, i, a) {
+    return POLA_FITUR_.test(x) && x !== "tab-umum" && a.indexOf(x) === i;
+  }).slice(0, 30);
+  PropertiesService.getScriptProperties().setProperty(PROPERTI_FITUR, JSON.stringify(mati));
+  CacheService.getScriptCache().removeAll(["realisasi", "prognosaPublik"]);
+  catatLog_(minta.penyunting, who.peran, "Mengatur fitur", mati.length ? "Dimatikan: " + mati.join(", ") : "Semua fitur aktif");
+  return balas_({ ok: true, fiturMati: mati });
 }

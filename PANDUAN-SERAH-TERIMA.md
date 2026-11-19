@@ -56,6 +56,10 @@ Aksen Natal di beranda tampil dan hilang sendiri (1 Desember sampai 6 Januari), 
 - Perpanjang domain `para.my.id` sebelum masa aktifnya habis.
 - Pastikan akun pemilik deployment Apps Script masih aktif.
 
+### Fitur yang tidak dipakai
+
+Bagian yang tidak dipakai bisa dimatikan lewat tombol **Fitur** di bilah atas dasbor admin: Pengajuan TUP dan prognosa seksi, tren penyerapan, editor target, modul Tahun baru, dan tab di bagian Beranda. Fitur yang dimatikan hanya disembunyikan (juga dari halaman Prognosa dan Monitoring); datanya tetap ada dan bisa dinyalakan lagi.
+
 ## 4. Mengubah kode
 
 - Halaman situs: ubah berkas di repo lalu kirim ke cabang `main`. GitHub Pages memperbaruinya dalam sekitar 10 menit. Aturan teknis repo ada di `CLAUDE.md`.

@@ -3346,6 +3346,7 @@ function hitungUlang(){
    Hanya titik tahun anggaran data yang tayang yang digambar, karena realisasi kumulatif mulai lagi dari nol setiap Januari. */
 function gambarTren(){
   const kotak=el('panelTren'); if(!kotak) return;
+  if((window.FITUR_MATI||[]).indexOf('tren')>=0){ kotak.hidden=true; return; }
   const ta=Number(MENTAH&&MENTAH.tahun)||0;
   const t=(TREN||[]).filter(x=>x&&x.pagu>0&&(!ta||!x.tahun||Number(x.tahun)===ta)).slice(-12);
   kotak.hidden=t.length<2;
@@ -3598,6 +3599,19 @@ if(layar){
   ['dragenter','dragover'].forEach(n=>layar.addEventListener(n,e=>{e.preventDefault();layar.classList.add('aktif');}));
   ['dragleave','drop'].forEach(n=>layar.addEventListener(n,e=>{e.preventDefault();layar.classList.remove('aktif');}));
   layar.addEventListener('drop',e=>{ const f=e.dataTransfer.files[0]; if(f) prosesBerkas(f); });
+}
+
+/* Saklar fitur dari dasbor admin (tombol Fitur). Daftar fitur yang dimatikan ikut jawaban aksi=realisasi;
+   tab Prognosa juga disembunyikan bila aksi=prognosa menjawab nonaktif. */
+function sembunyikanTabPrognosa(){
+  const b=document.querySelector('nav.tab button[data-tab="prognosa"]'); if(!b||b.hidden) return;
+  if(b.getAttribute('aria-selected')==='true'){ const r=document.querySelector('nav.tab button[data-tab="ringkasan"]'); if(r) r.click(); }
+  b.hidden=true;
+}
+function terapkanFiturPublik(mati){
+  window.FITUR_MATI=Array.isArray(mati)?mati:[];
+  if(FITUR_MATI.indexOf('tup')>=0) sembunyikanTabPrognosa();
+  if(FITUR_MATI.indexOf('tren')>=0){ const k=el('panelTren'); if(k) k.hidden=true; }
 }
 
 document.querySelectorAll('nav.tab button').forEach(b=>{
@@ -4730,6 +4744,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     .then(r=>r.json())
     .then(h=>{
       clearTimeout(pewaktu);
+      if(h&&h.ok) terapkanFiturPublik(h.fiturMati);
       if(!h||!h.ok||!dataSahih(h.data)) return;
       try{ localStorage.setItem(KUNCI_TERAKHIR,JSON.stringify(h.data)); }catch(err){}
       if(terpasang&&new Date(h.data.tanggal)<=new Date(terpasang.tanggal)) return;
@@ -5019,6 +5034,7 @@ if (window.Gerak) Gerak.pilMenu(document.querySelector("nav.tab"), { aktif: 'but
     return '<span class="status capai">Sesuai prognosa</span>';
   }
   function gambar(h){
+    if(h&&h.ok&&h.nonaktif){ sembunyikanTabPrognosa(); return; }
     if(!h||!h.ok){ wadah.innerHTML='<p class="ket">Data prognosa belum bisa dimuat. Coba muat ulang halaman beberapa saat lagi.</p>'; return; }
     if(!h.ada){ wadah.innerHTML='<p class="ket" style="margin-top:0">Belum ada prognosa yang ditetapkan. Prognosa kegiatan seksi tampil di sini setelah ditetapkan bendahara.</p>'; return; }
     const k=h.kesesuaian, t=k.total, kini=periode(k.periodeKini);

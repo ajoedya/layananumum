@@ -227,6 +227,16 @@ details.gaya > .kisi { padding: 4px 14px 14px; }
 .gaya-baris input[type="range"] { height: 44px; }
 table.target input { min-height: 44px; }
 .lencana.jadwal { background: #fff1d6; color: #7a4a05; }
+/* Saklar fitur (tombol Fitur di bilah atas). */
+.saklar { list-style: none; margin: 0; padding: 0; border: 1px solid var(--garis); border-radius: 8px; background: var(--putih); }
+.saklar li + li { border-top: 1px solid var(--garis); }
+.saklar label { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 12px; align-items: start; padding: 12px 14px; cursor: pointer; min-height: 44px; }
+.saklar input { width: 20px; height: 20px; margin: 2px 0 0; grid-row: span 2; accent-color: var(--laut); }
+.saklar b { font-size: 15px; }
+.saklar small { color: var(--lembut); font-size: 13px; }
+.saklar li.mati b { color: var(--lembut); }
+.saklar-grup { margin: 18px 0 8px; font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--lembut); }
+
 /* Daftar periksa pergantian tahun anggaran (modul Tahun baru). */
 .periksa { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .periksa > li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; padding: 12px 14px; border: 1px solid var(--garis); border-radius: 8px; background: var(--putih); }
@@ -292,6 +302,7 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
     <span class="status" id="status" role="status" aria-live="polite" hidden></span>
     <button type="button" class="tombol" id="tombolPratinjau" hidden>Pratinjau</button>
     <button type="button" class="tombol utama" id="tombolTerbit" hidden>Terbitkan</button>
+    <button type="button" class="tombol" id="tombolFitur" hidden>Fitur</button>
     <button type="button" class="tombol" id="tombolKeluar" hidden>Keluar</button>
     <button type="button" class="menu-mode" data-tombol-mode aria-pressed="false" aria-label="Ganti ke tampilan gelap" title="Tampilan gelap">
       <svg class="ikon-bulan" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>
@@ -331,6 +342,10 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
 <div class="wadah" id="layarTahun" hidden>
   <div id="panelTahun"></div>
 </div>
+
+<div class="wadah" id="layarFitur" hidden>
+  <div id="panelFitur"></div>
+</div>
  </main>
 </div>
 
@@ -348,8 +363,10 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
     terbit: "",         // JSON isi terakhir yang diterbitkan, untuk mendeteksi perubahan
     dasar: "",          // cap waktu isi dari Apps Script saat dimuat, untuk mencegah saling timpa
     kunci: "", nama: "", uji: false, peran: "admin",
-    tab: "umum", saringTautan: "semua"
+    tab: "umum", saringTautan: "semua",
+    fiturMati: []       // fitur yang dimatikan admin (tombol Fitur); disimpan di Apps Script
   };
+  function fiturAktif(k) { return keadaan.fiturMati.indexOf(k) < 0; }
 
   function $(id) { return document.getElementById(id); }
   function el(tag, atr, anak) {
@@ -419,6 +436,7 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
       tombol.disabled = false; tombol.textContent = "Masuk";
       if (!h.ok) { $("pesanMasuk").textContent = h.pesan || "Gagal masuk."; $("pesanMasuk").hidden = false; return; }
       keadaan.peran = h.peran || "admin";
+      keadaan.fiturMati = Array.isArray(h.fiturMati) ? h.fiturMati : [];
       if (h.nama) keadaan.nama = h.nama;   // penyunting terdaftar memakai namanya sendiri
       simpanLokal(KUNCI_NAMA, keadaan.nama);
       $("kunciAdmin").value = "";
@@ -468,6 +486,8 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
     $("deskripsiPanel").textContent = keadaan.uji ? "Mode uji: isi bisa disunting dan dipratinjau, tetapi belum bisa diterbitkan."
       : "Masuk sebagai " + (keadaan.nama || "penyunting") + (keadaan.peran === "admin" ? " (admin)." : " (penyunting).");
     ["status", "tombolPratinjau", "tombolTerbit", "tombolKeluar"].forEach(function (id) { $(id).hidden = false; });
+    $("tombolFitur").hidden = keadaan.uji || keadaan.peran !== "admin";
+    terapkanFitur();
     // Data realisasi (keuangan) hanya untuk admin, jadi penyunting terdaftar tidak melihat pilihan Monev.
     $("modul").hidden = keadaan.uji || keadaan.peran !== "admin";
     if (keadaan.uji) $("tombolTerbit").disabled = true;
@@ -688,7 +708,7 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
     ["penyunting", "Penyunting", "admin"], ["aktivitas", "Aktivitas", "admin"], ["riwayat", "Riwayat & Cadangan"]
   ];
   // Tab bertanda "admin" hanya tampil untuk pemegang kunci admin; penyunting terdaftar tidak melihatnya.
-  function tabTampak() { return TAB.filter(function (t) { return !t[2] || keadaan.peran === "admin"; }); }
+  function tabTampak() { return TAB.filter(function (t) { return (!t[2] || keadaan.peran === "admin") && (t[0] === "umum" || fiturAktif("tab-" + t[0])); }); }
   function hitung(id) {
     var k = keadaan.konten;
     if (id === "info") return k.info.length;
@@ -1472,12 +1492,15 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
     if (b) pilihModul(b.getAttribute("data-modul"));
   });
   function pilihModul(m) {
-    var monevAktif = m === "monev", tahunAktif = m === "tahun", berandaAktif = !monevAktif && !tahunAktif;
+    var monevAktif = m === "monev", tahunAktif = m === "tahun", fiturLayar = m === "fitur", berandaAktif = !monevAktif && !tahunAktif && !fiturLayar;
     $("layarSunting").hidden = !berandaAktif; $("tabBaris").hidden = !berandaAktif;
-    $("layarMonev").hidden = !monevAktif; $("layarTahun").hidden = !tahunAktif;
+    $("layarMonev").hidden = !monevAktif; $("layarTahun").hidden = !tahunAktif; $("layarFitur").hidden = !fiturLayar;
+    $("tombolFitur").setAttribute("aria-pressed", String(fiturLayar));
+    if (fiturLayar) gambarFitur();
     ["status", "tombolPratinjau", "tombolTerbit"].forEach(function (id) { $(id).hidden = !berandaAktif; });
     [].forEach.call($("modul").querySelectorAll("button"), function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-modul") === m)); });
     if (monevAktif && !monev.dimuat && !monev.memuat) muatMonev();
+    else if (monevAktif && monev.dimuat) gambarMonev();   // saklar fitur bisa berubah sejak terakhir digambar
     if (tahunAktif && !tahunBaru.memuat) muatTahunBaru();
   }
 
@@ -1599,9 +1622,9 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
     p.appendChild(tayang);
     var tekPeng = t ? teksPengingat(t) : "";
     if (tekPeng) p.insertBefore(el("p", { kelas: "pesan galat", role: "status", style: "margin-bottom:14px", teks: tekPeng }), tayang);
-    p.appendChild(kotakTup());
-    if (t) { p.appendChild(kotakTren(t)); }
-    p.appendChild(kotakTarget());
+    if (fiturAktif("tup")) p.appendChild(kotakTup());
+    if (t && fiturAktif("tren")) { p.appendChild(kotakTren(t)); }
+    if (fiturAktif("target")) p.appendChild(kotakTarget());
 
     /* 2. Impor */
     var masukan = el("input", { type: "file", id: "berkasFa", accept: ".xlsx,.xls,.xlsm", kelas: "sr-only" });
@@ -2181,6 +2204,7 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
     var lalu = ta - 1, sudahMasuk = kini.getFullYear() >= ta;
     var arsipBeres = d && (d.arsipPrognosa.indexOf(lalu) >= 0 || (!d.isianPrognosa && !d.prognosaDitetapkan));
     var usang = isiUsang(keadaan.konten, ta);
+    var tup = fiturAktif("tup");
     return [
       { id: "realisasi", judul: "Terbitkan data realisasi TA " + ta,
         isi: "Impor Laporan Fa pertama tahun " + ta + " di Monev anggaran. Halaman Monitoring dan sisa pagu Prognosa baru memakai pagu TA " + ta + " setelah data ini terbit. Sampai saat itu halaman masih menampilkan data TA " + lalu + ".",
@@ -2194,10 +2218,10 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
         isi: "Isian, penetapan, dan status kegiatan prognosa TA " + lalu + " dipindah ke tab arsip berakhiran " + lalu + " di spreadsheet, lalu pengisian prognosa ditutup. Tidak ada data yang dihapus. Lakukan setelah pengajuan TUP TA " + lalu + " selesai.",
         otomatis: true, beres: !!arsipBeres,
         status: d ? (d.arsipPrognosa.indexOf(lalu) >= 0 ? "Arsip " + lalu + " sudah ada." : (d.isianPrognosa || d.prognosaDitetapkan) ? d.isianPrognosa + " unit punya isian" + (d.prognosaDitetapkan ? ", prognosa sudah ditetapkan." : ".") : "Tidak ada isian prognosa.") : "",
-        tombol: d && !arsipBeres ? ["Arsipkan prognosa " + lalu, function () { arsipkanPrognosa(lalu); }, !sudahMasuk, sudahMasuk ? "" : "Tersedia mulai 1 Januari " + ta + "."] : null },
+        tombol: d && !arsipBeres ? ["Arsipkan prognosa " + lalu, function () { arsipkanPrognosa(lalu); }, !sudahMasuk, sudahMasuk ? "" : "Tersedia mulai 1 Januari " + ta + "."] : null, lewati: !tup },
       { id: "prognosa", judul: "Atur prognosa TA " + ta,
         isi: "Setel tanggal batas pengisian, batas kegiatan, dan saldo UP baru di kotak Pengajuan TUP pada Monev anggaran sebelum membuka pengisian untuk seksi.",
-        tombol: ["Buka Monev anggaran", function () { pilihModul("monev"); }] },
+        tombol: ["Buka Monev anggaran", function () { pilihModul("monev"); }], lewati: !tup },
       { id: "perjadin", judul: "Periksa sumber data Monitoring E-Perjadin",
         isi: "Halaman Perjadin dan daftar ST di Prognosa membaca CSV tab E-Perjadin yang diterbitkan (Publish to web). Bila TA " + ta + " memakai tab atau spreadsheet baru, terbitkan tab itu sebagai CSV, lalu ganti SUMBER_CSV_PERJADIN di konten.js. Pasang juga apps-script/TautanBukti.gs di spreadsheet itu dan sesuaikan ID_TAB dengan gid tab barunya." },
       { id: "isi", judul: "Tinjau isi beranda yang menyebut tahun lalu",
@@ -2205,7 +2229,7 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
         otomatis: true, beres: !usang.length, usang: usang },
       { id: "akun", judul: "Periksa akun, domain, dan kunci",
         isi: "Pastikan domain para.my.id masih aktif dan diperpanjang, akun GitHub dan Google pemilik Apps Script masih bisa diakses pengelola, dan ganti kunci admin serta kunci prognosa bila ada pergantian pengelola. Rinciannya di PANDUAN-SERAH-TERIMA.md." }
-    ];
+    ].filter(function (b) { return !b.lewati; });
   }
 
   function arsipkanPrognosa(tahun) {
@@ -2262,6 +2286,7 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
   // Bilah pengingat 1 Desember sampai akhir Februari, selama butir otomatis belum beres.
   function periksaTahunBaru() {
     if (keadaan.uji || keadaan.peran !== "admin") return;
+    if (!fiturAktif("tahunBaru")) { var lama = $("pengingatTahun"); if (lama) lama.hidden = true; return; }
     var kini = new Date(), bulan = kini.getMonth();
     if (!(bulan === 11 || bulan <= 1)) return;
     var ta = taSasaran(kini), tanda = "layanan-pengingat-ta-" + ta;
@@ -2279,6 +2304,75 @@ table.target td:first-child, table.target th:first-child { text-align: left; }
     if (tahunBaru.data) { pasang(tahunBaru.data); return; }
     kirim({ aksi: "tahunBaruCek" }).then(function (h) { if (h.ok) { tahunBaru.data = h; pasang(h); } });
   }
+
+  /* ---------- Saklar fitur ----------
+     Admin mematikan bagian yang tidak dipakai. Daftarnya disimpan di Apps Script (aksi aturFitur), jadi berlaku untuk
+     semua admin dan juga untuk halaman publik (Prognosa dan Monitoring). Tidak ada data yang dihapus. */
+  var FITUR = [
+    { grup: "Monev anggaran", id: "tup", nama: "Pengajuan TUP dan prognosa seksi",
+      ket: "Kotak Pengajuan TUP di Monev anggaran, halaman Prognosa untuk seksi, tab Prognosa di halaman Monitoring, dan butir prognosa di Tahun baru. Bila dimatikan, seksi tidak bisa masuk ke halaman Prognosa." },
+    { grup: "Monev anggaran", id: "tren", nama: "Tren penyerapan", ket: "Grafik tren di Monev anggaran dan kartu tren di halaman Monitoring. Titik tren tetap tercatat setiap penerbitan." },
+    { grup: "Monev anggaran", id: "target", nama: "Editor target dan ambang", ket: "Hanya kotak pengubah target yang disembunyikan. Target yang sudah tersimpan tetap dipakai halaman Monitoring." },
+    { grup: "Dasbor", id: "tahunBaru", nama: "Modul Tahun baru", ket: "Tombol Tahun baru di panel kiri dan pengingat pergantian tahun anggaran (Desember sampai Februari)." }
+  ];
+  var fiturDraf = null, fiturSibuk = false;
+
+  // Menyembunyikan tombol, tab, dan pengingat sesuai saklar. Dipanggil saat masuk dan setelah saklar disimpan.
+  function terapkanFitur() {
+    var tb = document.querySelector('#modul button[data-modul="tahun"]');
+    if (tb) tb.hidden = !fiturAktif("tahunBaru");
+    if (!tabTampak().some(function (t) { return t[0] === keadaan.tab; })) keadaan.tab = "umum";
+    if (keadaan.konten) { gambarTab(); if (!$("layarSunting").hidden) gambarPanel(); }
+    if (!fiturAktif("tahunBaru")) { var n = $("pengingatTahun"); if (n) n.hidden = true; }
+    if (!$("layarMonev").hidden && monev.dimuat) gambarMonev();
+  }
+
+  function gambarFitur() {
+    var p = $("panelFitur");
+    if (!fiturDraf) fiturDraf = keadaan.fiturMati.slice();
+    p.textContent = "";
+    p.appendChild(judulBagian("Fitur"));
+    p.appendChild(el("p", { kelas: "petunjuk", teks: "Matikan bagian yang tidak dipakai supaya dasbor lebih ringkas. Fitur yang dimatikan hanya disembunyikan: datanya tetap tersimpan dan bisa dinyalakan lagi kapan saja. Pengaturan ini berlaku untuk semua admin." }));
+    function baris(id, nama, ket) {
+      var c = el("input", { type: "checkbox" }); c.checked = fiturDraf.indexOf(id) < 0;
+      var li = el("li", { kelas: c.checked ? "" : "mati" }, [el("label", null, [c, el("b", { teks: nama + (c.checked ? "" : " (mati)") }), ket ? el("small", { teks: ket }) : null])]);
+      c.addEventListener("change", function () {
+        fiturDraf = fiturDraf.filter(function (x) { return x !== id; });
+        if (!c.checked) fiturDraf.push(id);
+        gambarFitur();
+      });
+      return li;
+    }
+    var grup = {};
+    FITUR.forEach(function (f) { (grup[f.grup] = grup[f.grup] || []).push(f); });
+    Object.keys(grup).forEach(function (g) {
+      p.appendChild(el("h3", { kelas: "saklar-grup", teks: g }));
+      p.appendChild(el("ul", { kelas: "saklar" }, grup[g].map(function (f) { return baris(f.id, f.nama, f.ket); })));
+    });
+    p.appendChild(el("h3", { kelas: "saklar-grup", teks: "Tab di bagian Beranda" }));
+    p.appendChild(el("ul", { kelas: "saklar" }, TAB.filter(function (t) { return t[0] !== "umum"; }).map(function (t) { return baris("tab-" + t[0], t[1], null); })));
+    p.appendChild(el("p", { kelas: "petunjuk", style: "margin-top:10px", teks: "Tab Umum selalu tampil. Tab yang dimatikan hanya disembunyikan dari dasbor; isinya tetap ikut diterbitkan." }));
+    var sama = fiturDraf.slice().sort().join() === keadaan.fiturMati.slice().sort().join();
+    p.appendChild(el("div", { kelas: "bagian-judul", style: "margin:16px 0 0" }, [
+      el("button", { type: "button", kelas: "tombol utama", disabled: sama || fiturSibuk, teks: fiturSibuk ? "Menyimpan..." : "Simpan pengaturan fitur", onclick: simpanFitur }),
+      el("button", { type: "button", kelas: "tombol", disabled: sama || fiturSibuk, teks: "Batalkan perubahan", onclick: function () { fiturDraf = keadaan.fiturMati.slice(); gambarFitur(); } })
+    ]));
+  }
+
+  function simpanFitur() {
+    fiturSibuk = true; gambarFitur();
+    kirim({ aksi: "aturFitur", mati: fiturDraf, penyunting: keadaan.nama }).then(function (h) {
+      fiturSibuk = false;
+      if (!h.ok) {
+        kabar(h.pesan === "Aksi tidak dikenal" ? "Kode Apps Script yang tayang belum memuat saklar fitur. Deploy versi terbaru AdminBeranda.gs dulu." : (h.pesan || "Pengaturan fitur gagal disimpan."), true);
+        gambarFitur(); return;
+      }
+      keadaan.fiturMati = h.fiturMati || []; fiturDraf = keadaan.fiturMati.slice();
+      kabar("Pengaturan fitur tersimpan.");
+      terapkanFitur(); gambarFitur();
+    });
+  }
+  $("tombolFitur").addEventListener("click", function () { pilihModul($("layarFitur").hidden ? "fitur" : "beranda"); });
 
   // Diperiksa diam-diam sekali setelah admin masuk, supaya pengingat muncul tanpa membuka Monev.
   function periksaPengingat() {
