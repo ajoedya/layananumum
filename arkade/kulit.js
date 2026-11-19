@@ -36,12 +36,16 @@
     var wadah = [].slice.call(document.querySelectorAll(".panel-foto, #latarFoto, .rk-foto"));
     var kop = document.querySelector(".halaman-alat .kop");
     if (kop) { var f = document.createElement("div"); f.className = "arkade-kop-foto"; f.setAttribute("aria-hidden", "true"); kop.insertBefore(f, kop.firstChild); wadah.push(f); }
+    // Satu adegan untuk seluruh halaman (bergantian tiap kunjungan); di pita sempit HP potongannya dibidik ke kepala beruang.
+    var adegan = window.BannerBeruang && BannerBeruang.pilih ? BannerBeruang.pilih() : "dermaga";
+    var fokus = window.BannerBeruang && BannerBeruang.FOKUS ? BannerBeruang.FOKUS[adegan] : "";
     wadah.forEach(function (w) {
       var c = document.createElement("canvas");
       c.className = "arkade-adegan";
       c.setAttribute("aria-hidden", "true");
+      if (fokus) c.style.objectPosition = fokus;
       w.appendChild(c);
-      if (window.BannerBeruang) BannerBeruang(c, { diam: diam });
+      if (window.BannerBeruang) BannerBeruang(c, { diam: diam, desain: adegan });
     });
     // Realisasi: di layar lebar adegan ikut mengalir di dasar isi panel (lihat kulit.css), karena panelnya bergulir sendiri.
     var latar = document.getElementById("latarFoto");
@@ -50,7 +54,7 @@
       alur.className = "arkade-adegan arkade-alur";
       alur.setAttribute("aria-hidden", "true");
       latar.parentElement.appendChild(alur);
-      if (window.BannerBeruang) BannerBeruang(alur, { diam: diam });
+      if (window.BannerBeruang) BannerBeruang(alur, { diam: diam, desain: adegan });
     }
     var pindai = document.createElement("div");
     pindai.className = "arkade-pindai";

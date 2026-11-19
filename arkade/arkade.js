@@ -118,9 +118,17 @@
       '<button type="button" class="tombol-px" data-tema aria-label="' + (gelap() ? "Ganti ke tampilan terang" : "Ganti ke tampilan gelap") + '">' + (gelap() ? "☀" : "☾") + "</button>" +
       '<button type="button" class="tombol-px" data-keluar>KELUAR</button></span></header>';
   }
+  // Adegan banner bergantian tiap kunjungan (BannerBeruang.pilih) dan bisa diganti dengan tombol di pojok banner.
+  var KET_ADEGAN = {
+    dermaga: "melambai di dermaga Teluk Balikpapan", mancing: "memancing di dermaga Teluk Balikpapan",
+    speedboat: "menyetir speedboat di Teluk Balikpapan", papan: "menunjuk papan bertuliskan JOSJIS di dermaga Teluk Balikpapan"
+  };
   function banner() {
-    return '<div class="banner"><canvas data-banner role="img" aria-label="Beruang madu piksel berkacamata hitam melambai di dermaga Teluk Balikpapan"></canvas>' +
-      '<span class="gelembung" aria-hidden="true">JOSJIS!</span><span class="stiker">' + tanggal() + "</span></div>";
+    var g = window.BannerBeruang && BannerBeruang.GELEMBUNG ? BannerBeruang.GELEMBUNG[s.adegan] : { left: "47%", top: "10%" };
+    return '<div class="banner"><canvas data-banner role="img" aria-label="Beruang madu piksel berkacamata hitam ' + (KET_ADEGAN[s.adegan] || KET_ADEGAN.dermaga) + '"></canvas>' +
+      '<span class="gelembung" aria-hidden="true"' + (g ? ' style="left:' + g.left + ';top:' + g.top + '"' : " hidden") + ">JOSJIS!</span>" +
+      '<span class="stiker">' + tanggal() + "</span>" +
+      (window.BannerBeruang && BannerBeruang.DESAIN ? '<button type="button" class="ganti-adegan" data-adegan aria-label="Ganti adegan banner">ADEGAN ▶</button>' : "") + "</div>";
   }
   function cari() {
     return '<div class="cari-px" role="search"><label for="cariPx">CARI&gt;</label><input type="search" id="cariPx" autocomplete="off" placeholder="ketik nama layanan..." value="' + esc(s.cari) + '"><kbd aria-hidden="true">/</kbd></div>';
@@ -163,7 +171,7 @@
     if (bannerAktif) bannerAktif.henti();
     layar.innerHTML = html(hasil());
     var c = layar.querySelector("canvas[data-banner]");
-    if (c && window.BannerBeruang) bannerAktif = BannerBeruang(c, { diam: diam });
+    if (c && window.BannerBeruang) bannerAktif = BannerBeruang(c, { diam: diam, desain: s.adegan });
     window.scrollTo(0, y);
     if (fokusCari) { var ci = document.getElementById("cariPx"); ci.focus(); ci.setSelectionRange(ci.value.length, ci.value.length); }
     if (!diam && info.length && s.diketik !== s.kabar) { s.diketik = s.kabar; ketik(); }
@@ -250,7 +258,7 @@
     if (diam) { location.href = tujuan; return; }
     try { sessionStorage.setItem("layanan-tirai", "1"); } catch (e) { /* abaikan */ }
     var g = layar.querySelector(".gelembung");
-    if (g) { g.textContent = "DAH!"; g.style.animation = "none"; g.style.opacity = "1"; }
+    if (g) { g.hidden = false; if (!g.style.left) { g.style.left = "47%"; g.style.top = "10%"; } g.textContent = "DAH!"; g.style.animation = "none"; g.style.opacity = "1"; }
     [660, 523, 392, 262].forEach(function (f, i) { setTimeout(function () { bunyi(f, .09); }, 110 * i); });
     var r = tombol ? tombol.getBoundingClientRect() : { left: window.innerWidth, top: 0, width: 0, height: 0 };
     setTimeout(function () {
@@ -281,6 +289,14 @@
     }
     if (b.hasAttribute("data-keluar")) keluar(b);
     if (b.hasAttribute("data-tema") && window.Tema) { bunyi(770, .06); Tema.alihMode(); }
+    if (b.hasAttribute("data-adegan") && window.BannerBeruang) {
+      var d = BannerBeruang.DESAIN;
+      s.adegan = d[(d.indexOf(s.adegan) + 1) % d.length];
+      try { sessionStorage.setItem("layanan-adegan", s.adegan); } catch (er) { /* abaikan */ }
+      bunyi(587, .05); setTimeout(function () { bunyi(880, .06); }, 70);
+      gambar();
+      var gb = layar.querySelector("[data-adegan]"); if (gb) gb.focus();
+    }
   });
   layar.addEventListener("mouseover", function (e) { var a = e.target.closest("a[data-i]"); if (a && Number(a.dataset.i) !== s.pilih) pilihKe(Number(a.dataset.i)); });
   layar.addEventListener("focusin", function (e) { var a = e.target.closest("a[data-i]"); if (a) pilihKe(Number(a.dataset.i)); });
@@ -328,6 +344,7 @@
   // Saklar tema di HUD digambar ulang mengikuti mode yang berlaku.
   document.addEventListener("modeberubah", function () { var t = document.activeElement && document.activeElement.hasAttribute && document.activeElement.hasAttribute("data-tema"); gambar(); if (t) { var x = layar.querySelector("[data-tema]"); if (x) x.focus(); } });
   try { if (localStorage.getItem("arkade-suara") === "0") s.suara = false; } catch (e) { /* abaikan */ }
+  s.adegan = window.BannerBeruang && BannerBeruang.pilih ? BannerBeruang.pilih() : "dermaga";
   siapkan();
   // Datang dari beranda lewat beruang: tirai dibuka dari pojok kanan bawah, tempat beruang berdiri.
   bukaTirai(window.innerWidth, window.innerHeight);
