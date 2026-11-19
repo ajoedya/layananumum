@@ -53,9 +53,26 @@ document.documentElement.setAttribute("data-panel",k==="lepas"?"lepas":"kunci");
     pasangMode(mode);
   });
 
-  // Efek lingkaran: tema baru melebar dari tombol yang ditekan (View Transitions API).
+  // Efek cairan: tema baru meluap dari tombol yang ditekan sebagai gumpalan bertepi bergelombang,
+  // gelombangnya mereda saat menutup layar (View Transitions API, clip-path poligon per bingkai).
+  // Di mode arkade, arkade/tema-piksel.js memasang window.TransisiPiksel dan efek itulah yang dipakai.
   // Tanpa dukungan peramban, atau bila pengguna mengurangi gerak, mode berganti langsung.
+  // Salinan fungsi ini ada di tema.js, bengkelpdf/tema.js, dan realisasi/index.html; ubah ketiganya sekaligus.
+  function cairan(x, y, radius) {
+    var bingkai = [], N = 72, K = 16;
+    for (var k = 0; k <= K; k++) {
+      var p = k / K, R = radius * 1.18 * (1 - Math.pow(1 - p, 3)), ombak = (1 - p) * .16, titik = [];
+      for (var i = 0; i < N; i++) {
+        var a = i / N * Math.PI * 2;
+        var r = R * (1 + ombak * (Math.sin(a * 5 + p * 7) * .6 + Math.sin(a * 8 - p * 11) * .3 + Math.sin(a * 3 + p * 4) * .4));
+        titik.push((x + Math.cos(a) * r).toFixed(1) + "px " + (y + Math.sin(a) * r).toFixed(1) + "px");
+      }
+      bingkai.push({ clipPath: "polygon(" + titik.join(",") + ")" });
+    }
+    return bingkai;
+  }
   function lingkar(terapkan) {
+    if (window.TransisiPiksel) { window.TransisiPiksel(terapkan); return; }
     var kurang = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (!document.startViewTransition || kurang) { terapkan(); return; }
     var t = document.activeElement && document.activeElement.closest ? document.activeElement.closest("[data-tombol-mode]") : null;
@@ -72,9 +89,7 @@ document.documentElement.setAttribute("data-panel",k==="lepas"?"lepas":"kunci");
     var vt;
     try { vt = document.startViewTransition(terapkan); } catch (e) { bersih(); terapkan(); return; }
     vt.ready.then(function () {
-      document.documentElement.animate(
-        { clipPath: ["circle(0px at " + x + "px " + y + "px)", "circle(" + radius + "px at " + x + "px " + y + "px)"] },
-        { duration: 650, easing: "cubic-bezier(.22,.61,.36,1)", pseudoElement: "::view-transition-new(root)" });
+      document.documentElement.animate(cairan(x, y, radius), { duration: 900, easing: "linear", pseudoElement: "::view-transition-new(root)" });
     }).catch(function () { /* abaikan */ });
     vt.finished.then(bersih, bersih);
   }

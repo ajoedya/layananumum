@@ -22,6 +22,8 @@
   function gaya(alamat) { var l = document.createElement("link"); l.rel = "stylesheet"; l.href = dasar + alamat; document.head.appendChild(l); }
   gaya("huruf/pixelify-sans.css");
   gaya("kulit.css");
+  // Transisi tema piksel; skrip tema halaman memakainya bila tersedia.
+  var tp = document.createElement("script"); tp.src = dasar + "tema-piksel.js"; document.head.appendChild(tp);
 
   var diam = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
   var s = document.createElement("script");
