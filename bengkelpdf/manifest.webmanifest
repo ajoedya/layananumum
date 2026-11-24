@@ -1,7 +1,7 @@
 {
   "name": "Olah PDF · KPKNL Balikpapan",
   "short_name": "Olah PDF",
-  "description": "Perkakas PDF untuk pekerjaan kantor. Berkas diproses di perangkat sendiri, tidak diunggah ke server.",
+  "description": "Perkakas PDF untuk pekerjaan kantor.",
   "lang": "id",
   "start_url": "./",
   "scope": "./",

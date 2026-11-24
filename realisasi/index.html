@@ -3281,7 +3281,7 @@ function gambarTelusur(){
   if(!kode) return;
   const d=rincianOutput(HASIL,kode), H=HASIL, ro=d.ro;
   el('roUnit').textContent=ro.unit;
-  el('roKeg').textContent=ro.kodeKeg?ro.kodeKeg+' · '+ro.kegiatan:'—';
+  el('roKeg').textContent=ro.kodeKeg?ro.kodeKeg+' · '+ro.kegiatan:'-';
   el('roPersen').textContent=ps1.format(ro.persen*100);
   const dev=ro.persen-H.targetTertimbang;
   el('roKabar').innerHTML='Output ini <b>'+ps2.format(Math.abs(dev)*100)+' persen poin '+
@@ -3328,7 +3328,7 @@ function gambarParameter(){
       const o=HASIL.output.find(x=>x.kode===k);
       const u=KONFIG.unit[k]||'Belum dipetakan';
       return {_kelas:(o&&u==='Belum dipetakan')?'belum':'',
-        sel:[aman(k),aman(o?o.nama:'—'),
+        sel:[aman(k),aman(o?o.nama:'-'),
           '<select data-peta="ro" data-kode="'+aman(k)+'">'+opsiUnit(u)+'</select>',
           o?'ya':'tidak']};
     })
@@ -3344,7 +3344,7 @@ function gambarParameter(){
       const b=HASIL.baris.find(x=>x.kodeAkun===k);
       const j=KONFIG.jenis[k]||'Belum dipetakan';
       return {_kelas:(b&&j==='Belum dipetakan')?'belum':'',
-        sel:[aman(k),aman(b?b.namaAkun:'—'),
+        sel:[aman(k),aman(b?b.namaAkun:'-'),
           '<select data-peta="akun" data-kode="'+aman(k)+'">'+opsiJenis(j)+'</select>',
           b?'ya':'tidak']};
     })

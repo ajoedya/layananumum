@@ -1,7 +1,7 @@
 /* Seto si Rawon Gank: tokoh piksel yang selalu ada di pojok layar mode arkade.
    Ia masuk dari tepi, lalu terus bergoyang dan mengacungkan tangan 🤙 sambil meneriakkan "JOSJIS!".
    Bila penunjuk mendekat atau layar disentuh, biasanya ia melompat menghindar ke pojok lain. Sesekali ia
-   lengah (peluangnya naik tiap kali berhasil menghindar); bila saat itu diklik, ia tertangkap dan banner
+   lengah (peluang tetap 1 banding 20 tiap kali didekati); bila saat itu diklik, ia tertangkap dan banner
    teriakan JOSJIS tampil di tengah layar, lalu ia masuk lagi dari pojok lain.
    Gambarnya digambar dengan kode (20 x 30 piksel), tanpa berkas gambar dan tanpa latar.
    Tokohnya hiasan (aria-hidden, tidak bisa difokus). ?seto=0 menyembunyikannya.
@@ -286,9 +286,9 @@
       ".seto-banner{gap:12px;padding:14px 18px 14px 12px}.seto-banner svg{width:52px;height:78px}.seto-banner b{font-size:40px}.seto-banner small{font-size:12px}}";
 
   var JARAK = 12;          // jarak dari tepi layar (px)
-  var PELUANG_AWAL = 0.2, PELUANG_NAIK = 0.1, PELUANG_MAKS = 0.6;   // peluang lengah tiap kali didekati
+  var PELUANG = 1 / 20;    // peluang lengah tiap kali didekati, tetap
   var tokoh, teks, bingkaiSkrg, pojok = null, x = 0, y = 0, waktu = [], pergi = false, aktif = false;
-  var lengah = false, peluang = PELUANG_AWAL, waktuLengah = null;
+  var lengah = false, waktuLengah = null;
 
   function buat() {
     var g = document.createElement("style");
@@ -448,9 +448,7 @@
 
   /* ---------- Didekati, menghindar, tertangkap ---------- */
   function undi() {
-    var kena = Math.random() < peluang;
-    if (!kena) peluang = Math.min(PELUANG_MAKS, peluang + PELUANG_NAIK);
-    return kena;
+    return Math.random() < PELUANG;
   }
   // Tetikus mendekat: lengah (diam terpaku, bisa diklik) atau langsung menghindar.
   function didekati() {
@@ -475,7 +473,7 @@
   // Tertangkap: banner teriakan JOSJIS di tengah layar, lalu ia masuk lagi dari pojok lain.
   function tertangkap() {
     if (!aktif || pergi) return;
-    aktif = false; lengah = false; peluang = PELUANG_AWAL;
+    aktif = false; lengah = false;
     clearTimeout(waktuLengah);
     hentikan();
     tampil("teriak");
