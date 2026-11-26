@@ -1,7 +1,7 @@
 /* Seto si Rawon Gank: tokoh piksel yang selalu ada di pojok layar mode arkade.
    Ia masuk dari tepi, lalu terus bergoyang dan mengacungkan tangan 🤙 sambil meneriakkan "JOSJIS!".
-   Bila penunjuk mendekat atau layar disentuh, biasanya ia melompat menghindar ke pojok lain. Sesekali ia
-   lengah (peluang tetap 1 banding 20 tiap kali didekati); bila saat itu diklik, ia tertangkap dan banner
+   Bila penunjuk mendekat (dalam jarak JARAK_DEKAT) atau layar disentuh, biasanya ia langsung menghilang
+   dan muncul lagi di pojok lain. Sesekali ia lengah (peluang tetap 1 banding 100 tiap kali didekati); bila saat itu diklik, ia tertangkap dan banner
    teriakan JOSJIS tampil di tengah layar, lalu ia masuk lagi dari pojok lain.
    Gambarnya digambar dengan kode (20 x 30 piksel), tanpa berkas gambar dan tanpa latar.
    Tokohnya hiasan (aria-hidden, tidak bisa difokus). ?seto=0 menyembunyikannya.
@@ -286,7 +286,9 @@
       ".seto-banner{gap:12px;padding:14px 18px 14px 12px}.seto-banner svg{width:52px;height:78px}.seto-banner b{font-size:40px}.seto-banner small{font-size:12px}}";
 
   var JARAK = 12;          // jarak dari tepi layar (px)
-  var PELUANG = 1 / 20;    // peluang lengah tiap kali didekati, tetap
+  var PELUANG = 1 / 100;   // peluang lengah tiap kali didekati, tetap
+  var JARAK_DEKAT = 80;    // jarak penunjuk ke tepi tokoh (px) yang dianggap mendekat
+  var dekat = false;       // penunjuk sedang berada dalam JARAK_DEKAT
   var tokoh, teks, bingkaiSkrg, pojok = null, x = 0, y = 0, waktu = [], pergi = false, aktif = false;
   var lengah = false, waktuLengah = null;
 
@@ -302,11 +304,20 @@
     for (var nama in BINGKAI) isi += '<g data-b="' + nama + '">' + gambar(BINGKAI[nama]) + "</g>";
     tokoh.innerHTML = isi + '</svg><span class="seto-teriak">JOSJIS!</span>';
     teks = tokoh.querySelector(".seto-teriak");
-    // Tetikus mendekat: undi lengah atau menghindar. Sentuhan langsung diundi saat layar disentuh.
-    tokoh.addEventListener("pointerenter", function (e) { if (e.pointerType === "mouse") didekati(); });
-    tokoh.addEventListener("pointerleave", function (e) {
-      if (e.pointerType === "mouse" && lengah) waktuLengah = setTimeout(sadar, 500);
-    });
+    // Tetikus mendekat (belum menyentuh tokoh): undi lengah atau menghilang. Sentuhan diundi saat layar disentuh.
+    document.addEventListener("pointermove", function (e) {
+      if (e.pointerType !== "mouse" || tokoh.hidden) return;
+      var r = tokoh.getBoundingClientRect();
+      var dx = Math.max(r.left - e.clientX, 0, e.clientX - r.right);
+      var dy = Math.max(r.top - e.clientY, 0, e.clientY - r.bottom);
+      var jarak = Math.sqrt(dx * dx + dy * dy);
+      if (jarak < JARAK_DEKAT) {
+        if (!dekat) { dekat = true; didekati(); }
+      } else if (dekat && jarak > JARAK_DEKAT + 20) {
+        dekat = false;
+        if (lengah) waktuLengah = setTimeout(sadar, 500);
+      }
+    }, { passive: true });
     tokoh.addEventListener("pointerdown", function (e) {
       e.preventDefault();
       if (lengah) { tertangkap(); return; }
@@ -498,31 +509,26 @@
     tunda(tutup, 2800);
   }
 
-  // Menghindar: lompat, menghilang dalam debu, lalu muncul di pojok lain sambil meledek JOSJIS.
+  // Menghindar: langsung menghilang dalam debu, lalu muncul di pojok lain sambil meledek JOSJIS.
   function menghindar() {
     if (!aktif || pergi) return;
     pergi = true; lengah = false;
     hentikan();
     var u = ukuran();
-    tampil("teriak");
-    tokoh.classList.remove("teriak");
-    letak(x, y, -12);
+    debu(x + u.w / 2, y + u.h / 2);
+    tokoh.hidden = true;
     tunda(function () {
-      debu(x + u.w / 2, y + u.h / 2);
-      tokoh.hidden = true;
-      tunda(function () {
-        var p = pilihPojok() || pojok;
-        aturPojok(p);
-        var t = titikPojok(p);
-        letak(t.x, t.y);
-        tampil("salam");
-        tokoh.classList.add("teriak");
-        tokoh.hidden = false;
-        if (!diam) debu(t.x + u.w / 2, t.y + u.h / 2);
-        pergi = false;
-        tunda(terusJoget, 700);
-      }, diam ? 0 : 260);
-    }, diam ? 0 : 120);
+      var p = pilihPojok() || pojok;
+      aturPojok(p);
+      var t = titikPojok(p);
+      letak(t.x, t.y);
+      tampil("salam");
+      tokoh.classList.add("teriak");
+      tokoh.hidden = false;
+      if (!diam) debu(t.x + u.w / 2, t.y + u.h / 2);
+      pergi = false; dekat = false;
+      tunda(terusJoget, 700);
+    }, diam ? 0 : 600);
   }
 
   function mulai() {
