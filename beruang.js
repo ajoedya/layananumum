@@ -2,7 +2,9 @@
    Beruang kecil berkacamata hitam selalu berdiri di pojok bawah layar.
    Sesekali ia melambai atau kacamatanya berkilau. Bila diklik, layar berubah jadi
    piksel dan beranda beralih ke mode arkade.
-   Bila pop up tampil di pojok yang sama, beruang pindah ke pojok seberang.
+   Bila pop up tampil di pojok yang sama, beruang pindah ke pojok seberang. Beruang tidak menimpa tautan
+   atau tombol: bila pojoknya berisi tautan, ia naik, pindah pojok, atau menyingkir sampai pojok kosong.
+   Label MODE ARKADE hanya tampil saat beruang disorot atau difokus.
    Mode arkade ada di arkade/; pilihan mode disimpan di sana (localStorage "layanan-arkade").
    ?beruang=0 menyembunyikannya. Pratinjau dari dasbor admin (?pratinjau=1) tidak memuatnya. */
 (function () {
@@ -79,13 +81,16 @@
     ".beruang-gelembung:after{content:'';position:absolute;top:100%;width:6px;height:6px;background:#0a1420}" +
     ".beruang.kanan .beruang-gelembung{right:4px}.beruang.kanan .beruang-gelembung:after{right:20px}" +
     ".beruang.kiri .beruang-gelembung{left:4px}.beruang.kiri .beruang-gelembung:after{left:20px}" +
-    ".beruang:hover .beruang-gelembung,.beruang:focus-visible .beruang-gelembung,.beruang.bicara .beruang-gelembung{opacity:1}" +
+    ".beruang:hover .beruang-gelembung,.beruang:focus-visible .beruang-gelembung{opacity:1}" +
+    ".beruang.menyingkir{opacity:0;visibility:hidden;transition:opacity .2s steps(3),visibility 0s .2s}" +
     ".beruang-tabir{position:fixed;inset:0;z-index:100;pointer-events:none}" +
     "html.ada-beruang main.isi{padding-bottom:92px}" +
     "@media (max-width:600px){.beruang{width:48px;height:48px}.beruang-gelembung{bottom:60px}html.ada-beruang main.isi{padding-bottom:76px}}";
 
   var JARAK = 14;   // jarak dari tepi layar (px)
   var tombol, bingkaiSkrg, posisi = 0, pojok = "kanan", naik = 0, waktuJalan = null, sudah = false, sibuk = false;
+  var akhirGulir = 0, menyingkir = false;
+  var INTERAKTIF = "a[href],button,input,select,textarea,summary,[role=button],[tabindex]:not([tabindex='-1'])";
 
   function buat() {
     var g = document.createElement("style");
@@ -124,7 +129,8 @@
     for (var n = el.firstChild; n; n = n.nextSibling) if (n.nodeType === 3 && n.textContent.trim()) return true;
     return false;
   }
-  // Pojok dianggap kosong bila tak ada teks atau tombol dari bagian yang menetap di bawah beruang.
+  // Pojok dianggap kosong bila tak ada teks dari bagian yang menetap di bawah beruang,
+  // dan tak ada tautan atau tombol (menetap maupun ikut menggulir).
   function kosongDi(x, y, w) {
     var titik = [[x + 2, y + 2], [x + w - 2, y + 2], [x + w / 2, y + w / 2], [x + 2, y + w - 2], [x + w - 2, y + w - 2]];
     for (var i = 0; i < titik.length; i++) {
@@ -133,17 +139,29 @@
         var el = dibawah[j];
         if (tombol.contains(el) || el === document.documentElement || el === document.body) continue;
         if (berisi(el) && menetap(el)) return false;
+        if (el.closest && el.closest(INTERAKTIF)) return false;
         break;
       }
     }
     return true;
   }
-  // Seberapa jauh beruang perlu naik dari tepi bawah supaya pojoknya kosong.
+  // Seberapa jauh beruang perlu naik dari tepi bawah supaya pojoknya kosong; null bila tak ada.
   function cariNaik(p) {
     var w = tombol.offsetWidth, x = xPojok(p), dasar = window.innerHeight - w - JARAK;
     for (var dy = 0; dy <= 240; dy += 12) if (kosongDi(x, dasar - dy, w)) return dy;
-    return 0;
+    return null;
   }
+  // Pojok dan ketinggian yang kosong: pojok sekarang lebih dulu, lalu pojok seberang.
+  function cariTempat() {
+    var urut = [pojok, pojok === "kanan" ? "kiri" : "kanan"];
+    for (var i = 0; i < urut.length; i++) {
+      if (tertutup(urut[i])) continue;
+      var dy = cariNaik(urut[i]);
+      if (dy !== null) return { p: urut[i], dy: dy };
+    }
+    return null;
+  }
+  function singkir(ya) { menyingkir = ya; tombol.classList.toggle("menyingkir", ya); }
   function aturNaik(dy) { naik = dy; tombol.style.bottom = "calc(max(10px, env(safe-area-inset-bottom)) + " + dy + "px)"; }
 
   function aturPojok(p) { pojok = p; tombol.classList.toggle("kanan", p === "kanan"); tombol.classList.toggle("kiri", p === "kiri"); }
@@ -206,28 +224,32 @@
     return false;
   }
   function awasi() {
+    window.addEventListener("scroll", function () { akhirGulir = Date.now(); }, { passive: true });
     setInterval(function () {
-      if (sudah || sibuk) return;
-      var seberang = pojok === "kanan" ? "kiri" : "kanan";
-      var mau = tertutup(pojok) && !tertutup(seberang) ? seberang : pojok;
-      var tujuanX = xPojok(mau);
+      if (sudah || sibuk || Date.now() - akhirGulir < 300) return;
+      var t = cariTempat();
+      if (!t) { if (!menyingkir) singkir(true); return; }
+      var mau = t.p, tujuanX = xPojok(mau);
+      // Muncul lagi setelah menyingkir: langsung di tempat yang kosong.
+      if (menyingkir) { aturPojok(mau); aturNaik(t.dy); letak(tujuanX); singkir(false); return; }
       if (mau !== pojok || Math.abs(tujuanX - posisi) > 2) {
         aturPojok(mau);
-        if (diam) { letak(tujuanX); aturNaik(cariNaik(mau)); }
+        if (diam) { letak(tujuanX); aturNaik(t.dy); }
         else if (Math.abs(tujuanX - posisi) > 160) {
           // Jarak jauh: menghilang sebentar, lalu berjalan masuk dari tepi pojok tujuan.
           sibuk = true;
           tombol.style.opacity = "0";
           setTimeout(function () {
-            aturNaik(cariNaik(mau));
+            aturNaik(t.dy);
             letak(mau === "kiri" ? -tombol.offsetWidth : window.innerWidth);
             tombol.style.opacity = "";
             jalan(tujuanX);
           }, 200);
         }
-        else jalan(tujuanX, function () { aturNaik(cariNaik(mau)); });
+        else jalan(tujuanX, function () { aturNaik(t.dy); });
       }
-    }, 700);
+      else if (t.dy !== naik) aturNaik(t.dy);
+    }, 400);
   }
 
   // Kembali dari mode arkade: tirai piksel yang dipasang <head> (kelas "tirai") dibuka acak dari pojok beruang.
@@ -260,7 +282,7 @@
     bukaTirai();
     tampil("diam");
     var x = xPojok(pojok);
-    aturNaik(cariNaik(pojok));
+    aturNaik(cariNaik(pojok) || 0);
     if (diam || sesi(KUNCI_SESI)) { letak(x); }
     else {
       sesi(KUNCI_SESI, "1");

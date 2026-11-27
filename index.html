@@ -313,6 +313,10 @@ h1 .judul-utama { display: inline; margin: 0; color: inherit; font-size: inherit
   h1 span { font-size: calc(20px * var(--s-subjudul, 1)); }
   .baris { grid-template-columns: 34px minmax(0, 1fr); padding: 13px 16px; }
   .buka { display: none; }
+  /* Kepala halaman diringkas di HP supaya kolom cari dan daftar layanan cepat terlihat:
+     label jejak dan deskripsi panel disembunyikan, foto banner tetap tampil lebih pendek. */
+  .panel .label, .panel-deskripsi { display: none; }
+  .panel-dalam { padding-bottom: 56px; }
 }
 @media (max-width: 420px) {
   .kabar.bergeser .info .label { padding-right: 0; }

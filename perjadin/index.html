@@ -189,6 +189,12 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
 .kartu:disabled { cursor: default; }
 .keadaan.galat { background: var(--merah-latar); border-left: 3px solid var(--merah-teks); border-radius: 4px; padding: 12px 18px; margin: 0; color: var(--merah-teks); }
 .keadaan.galat a { color: inherit; font-weight: 700; }
+.coba-lagi {
+  display: inline-flex; align-items: center; min-height: 44px; margin-top: 8px; padding: 0 16px; border: 1px solid currentColor; border-radius: 8px;
+  background: transparent; color: inherit; font: 700 14px var(--huruf); cursor: pointer;
+}
+.coba-lagi:hover { background: rgba(0,0,0,.05); }
+.coba-lagi:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: 2px; }
 
 /* Kartu ringkas sekaligus penyaring status */
 .ringkas { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
@@ -232,6 +238,9 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
   background: transparent; color: var(--tinta-lembut); font: 700 12px var(--huruf); letter-spacing: .06em; text-transform: uppercase; cursor: pointer;
 }
 .urut + .urut { margin-left: 0; }
+/* Area sentuh diperluas ke 44px tanpa mengubah tinggi baris kepala tabel. */
+.urut { position: relative; }
+.urut::after { content: ""; position: absolute; inset: -7px 0; }
 .urut:hover { background: var(--abu-latar); color: var(--laut-tua); }
 .urut:focus-visible { outline: 3px solid var(--emas-tua); outline-offset: 1px; }
 .urut i { font-style: normal; font-size: 13px; line-height: 1; opacity: .35; }
@@ -365,7 +374,8 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
   .kepala { display: flex; flex-wrap: wrap; padding: 0; margin: 0; gap: 6px; }
   .kepala > div { display: contents; }
   .kepala-label { display: inline; }
-  .urut, .urut + .urut { margin-left: 0; box-shadow: inset 0 0 0 1px var(--garis); min-height: 34px; }
+  .urut, .urut + .urut { margin-left: 0; box-shadow: inset 0 0 0 1px var(--garis); min-height: 44px; padding: 2px 12px; }
+  .urut::after { inset: 0; }
   .baris { grid-template-columns: minmax(0, 1fr) auto; }
   .peserta { grid-column: 1 / -1; grid-row: 2; }
   .status { align-items: flex-end; text-align: right; }
@@ -887,7 +897,15 @@ h1 span { display: block; margin-top: 8px; color: var(--emas-terang); font-size:
       .catch(function (e) {
         elKeadaan.className = "keadaan galat";
         elKeadaan.textContent = "";
-        elKeadaan.appendChild(document.createTextNode("Data belum bisa dimuat (" + e.message + "). " + (semuaData.length ? "Yang tampil adalah data terakhir. " : "") + "Coba muat ulang beberapa saat lagi, atau hubungi Bendahara Pengeluaran."));
+        // Rincian teknis hanya untuk konsol; pegawai mendapat pesan biasa dan tombol untuk mencoba lagi.
+        if (window.console) console.warn("Perjadin: data gagal dimuat.", e);
+        elKeadaan.appendChild(document.createTextNode("Data belum bisa dimuat. " + (semuaData.length ? "Yang tampil adalah data terakhir. " : "") + "Periksa koneksi internet, lalu coba lagi. Bila masih gagal, hubungi Bendahara Pengeluaran. "));
+        var cobaLagi = document.createElement("button");
+        cobaLagi.type = "button";
+        cobaLagi.className = "coba-lagi";
+        cobaLagi.textContent = "Coba lagi";
+        cobaLagi.addEventListener("click", muat);
+        elKeadaan.appendChild(cobaLagi);
         if (!semuaData.length) { elHasil.textContent = ""; elRingkas.textContent = ""; elRingkas.removeAttribute("aria-busy"); }
       })
       .then(function () {
