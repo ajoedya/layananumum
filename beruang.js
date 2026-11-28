@@ -132,7 +132,9 @@
   // Pojok dianggap kosong bila tak ada teks dari bagian yang menetap di bawah beruang,
   // dan tak ada tautan atau tombol (menetap maupun ikut menggulir).
   function kosongDi(x, y, w) {
-    var titik = [[x + 2, y + 2], [x + w - 2, y + 2], [x + w / 2, y + w / 2], [x + 2, y + w - 2], [x + w - 2, y + w - 2]];
+    // Titik periksa sedikit di luar badan beruang supaya ada jarak dari tautan di sekitarnya.
+    var a = -6, z = w + 6, m = w / 2;
+    var titik = [[x + a, y + a], [x + m, y + a], [x + z, y + a], [x + a, y + m], [x + m, y + m], [x + z, y + m], [x + a, y + z], [x + m, y + z], [x + z, y + z]];
     for (var i = 0; i < titik.length; i++) {
       var dibawah = document.elementsFromPoint(titik[i][0], titik[i][1]);
       for (var j = 0; j < dibawah.length; j++) {
